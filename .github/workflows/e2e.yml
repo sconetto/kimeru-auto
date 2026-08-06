@@ -34,7 +34,7 @@ jobs:
       ADMIN_EMAIL: admin@kimeru.example
       ADMIN_PASSWORD: admin123456
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
