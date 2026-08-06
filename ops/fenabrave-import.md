@@ -24,7 +24,7 @@ previous month's report.
 3. **Handle unmatched models** (if any):
    - Create the missing model in `/admin/cars` if it's a real new model
    - Re-import the file
-4. **Verify** the public page `/mais-vendidos` shows the new month's data
+4. **Verify** the public page `/best-sellers` shows the new month's data
 
 ## Expected Output
 

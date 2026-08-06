@@ -86,7 +86,7 @@ Vercel (see `.github/workflows/`).
 - **Sentry**: install `@sentry/nextjs` (`npx @sentry/wizard@latest -i nextjs`),
   set `NEXT_PUBLIC_SENTRY_DSN` + `SENTRY_AUTH_TOKEN` in Vercel.
 - **Vercel Analytics**: enable in Project → Analytics (free tier).
-- **Uptime**: BetterStack — create monitors for `/` and `/pt-BR/financiamento`,
+- **Uptime**: BetterStack — create monitors for `/` and `/pt-BR/financing`,
   alert on >2 consecutive failures.
 
 ## Step 7 — Backups (⛔ 16.6)

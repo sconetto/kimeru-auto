@@ -15,15 +15,16 @@
 
 | Feature | Description |
 |---------|-------------|
-| 🆚 **Car Comparison** | Compare up to 3 cars side-by-side with 14 spec categories (engine, transmission, dimensions, consumption, safety, comfort/technology, warranty, accessories, and more). Best-in-category highlighting and shareable URLs. |
-| 💰 **Financing Calculator** | Brazilian financing simulation with **CET** (Custo Efetivo Total) per Banco Central Resolução 3.517 — includes IOF, TAC, insurance, and registration fees. PRICE table amortization schedule, cost breakdown charts, and term comparison. |
-| 📊 **FIPE Table** | Real FIPE prices for both **0km** and used vehicles, with monthly price history and depreciation tracking. |
+| 🆚 **Car Comparison** | Compare up to 3 cars side-by-side with 14 spec categories (engine, transmission, dimensions, consumption, safety, comfort/technology, warranty, accessories, and more). Competitive radar chart with per-category scoring, best-in-category highlighting, tie detection, and shareable URLs. |
+| 💰 **Financing Calculator** | Brazilian financing simulation with **CET** (Custo Efetivo Total) per Banco Central Resolução 3.517 — includes IOF, TAC, insurance, and registration fees. PRICE table amortization schedule, cost breakdown charts, term comparison, and both slider and exact-value inputs. |
+| 📊 **FIPE Table** | Real FIPE prices for both **0km** and used vehicles, with per-year depreciation bars and monthly price history. |
 | 📈 **Sales Rankings** | FENABRAVE monthly sales data — see what Brazilians are actually buying, with trends and market context. |
+| 📖 **About Page** | Project back story, the open-source mission, creator bio, and Ko-fi support link. |
 
 ### Platform
 
-- 🌐 **Multi-language**: PT-BR (primary) and EN-US (secondary), URL-based routing
-- 🛠️ **Admin Panel**: Manage brands, models, specs, and editorial content — no developer needed
+- 🌐 **Multi-language**: PT-BR (default) and EN-US, English canonical routes (`/compare`, `/financing`) with full UI translation via next-intl
+- 🛠️ **Admin Panel**: Manage brands, models, specs, editorial content, FIPE/FENABRAVE imports, and sales analytics — no developer needed
 - 🤖 **AI-Assisted Editorial**: Generate structured pros/cons/ratings from YouTube car reviews, with mandatory human review before publishing
 - 📱 **Responsive**: Mobile → desktop, no native apps required
 - 🔍 **SEO-First**: Structured data, sitemaps, per-locale metadata, ISR for fast pages
@@ -34,16 +35,16 @@
 
 | Layer | Technology |
 |-------|------------|
-| **Framework** | [Next.js 15](https://nextjs.org/) (App Router) + React 19 |
+| **Framework** | [Next.js 16](https://nextjs.org/) (App Router, Turbopack) + React 19 |
 | **Language** | TypeScript (strict) |
 | **Database** | PostgreSQL ([Supabase](https://supabase.com/)) via [Drizzle ORM](https://orm.drizzle.team/) |
 | **Cache** | Redis ([Upstash](https://upstash.com/)) |
 | **Auth** | [NextAuth.js v5](https://next-auth.js.org/) (admin-only) |
 | **i18n** | [next-intl](https://next-intl.dev/) |
-| **UI** | [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/) |
+| **UI** | [Tailwind CSS](https://tailwindcss.com/) + [lucide-react](https://lucide.dev/) icons |
 | **Testing** | [Vitest](https://vitest.dev/) + [Playwright](https://playwright.dev/) |
 | **Hosting** | [Vercel](https://vercel.com/) |
-| **Monitoring** | [Sentry](https://sentry.io/) + Vercel Analytics |
+| **Monitoring** | Sentry + Vercel Analytics |
 
 ---
 
@@ -114,11 +115,19 @@ kimeru-auto/
 ├── .github/            # Issue/PR templates, CI workflows
 ├── src/
 │   ├── app/            # Next.js routes
-│   │   ├── [locale]/   # Public routes (PT-BR, EN-US)
-│   │   ├── admin/      # Admin panel (auth-protected)
-│   │   └── api/        # API routes
+│   │   ├── [locale]/   # Public routes (PT-BR, EN-US) — English canonical paths
+│   │   │   ├── compare/      # /compare — car comparison + radar
+│   │   │   ├── financing/    # /financing — financing simulator
+│   │   │   ├── fipe/         # /fipe — FIPE price lookup
+│   │   │   ├── brands/       # /brands — brand catalog
+│   │   │   ├── car/          # /car/[slug] — car detail
+│   │   │   ├── category/     # /category/[category]
+│   │   │   ├── best-sellers/ # /best-sellers — FENABRAVE rankings
+│   │   │   └── about/        # /about — project story + creator
+│   │   ├── admin/      # Admin panel (auth-protected, PT-BR)
+│   │   └── api/        # API routes (FIPE, catalog, admin)
 │   ├── components/     # UI + feature components
-│   ├── lib/            # Business logic (db, fipe, financing, etc.)
+│   ├── lib/            # Business logic (db, fipe, financing, compare, ai)
 │   └── messages/       # i18n dictionaries (pt-BR.json, en-US.json)
 ├── ops/               # Operational runbooks (import, rollback, incidents)
 └── tests/              # Unit, integration, E2E tests
@@ -140,10 +149,6 @@ openspec show kimeru-auto-mvp      # View current change details
 openspec validate kimeru-auto-mvp  # Validate artifacts
 ```
 
-Current active change: **`kimeru-auto-mvp`** — the complete MVP including car
-catalog, comparison tool, financing calculator, FIPE + FENABRAVE integration,
-admin panel, i18n, and the AI content pipeline.
-
 ---
 
 ## 🤝 Contributing
@@ -154,6 +159,7 @@ We welcome contributions! Please read our
 - Report bugs and request features via [GitHub Issues](https://github.com/sconetto/kimeru-auto/issues)
 - Follow the **[Code of Conduct](CODE_OF_CONDUCT.md)**
 - Found a security issue? See our **[Security Policy](SECURITY.md)**
+- Like the project? Consider [supporting it on Ko-fi](https://ko-fi.com/sconetto) ☕
 
 ---
 
