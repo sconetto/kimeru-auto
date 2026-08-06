@@ -1,0 +1,47 @@
+# Local development infrastructure for Kimeru Auto.
+# Version-matched to production (Supabase Postgres 17) and CI.
+#
+#   npm run setup:local   (or: docker compose up -d)
+#
+# Ports: Postgres 55432, Redis 56379 (non-standard to avoid clashing
+# with other local projects / the system Postgres).
+
+name: kimeru-auto
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: kimeru-auto-pg
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: kimeru-auto
+    ports:
+      - "55432:5432"
+    volumes:
+      - kimeru_auto_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d kimeru-auto"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  redis:
+    image: redis:7-alpine
+    container_name: kimeru-auto-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "56379:6379"
+    volumes:
+      - kimeru_auto_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  kimeru_auto_pgdata:
+  kimeru_auto_redisdata:
