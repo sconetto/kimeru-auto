@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Mozilla_Headline, Mozilla_Text } from "next/font/google";
 import "./globals.css";
@@ -41,6 +42,7 @@ export default function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${mozillaText.variable} ${mozillaHeadline.variable} antialiased`}>
         {children}
+        <Analytics />
       </body>
     </html>
   );
