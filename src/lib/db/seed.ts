@@ -23,6 +23,9 @@ import { seedBrands, seedModels, seedSpecCategories } from "./seed-data";
  */
 
 async function main() {
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_SEED_IN_PRODUCTION !== "1") {
+    throw new Error("Refusing to seed in production. Set ALLOW_SEED_IN_PRODUCTION=1 to override.");
+  }
   console.log("🌱 Seeding Kimeru Auto database...");
 
   /* 1. Spec categories (upsert by slug) */
@@ -220,10 +223,15 @@ async function main() {
 
   /* 5. Admin user (only if none exists) */
   const adminEmail = process.env.ADMIN_EMAIL ?? "admin@kimeru.example";
-  const adminPassword = process.env.ADMIN_PASSWORD ?? "admin123456";
   const existingAdmin = await db.select().from(adminUsers).limit(1);
   if (existingAdmin.length === 0) {
-    const passwordHash = await hash(adminPassword, 10);
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    // Never fall back to the default password in production — that would
+    // seed a live admin with a well-known credential.
+    if (!adminPassword && process.env.NODE_ENV === "production") {
+      throw new Error("ADMIN_PASSWORD must be set to seed the admin user in production");
+    }
+    const passwordHash = await hash(adminPassword ?? "admin123456", 10);
     await db.insert(adminUsers).values({
       email: adminEmail,
       name: "Kimeru Admin",

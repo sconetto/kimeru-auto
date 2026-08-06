@@ -5,10 +5,30 @@ import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { adminUsers } from "@/lib/db/schema";
+import { cache } from "@/lib/fipe/cache";
+import { clientIp, createRateLimiter, rateLimitKey } from "@/lib/ratelimit";
+
+const LOGIN_ACCOUNT_LIMIT = 5;
+const LOGIN_ACCOUNT_WINDOW_SECONDS = 300;
+const LOGIN_IP_LIMIT = 20;
+const LOGIN_IP_WINDOW_SECONDS = 900;
+
+/**
+ * Login throttling buckets — checked before any DB/bcrypt work so brute-force
+ * and username-enumeration attempts are cheap to reject.
+ */
+const loginAccountLimiter = createRateLimiter({
+  limit: LOGIN_ACCOUNT_LIMIT,
+  windowSeconds: LOGIN_ACCOUNT_WINDOW_SECONDS,
+});
+const loginIpLimiter = createRateLimiter({
+  limit: LOGIN_IP_LIMIT,
+  windowSeconds: LOGIN_IP_WINDOW_SECONDS,
+});
 
 /**
  * Shared NextAuth config — used by both the Node.js auth instance
- * (src/lib/auth/index.ts) and the edge middleware (src/middleware.ts).
+ * (src/lib/auth/index.ts) and the edge middleware (src/proxy.ts).
  *
  * Must be edge-safe: no Node-only APIs at module scope.
  */
@@ -30,22 +50,39 @@ export const authConfig = {
         email: { label: "Email", type: "email" },
         password: { label: "Senha", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const parsed = credentialsSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
         const { email, password } = parsed.data;
+        const accountId = email.toLowerCase();
+        const ip = request ? clientIp(request) : "unknown";
+
+        // Throttled before any DB/bcrypt work (see limiter docs above).
+        const [accountLimit, ipLimit] = await Promise.all([
+          loginAccountLimiter(accountId),
+          loginIpLimiter(ip),
+        ]);
+        if (!accountLimit.success || !ipLimit.success) return null;
 
         const [user] = await db
           .select()
           .from(adminUsers)
-          .where(eq(adminUsers.email, email.toLowerCase()))
+          .where(eq(adminUsers.email, accountId))
           .limit(1);
 
         if (!user?.isActive) return null;
 
         const valid = await compare(password, user.passwordHash);
         if (!valid) return null;
+
+        // Successful sign-in — clear both throttle buckets so a legitimate
+        // user who mistyped a couple of times isn't locked out for the rest
+        // of the window.
+        await Promise.allSettled([
+          cache.del(rateLimitKey(LOGIN_ACCOUNT_WINDOW_SECONDS, accountId)),
+          cache.del(rateLimitKey(LOGIN_IP_WINDOW_SECONDS, ip)),
+        ]);
 
         return {
           id: String(user.id),

@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { logAudit } from "@/lib/admin/audit";
-import { auth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { db } from "@/lib/db";
 import { editorial } from "@/lib/db/schema";
 
@@ -21,10 +21,9 @@ const bodySchema = z.object({
 
 /** POST /api/admin/editorial/publish — persist reviewed editorial content. */
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-  }
+  const guard = await requireAdmin({ minRole: "editor" });
+  if (!guard.ok) return guard.response;
+  const session = guard.session;
 
   const parsed = bodySchema.safeParse(await request.json());
   if (!parsed.success) {
@@ -49,7 +48,7 @@ export async function POST(request: Request) {
         summary: content.summary,
         rating: String(content.rating),
         aiGenerated: true,
-        reviewedBy: Number(session.user.id),
+        reviewedBy: session.id,
         published: true,
         updatedAt: new Date(),
       })
@@ -67,7 +66,7 @@ export async function POST(request: Request) {
         rating: String(content.rating),
         sourceVideos: [],
         aiGenerated: true,
-        reviewedBy: Number(session.user.id),
+        reviewedBy: session.id,
         published: true,
       })
       .returning();
@@ -75,7 +74,7 @@ export async function POST(request: Request) {
   }
 
   await logAudit({
-    adminId: Number(session.user.id),
+    adminId: session.id,
     action: "publish",
     entityType: "editorial",
     entityId: editorialId,

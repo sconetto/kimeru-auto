@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { logAudit } from "@/lib/admin/audit";
-import { auth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { db } from "@/lib/db";
 import { specValues } from "@/lib/db/schema";
 
@@ -23,10 +23,9 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ modelYearId: string }> },
 ) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-  }
+  const guard = await requireAdmin({ minRole: "editor" });
+  if (!guard.ok) return guard.response;
+  const session = guard.session;
 
   const { modelYearId } = await params;
   const id = Number(modelYearId);
@@ -68,7 +67,7 @@ export async function POST(
   }
 
   await logAudit({
-    adminId: Number(session.user.id),
+    adminId: session.id,
     action: "update",
     entityType: "spec_values",
     entityId: id,

@@ -1,4 +1,5 @@
 import NextAuth from "next-auth";
+import "../env";
 import { authConfig } from "./auth-config";
 
 /**
@@ -6,7 +7,7 @@ import { authConfig } from "./auth-config";
  * server actions, server components).
  *
  * The edge middleware uses `NextAuth(authConfig).auth` directly —
- * see src/middleware.ts.
+ * see src/proxy.ts.
  *
  * Session/JWT type augmentation lives in src/types/next-auth.d.ts.
  */

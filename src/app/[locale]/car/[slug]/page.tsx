@@ -54,30 +54,34 @@ export default async function CarDetailPage({
   const tCommon = await getTranslations({ locale, namespace: "common" });
   const tCar = await getTranslations({ locale, namespace: "car" });
 
+  // JSON-LD for structured-data crawlers. `<`/`>` are escaped so DB-controlled
+  // field values can never terminate the script tag (XSS via JSON-LD breakout).
+  const jsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Car",
+    name: `${car.brandName} ${car.modelName}`,
+    brand: { "@type": "Brand", name: car.brandName },
+    model: car.modelName,
+    vehicleModelDate: String(car.year),
+    fuelType: fuelLabels[car.fuelType] ?? car.fuelType,
+    offers: car.priceFipe
+      ? {
+          "@type": "Offer",
+          price: String(Number(car.priceFipe)),
+          priceCurrency: "BRL",
+          availability: "https://schema.org/InStock",
+        }
+      : undefined,
+  })
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e");
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <script
         type="application/ld+json"
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD from our own DB values (no user input)
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Car",
-            name: `${car.brandName} ${car.modelName}`,
-            brand: { "@type": "Brand", name: car.brandName },
-            model: car.modelName,
-            vehicleModelDate: String(car.year),
-            fuelType: fuelLabels[car.fuelType] ?? car.fuelType,
-            offers: car.priceFipe
-              ? {
-                  "@type": "Offer",
-                  price: String(Number(car.priceFipe)),
-                  priceCurrency: "BRL",
-                  availability: "https://schema.org/InStock",
-                }
-              : undefined,
-          }),
-        }}
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD with <, > escaped via \u003c/\u003e
+        dangerouslySetInnerHTML={{ __html: jsonLd }}
       />
       {/* Breadcrumb */}
       <p className="mb-4 text-sm text-slate-500">

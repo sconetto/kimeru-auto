@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { parseFipePrice } from "@/lib/fipe/client";
+import { clientIp, createRateLimiter } from "@/lib/ratelimit";
 
 const BASE_URL = process.env.FIPE_API_BASE_URL ?? "https://fipe.parallelum.com.br/api/v2";
 const API_TOKEN = process.env.FIPE_API_TOKEN;
+
+// This route fans out one upstream FIPE call per model year, so cap per-IP
+// traffic to protect the shared upstream quota (500 req/day without token).
+const priceLimiter = createRateLimiter({ limit: 30, windowSeconds: 60 });
 
 interface FipeYearRaw {
   code: string;
@@ -28,6 +33,14 @@ function authHeaders(): Record<string, string> {
 }
 
 export async function GET(request: Request) {
+  const rl = await priceLimiter(`all-prices:${clientIp(request)}`);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(rl.reset / 1000)) } },
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const brandId = searchParams.get("brandId");
   const modelId = searchParams.get("modelId");

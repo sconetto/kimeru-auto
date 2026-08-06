@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { generateEditorial } from "@/lib/ai/pipeline";
-import { auth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -13,10 +13,8 @@ const bodySchema = z.object({
 
 /** POST /api/admin/ai/generate — trigger AI editorial generation. */
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-  }
+  const guard = await requireAdmin({ minRole: "editor" });
+  if (!guard.ok) return guard.response;
 
   const parsed = bodySchema.safeParse(await request.json());
   if (!parsed.success) {

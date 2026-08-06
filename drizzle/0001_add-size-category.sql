@@ -1,0 +1,1 @@
+ALTER TABLE "models" ADD COLUMN "size_category" varchar(50);

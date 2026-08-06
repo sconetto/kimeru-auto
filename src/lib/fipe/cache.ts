@@ -47,6 +47,25 @@ class MemoryFallback {
       return entry && entry.expiresAt >= Date.now();
     }).length;
   }
+
+  async incr(key: string): Promise<number> {
+    const entry = this.store.get(key);
+    const now = Date.now();
+    if (!entry || entry.expiresAt < now) {
+      this.store.set(key, { value: "1", expiresAt: now + 3600 * 1000 });
+      return 1;
+    }
+    const next = Number(entry.value) + 1;
+    this.store.set(key, { value: String(next), expiresAt: entry.expiresAt });
+    return next;
+  }
+
+  async expire(key: string, seconds: number): Promise<number> {
+    const entry = this.store.get(key);
+    if (!entry) return 0;
+    this.store.set(key, { value: entry.value, expiresAt: Date.now() + seconds * 1000 });
+    return 1;
+  }
 }
 
 const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
