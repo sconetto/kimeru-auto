@@ -1,12 +1,48 @@
 "use client";
 
-import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { type FormEvent, useState } from "react";
 
-export function LoginForm({ action }: { action: (formData: FormData) => Promise<void> }) {
-  const { pending } = useFormStatus();
+/**
+ * Login form using the NextAuth HTTP handler flow (client signIn).
+ * The server-action signIn() is broken on Next.js 16 with NextAuth v5
+ * beta (upstream issue #13387) — the route handler works fine.
+ */
+export function LoginForm() {
+  const router = useRouter();
+  const [error, setError] = useState(false);
+  const [pending, setPending] = useState(false);
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setPending(true);
+    setError(false);
+
+    const form = new FormData(e.currentTarget);
+    const res = await signIn("credentials", {
+      email: String(form.get("email") ?? ""),
+      password: String(form.get("password") ?? ""),
+      redirect: false,
+    });
+
+    setPending(false);
+
+    if (res?.error) {
+      setError(true);
+    } else {
+      router.push("/admin");
+      router.refresh();
+    }
+  }
 
   return (
-    <form action={action} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <div className="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          Email ou senha inválidos.
+        </div>
+      )}
       <div>
         <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-300">
           Email
@@ -18,7 +54,7 @@ export function LoginForm({ action }: { action: (formData: FormData) => Promise<
           autoComplete="email"
           required
           className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          placeholder="admin@kimeru.example"
+          placeholder="kimeru@sconetto.me"
         />
       </div>
 
