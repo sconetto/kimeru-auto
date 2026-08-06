@@ -1,0 +1,27 @@
+name: FIPE Sync (monthly)
+
+on:
+  schedule:
+    - cron: "0 4 2 * *" # 2nd day of month, 04:00 UTC (FIPE publishes on the 1st)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: Sync FIPE reference data + prices
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run FIPE sync
+        run: npm run fipe:sync
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          FIPE_API_TOKEN: ${{ secrets.FIPE_API_TOKEN }}

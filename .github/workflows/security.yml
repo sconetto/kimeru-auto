@@ -1,0 +1,30 @@
+name: Security Audit
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Weekly, Monday 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  audit:
+    name: npm audit + Semgrep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: npm audit (production deps)
+        run: npm audit --omit=dev
+        continue-on-error: true # findings are reported, not fatal
+
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v2
+        with:
+          config: auto

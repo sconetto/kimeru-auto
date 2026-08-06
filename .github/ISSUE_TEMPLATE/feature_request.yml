@@ -1,0 +1,43 @@
+name: Feature Request
+description: Suggest a new feature or improvement for Kimeru Auto
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please check existing issues first to avoid duplicates.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the problem or pain point a user faces today.
+      placeholder: "Users cannot..."
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe how you envision the feature working.
+      placeholder: "The site should..."
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any alternative approaches or workarounds you've thought of?
+      placeholder: "I considered..."
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Feature scope
+      options:
+        - label: Public-facing tool (comparison, FIPE, financing)
+        - label: Admin panel / data management
+        - label: Data integration (FIPE, FENABRAVE, etc.)
+        - label: Internationalization (PT-BR / EN-US)
+        - label: SEO / performance
+    validations:
+      required: false
