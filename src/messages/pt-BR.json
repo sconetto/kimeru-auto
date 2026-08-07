@@ -94,7 +94,10 @@
     "registrationTooltip": "Taxa de registro do contrato no órgão de trânsito (DETRAN).",
     "ordinalSuffix": "ª",
     "impliedRate": "Taxa implícita:",
-    "annualRate": "a.a."
+    "annualRate": "a.a.",
+    "cetMonthly": "CET mensal",
+    "effectiveMonthlyRate": "Taxa efetiva a.m.",
+    "financedAmount": "Valor financiado"
   },
   "fipe": {
     "title": "Tabela FIPE",

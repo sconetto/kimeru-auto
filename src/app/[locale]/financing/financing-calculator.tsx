@@ -248,14 +248,20 @@ export function FinancingCalculator({ initialPrice }: { initialPrice?: number })
             value={formatBRL(result.monthlyPayment)}
             highlight
           />
+          <ResultCard label={t("cetMonthly")} value={formatRate(result.cetMonthly)} highlight />
           <ResultCard label={t("cetAnnual")} value={formatRate(result.cetAnnual)} highlight />
-          <ResultCard label={t("totalPaid")} value={formatBRL(result.totalPaid)} />
-          <ResultCard label={t("totalInterest")} value={formatBRL(result.totalInterest)} />
-          <ResultCard label={t("iof")} value={formatBRL(result.iof)} />
+          <ResultCard label={t("financedAmount")} value={formatBRL(result.financedAmount)} />
+          <ResultCard
+            label={t("effectiveMonthlyRate")}
+            value={formatRate(result.effectiveMonthlyRate)}
+          />
           <ResultCard
             label={t("effectiveAnnualRate")}
             value={formatRate(result.effectiveAnnualRate)}
           />
+          <ResultCard label={t("totalPaid")} value={formatBRL(result.totalPaid)} />
+          <ResultCard label={t("totalInterest")} value={formatBRL(result.totalInterest)} />
+          <ResultCard label={t("iof")} value={formatBRL(result.iof)} />
         </div>
 
         {/* Cost breakdown bar */}
@@ -441,6 +447,32 @@ function FeeInput({
   );
 }
 
+/**
+ * pt-BR-aware money parsing: comma is always decimal; a trailing 3-digit
+ * dot group is a thousands separator (1.500 → 1500), otherwise dot is decimal.
+ */
+function parseNumericInput(raw: string): number {
+  const text = raw.trim();
+  if (!text) return 0;
+
+  const hasComma = text.includes(",");
+  const hasDot = text.includes(".");
+
+  if (hasComma && hasDot) {
+    return Number(text.replace(/\./g, "").replace(",", "."));
+  }
+  if (hasComma) {
+    return Number(text.replace(",", "."));
+  }
+  if (hasDot) {
+    if (/\.\d{3}$/.test(text)) {
+      return Number(text.replace(/\./g, ""));
+    }
+    return Number(text);
+  }
+  return Number(text);
+}
+
 function CurrencyInput({
   id,
   value,
@@ -465,7 +497,7 @@ function CurrencyInput({
     <input
       id={id}
       type="text"
-      inputMode="numeric"
+      inputMode="decimal"
       value={editing ? draft : formatBRL(value)}
       onFocus={(e) => {
         setEditing(true);
@@ -474,9 +506,9 @@ function CurrencyInput({
       }}
       onChange={(e) => {
         setDraft(e.target.value);
-        const digits = Number(e.target.value.replace(/[^\d]/g, ""));
-        if (!Number.isNaN(digits)) {
-          onChange(Math.min(max ?? Infinity, Math.max(min ?? 0, digits)));
+        const parsed = parseNumericInput(e.target.value);
+        if (!Number.isNaN(parsed)) {
+          onChange(Math.min(max ?? Infinity, Math.max(min ?? 0, parsed)));
         }
       }}
       onBlur={() => setEditing(false)}

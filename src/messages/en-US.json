@@ -94,7 +94,10 @@
     "registrationTooltip": "Contract registration fee charged by the traffic authority (DETRAN).",
     "ordinalSuffix": "th",
     "impliedRate": "Implied rate:",
-    "annualRate": "p.a."
+    "annualRate": "p.a.",
+    "cetMonthly": "Monthly CET",
+    "effectiveMonthlyRate": "Effective monthly rate",
+    "financedAmount": "Financed amount"
   },
   "fipe": {
     "title": "FIPE Table",
