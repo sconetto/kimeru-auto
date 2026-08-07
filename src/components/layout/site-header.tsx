@@ -5,9 +5,9 @@ import {
   Construction,
   House,
   Info,
+  type LucideIcon,
   Scale,
   TrendingUp,
-  type LucideIcon,
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { Locale } from "@/lib/i18n/config";
