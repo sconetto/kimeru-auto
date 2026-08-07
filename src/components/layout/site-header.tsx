@@ -26,9 +26,12 @@ export async function SiteHeader({ locale }: Props) {
   return (
     <>
       {/* Under-construction banner */}
-      <div className="flex items-center justify-center gap-2 bg-amber-400 px-4 py-1.5 text-center text-xs font-semibold text-amber-950">
-        <Construction className="h-3.5 w-3.5 shrink-0" />
-        <span>{tBanner("text")}</span>
+      <div className="flex flex-col items-center justify-center gap-0.5 bg-amber-400 px-4 py-1.5 text-center text-xs font-semibold text-amber-950">
+        <span className="flex items-center gap-1.5">
+          <Construction className="h-3.5 w-3.5 shrink-0" />
+          {tBanner("text")}
+        </span>
+        <span>{tBanner("hint")}</span>
       </div>
 
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">

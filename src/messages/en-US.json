@@ -221,6 +221,7 @@
     }
   },
   "banner": {
-    "text": "Site under construction 🚧👷🏻 Great things come to those who wait! 💯"
+    "text": "Site under construction 🚧👷🏻",
+    "hint": "Great things come to those who wait! 💯"
   }
 }
