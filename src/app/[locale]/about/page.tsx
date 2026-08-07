@@ -27,6 +27,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     { href: "https://www.linkedin.com/in/sconetto", label: t("links.linkedin") },
     { href: "https://sconetto.me", label: t("links.website") },
     { href: "https://blog.sconetto.me", label: t("links.blog") },
+    { href: "https://photos.sconetto.me", label: t("links.photos") },
   ];
 
   return (

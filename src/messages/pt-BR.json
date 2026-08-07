@@ -204,7 +204,8 @@
       "github": "GitHub",
       "linkedin": "LinkedIn",
       "website": "Website",
-      "blog": "Blog"
+      "blog": "Blog",
+      "photos": "Fotos"
     },
     "support": {
       "title": "Apoie o projeto",
@@ -218,5 +219,9 @@
       "p2": "Já “Auto” vem do alemão “das Auto” — a palavra para carro. É uma homenagem à engenharia alemã e à paixão automotiva que inspiram o projeto.",
       "p3": "Juntos, Kimeru Auto é um convite: decida melhor, dirija melhor."
     }
+  },
+  "banner": {
+    "text": "Site em construção",
+    "hint": "Coisas boas vêm para quem espera"
   }
 }
