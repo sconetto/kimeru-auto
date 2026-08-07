@@ -1,4 +1,4 @@
-import { Heart, Sparkles, User } from "lucide-react";
+import { Heart, Languages, Sparkles, User } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/lib/i18n/navigation";
@@ -40,6 +40,19 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         <p className="mt-2 text-sm font-semibold text-blue-600 dark:text-blue-400">
           {t("tagline")}
         </p>
+      </section>
+
+      {/* Name origin */}
+      <section className="mt-12">
+        <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-slate-900 dark:text-white">
+          <Languages className="h-5 w-5 text-violet-500" />
+          {t("name.title")}
+        </h2>
+        <div className="space-y-4 text-slate-600 dark:text-slate-300">
+          <p>{t("name.p1")}</p>
+          <p>{t("name.p2")}</p>
+          <p>{t("name.p3")}</p>
+        </div>
       </section>
 
       {/* Back story */}

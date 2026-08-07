@@ -211,6 +211,12 @@
       "text": "Kimeru Auto is free and will stay that way. If the platform helped you make a better decision, consider supporting the project with a virtual coffee on Ko-fi. Any contribution helps keep the service running and evolving.",
       "button": "Buy me a coffee ☕"
     },
-    "backToHome": "← Back to home"
+    "backToHome": "← Back to home",
+    "name": {
+      "title": "Where does the name come from?",
+      "p1": "“Kimeru” (決める) is a Japanese word meaning “to decide”. It is the heart of the project: our mission is to give you the right data to decide, with clarity and confidence, which car is ideal for your life.",
+      "p2": "“Auto”, in turn, comes from the German “das Auto” — the word for car. It is a nod to German engineering and the automotive passion that inspires the project.",
+      "p3": "Together, Kimeru Auto is an invitation: decide better, drive better."
+    }
   }
 }
