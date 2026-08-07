@@ -417,8 +417,16 @@ function FeeInput({
     <div>
       <label htmlFor={inputId} className="mb-1 flex items-center gap-1 text-xs text-slate-500">
         {label}
-        <span title={tooltip} className="cursor-help">
-          <Info className="h-3 w-3 shrink-0 text-slate-400" aria-hidden="true" />
+        <span
+          tabIndex={0}
+          role="button"
+          aria-label={tooltip}
+          className="group relative inline-flex cursor-help rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        >
+          <Info className="h-3 w-3 shrink-0 text-slate-400 transition-colors group-hover:text-blue-600 group-focus:text-blue-600 dark:text-slate-500 dark:group-hover:text-blue-400 dark:group-focus:text-blue-400" aria-hidden="true" />
+          <span className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-56 rounded-md bg-slate-900 px-3 py-2 text-left text-xs font-normal leading-relaxed text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus:opacity-100 dark:bg-slate-700">
+            {tooltip}
+          </span>
         </span>
       </label>
       <CurrencyInput
