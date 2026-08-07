@@ -6,7 +6,6 @@
     "financing": "Financing",
     "bestSellers": "Best Sellers",
     "simulate": "Simulate",
-    "sales": "Sales",
     "brands": "Brands",
     "about": "About"
   },
@@ -179,7 +178,27 @@
     "english": "English"
   },
   "footer": {
-    "rights": "© {year} Kimeru Auto. FIPE and FENABRAVE data for informational purposes."
+    "rights": "© {year} Kimeru Auto. FIPE and FENABRAVE data for informational purposes.",
+    "github": "Source code on GitHub",
+    "groups": {
+      "explore": {
+        "title": "Explore",
+        "compare": "Compare",
+        "fipe": "FIPE Table",
+        "financing": "Financing",
+        "bestSellers": "Best Sellers"
+      },
+      "resources": {
+        "title": "Resources",
+        "brands": "Brands",
+        "about": "About the project"
+      },
+      "project": {
+        "title": "Project",
+        "github": "Source code",
+        "license": "GPL v3 License"
+      }
+    }
   },
   "about": {
     "title": "About Kimeru Auto",

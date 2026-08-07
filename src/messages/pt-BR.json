@@ -6,7 +6,6 @@
     "financing": "Financiamento",
     "bestSellers": "Mais Vendidos",
     "simulate": "Simular",
-    "sales": "Vendas",
     "brands": "Marcas",
     "about": "Sobre"
   },
@@ -179,7 +178,27 @@
     "english": "English"
   },
   "footer": {
-    "rights": "© {year} Kimeru Auto. Dados FIPE e FENABRAVE para fins informativos."
+    "rights": "© {year} Kimeru Auto. Dados FIPE e FENABRAVE para fins informativos.",
+    "github": "Código-fonte no GitHub",
+    "groups": {
+      "explore": {
+        "title": "Explorar",
+        "compare": "Comparar",
+        "fipe": "Tabela FIPE",
+        "financing": "Financiamento",
+        "bestSellers": "Mais Vendidos"
+      },
+      "resources": {
+        "title": "Recursos",
+        "brands": "Marcas",
+        "about": "Sobre o projeto"
+      },
+      "project": {
+        "title": "Projeto",
+        "github": "Código-fonte",
+        "license": "Licença GPL v3"
+      }
+    }
   },
   "about": {
     "title": "Sobre o Kimeru Auto",
