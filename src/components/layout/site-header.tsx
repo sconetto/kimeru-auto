@@ -106,10 +106,7 @@ export async function SiteFooter({ locale }: Props) {
     },
     {
       title: tFooter("groups.resources.title"),
-      links: [
-        { href: "/brands", label: tFooter("groups.resources.brands") },
-        { href: "/about", label: tFooter("groups.resources.about") },
-      ],
+      links: [{ href: "/about", label: tFooter("groups.resources.about") }],
     },
     {
       title: tFooter("groups.project.title"),
