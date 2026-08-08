@@ -50,9 +50,11 @@ export async function POST(
     const categorySlug = slugById.get(v.categoryId);
     // Explicit admin value wins (override); otherwise auto-score scaled specs.
     const numericValue =
-      v.numericValue != null ? v.numericValue : categorySlug && specScaleMap[categorySlug]
-        ? String(getScaledScore(categorySlug, v.value))
-        : v.numericValue;
+      v.numericValue != null
+        ? v.numericValue
+        : categorySlug && specScaleMap[categorySlug]
+          ? String(getScaledScore(categorySlug, v.value))
+          : v.numericValue;
 
     const existing = await db
       .select()
