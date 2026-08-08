@@ -324,6 +324,7 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
                 {content.transcripts.map((t, i) => {
                   const expanded = expandedTranscripts.has(i);
                   return (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: expand state tracked by index
                     <div key={i} className="border-b border-slate-800 last:border-0">
                       <button
                         type="button"

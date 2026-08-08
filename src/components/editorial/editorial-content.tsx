@@ -145,7 +145,7 @@ export function EditorialContent({
               const open = expanded.has(i);
               return (
                 <div
-                  key={`${t.videoUrl}-${i}`}
+                  key={t.videoUrl}
                   className="rounded-md border border-slate-200 dark:border-slate-700"
                 >
                   <button
