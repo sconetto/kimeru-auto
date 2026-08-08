@@ -1,4 +1,5 @@
 import type { CompareCar, SpecGrouped } from "@/lib/catalog/queries";
+import { getScaledScore } from "@/lib/compare/spec-scale";
 
 /**
  * Radar chart scoring — "which car is best based on specs".
@@ -6,8 +7,11 @@ import type { CompareCar, SpecGrouped } from "@/lib/catalog/queries";
  * Each dimension is built from a set of contributing spec slugs. Numeric
  * specs are min-max normalized across the compared cars (0-100), inverted
  * when "lower is better" (e.g. 0-100 time, price). Yes/no specs count as
- * 100 when "Sim"/"yes", 0 otherwise. The dimension score is the average
- * of its normalized contributing values; missing values are skipped.
+ * 100 when "Sim"/"yes", 0 otherwise. Scaled specs are non-numeric specs
+ * with a quality gradient (transmission, headlights...) — they resolve to
+ * a 0-100 score via the quality scale map and normalize like numeric specs.
+ * The dimension score is the average of its normalized contributing values;
+ * missing values are skipped.
  */
 
 export interface RadarDimension {
@@ -19,6 +23,8 @@ export interface RadarDimension {
   lowerIsBetter?: string[];
   /** Slugs treated as boolean presence ("Sim"/"yes" = 100). */
   booleans?: string[];
+  /** Non-numeric slugs scored via the quality scale map. */
+  scaled?: string[];
 }
 
 export const RADAR_DIMENSIONS: RadarDimension[] = [
@@ -53,7 +59,7 @@ export const RADAR_DIMENSIONS: RadarDimension[] = [
     id: "technology",
     label: "Tecnologia",
     specs: [],
-    booleans: ["air-conditioning", "infotainment", "connectivity", "parking-assist"],
+    scaled: ["air-conditioning", "infotainment", "connectivity", "parking-assist"],
   },
   {
     id: "value",
@@ -95,6 +101,22 @@ function rawSpecValue(car: CompareCar, slug: string): string | null {
   for (const group of car.specs) {
     for (const spec of group.specs) {
       if (spec.slug === slug) return spec.value ?? spec.displayValue ?? null;
+    }
+  }
+  return null;
+}
+
+/** Resolve a scaled (non-numeric) spec to its 0-100 quality score. */
+function scaledSpecValue(car: CompareCar, slug: string): number | null {
+  for (const group of car.specs) {
+    for (const spec of group.specs) {
+      if (spec.slug === slug) {
+        if (spec.numericValue != null) {
+          const n = Number(spec.numericValue);
+          if (!Number.isNaN(n)) return n;
+        }
+        return getScaledScore(slug, spec.value ?? spec.displayValue);
+      }
     }
   }
   return null;
@@ -159,6 +181,20 @@ export function computeRadarScores(cars: CompareCar[]): RadarScores {
         if (mine == null || Number.isNaN(mine)) continue;
         const invert = dim.lowerIsBetter?.includes(slug) ?? false;
         numericParts.push(normalize(mine, min, max, invert));
+      }
+
+      // Scaled specs (non-numeric with a quality gradient): same treatment
+      // as numeric specs, but the score comes from the quality scale map.
+      const scaledSpecs = dim.scaled ?? [];
+      for (const slug of scaledSpecs) {
+        const values = cars.map((c) => scaledSpecValue(c, slug));
+        const valid = values.filter((v): v is number => v != null && !Number.isNaN(v));
+        if (valid.length === 0) continue;
+        const min = Math.min(...valid);
+        const max = Math.max(...valid);
+        const mine = scaledSpecValue(car, slug);
+        if (mine == null || Number.isNaN(mine)) continue;
+        numericParts.push(normalize(mine, min, max, false));
       }
 
       // Boolean specs: presence counts as 100.

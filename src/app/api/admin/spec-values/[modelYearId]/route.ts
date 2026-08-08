@@ -3,8 +3,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { logAudit } from "@/lib/admin/audit";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { getScaledScore, specScaleMap } from "@/lib/compare/spec-scale";
 import { db } from "@/lib/db";
-import { specValues } from "@/lib/db/schema";
+import { specCategories, specValues } from "@/lib/db/schema";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,21 @@ export async function POST(
     return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
   }
 
+  // Resolve spec category slugs once so scaled (non-numeric) specs can be
+  // auto-scored from their text value via the quality scale map.
+  const categoryRows = await db
+    .select({ id: specCategories.id, slug: specCategories.slug })
+    .from(specCategories);
+  const slugById = new Map(categoryRows.map((c) => [c.id, c.slug]));
+
   for (const v of parsed.data.values) {
+    const categorySlug = slugById.get(v.categoryId);
+    // Explicit admin value wins (override); otherwise auto-score scaled specs.
+    const numericValue =
+      v.numericValue != null ? v.numericValue : categorySlug && specScaleMap[categorySlug]
+        ? String(getScaledScore(categorySlug, v.value))
+        : v.numericValue;
+
     const existing = await db
       .select()
       .from(specValues)
@@ -50,7 +65,7 @@ export async function POST(
         .update(specValues)
         .set({
           value: v.value,
-          numericValue: v.numericValue,
+          numericValue,
           displayValue: v.value,
           updatedAt: new Date(),
         })
@@ -60,7 +75,7 @@ export async function POST(
         modelYearId: id,
         specCategoryId: v.categoryId,
         value: v.value,
-        numericValue: v.numericValue,
+        numericValue,
         displayValue: v.value,
       });
     }

@@ -174,4 +174,23 @@ describe("technology dimension with descriptive values (regression: all cars sco
     const techIdx = scores.dimensions.findIndex((d) => d.id === "technology");
     expect(scores.scores[0][techIdx]).toBeGreaterThan(scores.scores[1][techIdx]);
   });
+
+  it("scales non-numeric specs by quality (CVT > Automática > Manual)", () => {
+    const cvt = makeCar("a", "100000", {
+      "transmission-type": "CVT",
+      "air-conditioning": "Automático digital dual-zone",
+    });
+    const auto = makeCar("b", "100000", {
+      "transmission-type": "Automática",
+      "air-conditioning": "Automático digital",
+    });
+    const manual = makeCar("c", "100000", {
+      "transmission-type": "Manual",
+      "air-conditioning": "Manual",
+    });
+    const scores = computeRadarScores([cvt, auto, manual]);
+    const techIdx = scores.dimensions.findIndex((d) => d.id === "technology");
+    expect(scores.scores[0][techIdx]).toBeGreaterThan(scores.scores[1][techIdx]);
+    expect(scores.scores[1][techIdx]).toBeGreaterThan(scores.scores[2][techIdx]);
+  });
 });
