@@ -42,6 +42,7 @@ function makeCar(
       specs: v.specs,
     })),
     sales: null,
+    editorialRating: null,
   };
 }
 

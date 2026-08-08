@@ -16,6 +16,33 @@ const bodySchema = z.object({
     cons: z.array(z.string().max(200)).max(5),
     summary: z.string().max(2000),
     rating: z.number().min(1).max(5),
+    scoreBreakdown: z
+      .object({
+        design: z.number().min(1).max(5),
+        comfort: z.number().min(1).max(5),
+        performance: z.number().min(1).max(5),
+        technology: z.number().min(1).max(5),
+        value: z.number().min(1).max(5),
+      })
+      .nullable()
+      .optional(),
+    transcripts: z
+      .array(
+        z.object({
+          videoUrl: z.string().url(),
+          title: z.string().optional(),
+          text: z.string(),
+        }),
+      )
+      .optional(),
+    sourceVideos: z
+      .array(
+        z.object({
+          url: z.string().url(),
+          title: z.string().optional(),
+        }),
+      )
+      .optional(),
   }),
 });
 
@@ -47,6 +74,9 @@ export async function POST(request: Request) {
         cons: content.cons,
         summary: content.summary,
         rating: String(content.rating),
+        scoreBreakdown: content.scoreBreakdown ?? null,
+        transcripts: content.transcripts ?? [],
+        sourceVideos: content.sourceVideos ?? [],
         aiGenerated: true,
         reviewedBy: session.id,
         published: true,
@@ -64,7 +94,9 @@ export async function POST(request: Request) {
         cons: content.cons,
         summary: content.summary,
         rating: String(content.rating),
-        sourceVideos: [],
+        scoreBreakdown: content.scoreBreakdown ?? null,
+        transcripts: content.transcripts ?? [],
+        sourceVideos: content.sourceVideos ?? [],
         aiGenerated: true,
         reviewedBy: session.id,
         published: true,

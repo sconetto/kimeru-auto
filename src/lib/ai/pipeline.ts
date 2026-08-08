@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { editorial } from "@/lib/db/schema";
+import { editorial, type EditorialTranscript } from "@/lib/db/schema";
 import { type ExtractedEditorial, extractEditorial, LlmError } from "./llm";
 import { fetchTranscript, TranscriptError } from "./youtube";
 
@@ -8,8 +8,10 @@ import { fetchTranscript, TranscriptError } from "./youtube";
  * AI content pipeline orchestrator.
  *
  * Admin provides YouTube review URLs → transcripts are fetched → LLM
- * extracts structured pros/cons/summary/rating → content is staged in the
- * editorial table (aiGenerated=true, published=false) for admin review.
+ * extracts structured pros/cons/summary/rating/scoreBreakdown → content is
+ * staged in the editorial table (aiGenerated=true, published=false) for
+ * admin review. Transcripts are stored alongside the content so the source
+ * material survives even if the YouTube video is removed.
  */
 
 export type GenerateStatus = "success" | "no_transcript" | "llm_error" | "validation_error";
@@ -32,11 +34,15 @@ export async function generateEditorial(
 
   // 1. Fetch transcripts (tolerate per-video failures)
   const transcripts: string[] = [];
+  const storedTranscripts: EditorialTranscript[] = [];
   const errors: string[] = [];
   for (const url of videoUrls) {
     try {
       const text = await fetchTranscript(url);
-      if (text) transcripts.push(text);
+      if (text) {
+        transcripts.push(text);
+        storedTranscripts.push({ videoUrl: url, text });
+      }
     } catch (err) {
       if (err instanceof TranscriptError) errors.push(err.message);
       else errors.push((err as Error).message);
@@ -76,6 +82,8 @@ export async function generateEditorial(
         cons: content.cons,
         summary: content.summary,
         rating: String(content.rating),
+        scoreBreakdown: content.scoreBreakdown,
+        transcripts: storedTranscripts,
         sourceVideos,
         aiGenerated: true,
         published: false,
@@ -93,6 +101,8 @@ export async function generateEditorial(
         cons: content.cons,
         summary: content.summary,
         rating: String(content.rating),
+        scoreBreakdown: content.scoreBreakdown,
+        transcripts: storedTranscripts,
         sourceVideos,
         aiGenerated: true,
         published: false,

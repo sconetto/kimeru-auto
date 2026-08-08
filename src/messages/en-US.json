@@ -52,7 +52,8 @@
     "used": "used",
     "radarAria": "Vehicle comparison radar chart",
     "rankingPosition": "#{rank} in ranking",
-    "units": "units"
+    "units": "units",
+    "readReview": "Read review"
   },
   "financing": {
     "title": "Financing Simulator",
@@ -150,7 +151,13 @@
     "seeVideo": "Watch video",
     "historyUnderConstruction": "Price history under construction.",
     "moreSold": "#{rank} best seller",
-    "fipeCode": "FIPE code {code}"
+    "fipeCode": "FIPE code {code}",
+    "transcripts": "Video transcripts",
+    "scoreDesign": "Design",
+    "scoreComfort": "Comfort",
+    "scorePerformance": "Performance",
+    "scoreTechnology": "Technology",
+    "scoreValue": "Value"
   },
   "brands": {
     "title": "Brands",

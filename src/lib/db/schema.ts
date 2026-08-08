@@ -250,6 +250,11 @@ export const editorial = pgTable(
     cons: jsonb("cons").$type<string[]>().notNull().default([]),
     summary: text("summary"),
     rating: numeric("rating", { precision: 2, scale: 1 }),
+    scoreBreakdown: jsonb("score_breakdown").$type<EditorialScoreBreakdown>(),
+    transcripts: jsonb("transcripts")
+      .$type<EditorialTranscript[]>()
+      .notNull()
+      .default([]),
     sourceVideos: jsonb("source_videos")
       .$type<{ url: string; title?: string }[]>()
       .notNull()
@@ -392,6 +397,22 @@ export type SpecValue = typeof specValues.$inferSelect;
 export type NewSpecValue = typeof specValues.$inferInsert;
 export type Editorial = typeof editorial.$inferSelect;
 export type NewEditorial = typeof editorial.$inferInsert;
+
+/** Per-category editorial scores (1.0–5.0), matching the radar dimensions. */
+export interface EditorialScoreBreakdown {
+  design: number;
+  comfort: number;
+  performance: number;
+  technology: number;
+  value: number;
+}
+
+/** A stored YouTube review transcript. */
+export interface EditorialTranscript {
+  videoUrl: string;
+  title?: string;
+  text: string;
+}
 export type SalesRanking = typeof salesRankings.$inferSelect;
 export type NewSalesRanking = typeof salesRankings.$inferInsert;
 export type FipeHistory = typeof fipeHistory.$inferSelect;

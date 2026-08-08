@@ -1,7 +1,9 @@
 "use client";
 
-import { Bot, CheckCircle2, Loader2, Sparkles } from "lucide-react";
+import { Bot, CheckCircle2, ChevronDown, ChevronRight, Eye, Loader2, Sparkles } from "lucide-react";
 import { useState, useTransition } from "react";
+import ReactMarkdown from "react-markdown";
+import type { EditorialScoreBreakdown, EditorialTranscript } from "@/lib/db/schema";
 
 interface CarOption {
   modelYearId: number;
@@ -20,7 +22,17 @@ interface GeneratedContent {
   cons: string[];
   summary: string;
   rating: number;
+  scoreBreakdown: EditorialScoreBreakdown | null;
+  transcripts: EditorialTranscript[];
 }
+
+const SCORE_CATEGORIES: { key: keyof EditorialScoreBreakdown; label: string }[] = [
+  { key: "design", label: "Design" },
+  { key: "comfort", label: "Conforto" },
+  { key: "performance", label: "Desempenho" },
+  { key: "technology", label: "Tecnologia" },
+  { key: "value", label: "Custo-benefício" },
+];
 
 export function EditorialPanel({ cars, stagedKeys }: Props) {
   const [modelYearId, setModelYearId] = useState("");
@@ -29,6 +41,8 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
   const [content, setContent] = useState<GeneratedContent | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [expandedTranscripts, setExpandedTranscripts] = useState<Set<number>>(new Set());
   const [isPending, startTransition] = useTransition();
 
   const selected = cars.find((c) => String(c.modelYearId) === modelYearId);
@@ -195,16 +209,71 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
             </div>
 
             <div>
-              <label htmlFor="ed-summary" className="mb-1 block text-xs text-slate-400">
-                Resumo
-              </label>
-              <textarea
-                id="ed-summary"
-                value={content.summary}
-                onChange={(e) => setContent({ ...content, summary: e.target.value })}
-                rows={4}
-                className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
-              />
+              <div className="mb-1 flex items-center justify-between">
+                <label htmlFor="ed-summary" className="block text-xs text-slate-400">
+                  Resumo (Markdown)
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowPreview(!showPreview)}
+                  className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
+                >
+                  <Eye className="h-3.5 w-3.5" />
+                  {showPreview ? "Editar" : "Pré-visualizar"}
+                </button>
+              </div>
+              {showPreview ? (
+                <div className="prose prose-invert max-w-none rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white">
+                  <ReactMarkdown>{content.summary}</ReactMarkdown>
+                </div>
+              ) : (
+                <textarea
+                  id="ed-summary"
+                  value={content.summary}
+                  onChange={(e) => setContent({ ...content, summary: e.target.value })}
+                  rows={8}
+                  className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+                />
+              )}
+            </div>
+
+            {/* Score breakdown */}
+            <div className="grid grid-cols-2 gap-3 rounded-md border border-slate-800 p-4 sm:grid-cols-5">
+              {SCORE_CATEGORIES.map((cat) => {
+                const current = content.scoreBreakdown?.[cat.key] ?? 0;
+                return (
+                  <div key={cat.key}>
+                    <label
+                      htmlFor={`ed-score-${cat.key}`}
+                      className="mb-1 block text-xs text-slate-400"
+                    >
+                      {cat.label}
+                    </label>
+                    <input
+                      id={`ed-score-${cat.key}`}
+                      type="number"
+                      min={1}
+                      max={5}
+                      step={0.1}
+                      value={current}
+                      onChange={(e) =>
+                        setContent({
+                          ...content,
+                          scoreBreakdown: {
+                            design: content.scoreBreakdown?.design ?? 0,
+                            comfort: content.scoreBreakdown?.comfort ?? 0,
+                            performance: content.scoreBreakdown?.performance ?? 0,
+                            technology: content.scoreBreakdown?.technology ?? 0,
+                            value: content.scoreBreakdown?.value ?? 0,
+                            [cat.key]: Number(e.target.value),
+                          },
+                        })
+                      }
+                      className="w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-white focus:border-blue-500 focus:outline-none"
+                    />
+                  </div>
+                );
+              })}
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -245,6 +314,47 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
                 ))}
               </div>
             </div>
+
+            {/* Transcripts */}
+            {content.transcripts.length > 0 && (
+              <div className="rounded-md border border-slate-800">
+                <p className="border-b border-slate-800 px-4 py-2.5 text-xs font-medium text-slate-400">
+                  Transcrições dos vídeos
+                </p>
+                {content.transcripts.map((t, i) => {
+                  const expanded = expandedTranscripts.has(i);
+                  return (
+                    <div key={i} className="border-b border-slate-800 last:border-0">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedTranscripts((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(i)) next.delete(i);
+                            else next.add(i);
+                            return next;
+                          })
+                        }
+                        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-slate-300 hover:bg-slate-800/50"
+                      >
+                        {expanded ? (
+                          <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                        )}
+                        Review {i + 1}
+                        {t.title ? ` — ${t.title}` : ""}
+                      </button>
+                      {expanded && (
+                        <p className="whitespace-pre-wrap px-4 pb-3 text-xs leading-relaxed text-slate-500">
+                          {t.text}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="flex items-center gap-3 border-t border-slate-800 pt-4">
               <button

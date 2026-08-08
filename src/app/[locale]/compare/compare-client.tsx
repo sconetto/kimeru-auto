@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Calculator, Link2, Plus, Trophy, X } from "lucide-react";
+import { AlertTriangle, Calculator, Link2, Plus, Star, Trophy, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { RadarChart } from "@/components/compare/radar-chart";
@@ -278,6 +278,15 @@ export function CompareClient({ initialCars }: Props) {
               <Calculator className="h-3.5 w-3.5" />
               {t("simulateFinancing")}
             </Link>
+            {car.editorialRating && (
+              <Link
+                href={`/car/${car.slug}#editorial`}
+                className="mt-2 flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+              >
+                <Star className="h-3.5 w-3.5" />
+                ★ {car.editorialRating} · {t("readReview")}
+              </Link>
+            )}
           </div>
         ))}
 

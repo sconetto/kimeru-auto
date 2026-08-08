@@ -6,15 +6,19 @@
  * Supports OPENAI_API_KEY or ANTHROPIC_API_KEY (OpenAI-compatible mode).
  */
 
+import type { EditorialScoreBreakdown } from "@/lib/db/schema";
+
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const LLM_MODEL = process.env.LLM_MODEL ?? "gpt-4o-mini";
+const LLM_MAX_TOKENS = 2048;
 
 export interface ExtractedEditorial {
   pros: string[];
   cons: string[];
   summary: string;
   rating: number;
+  scoreBreakdown: EditorialScoreBreakdown | null;
 }
 
 export class LlmError extends Error {
@@ -32,11 +36,12 @@ const SYSTEM_PROMPT = `Você é um especialista automotivo brasileiro. Analise t
 Regras:
 - Use terminologia automotiva brasileira correta (hatch, sedã, SUV, porta-malas, entre-eixos, consumo urbano/rodoviário, etc.)
 - Máximo 5 pontos fortes e 5 pontos fracos, cada um com no máximo 15 palavras
-- O resumo deve ter 100-150 palavras
+- O resumo deve ser em Markdown, com 150-250 palavras e seções com títulos ## (ex.: "## Desempenho", "## Conforto", "## Tecnologia", "## Veredito")
 - A nota deve ser de 1.0 a 5.0 (uma casa decimal)
+- scoreBreakdown deve conter cinco categorias (design, comfort, performance, technology, value), cada uma de 1.0 a 5.0 (uma casa decimal)
 - Seja objetivo e baseado APENAS no que foi dito no vídeo
 - Responda exclusivamente com JSON válido no formato:
-  {"pros": ["..."], "cons": ["..."], "summary": "...", "rating": 4.5}`;
+  {"pros": ["..."], "cons": ["..."], "summary": "## Desempenho\\n...", "rating": 4.5, "scoreBreakdown": {"design": 4.0, "comfort": 3.5, "performance": 4.5, "technology": 4.0, "value": 5.0}}`;
 
 function buildUserPrompt(transcripts: string[]): string {
   return `Transcrições de reviews:\n\n${transcripts.map((t, i) => `--- Review ${i + 1} ---\n${t}`).join("\n\n")}`;
@@ -60,6 +65,7 @@ async function callOpenAI(transcripts: string[]): Promise<string> {
       body: JSON.stringify({
         model: LLM_MODEL,
         temperature: 0.3,
+        max_tokens: LLM_MAX_TOKENS,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
@@ -105,7 +111,7 @@ async function callAnthropic(transcripts: string[]): Promise<string> {
       },
       body: JSON.stringify({
         model: process.env.ANTHROPIC_MODEL ?? "claude-3-5-haiku-latest",
-        max_tokens: 1024,
+        max_tokens: LLM_MAX_TOKENS,
         system: SYSTEM_PROMPT,
         messages: [{ role: "user", content: buildUserPrompt(transcripts) }],
       }),
@@ -141,11 +147,25 @@ export async function extractEditorial(transcripts: string[]): Promise<Extracted
     const summary = typeof parsed.summary === "string" ? parsed.summary : "";
     const rating = typeof parsed.rating === "number" ? parsed.rating : 0;
 
+    let scoreBreakdown: EditorialScoreBreakdown | null = null;
+    if (parsed.scoreBreakdown && typeof parsed.scoreBreakdown === "object") {
+      const sb = parsed.scoreBreakdown as unknown as Record<string, unknown>;
+      const clamp = (v: unknown) =>
+        typeof v === "number" && !Number.isNaN(v) ? Math.min(5, Math.max(1, v)) : 0;
+      scoreBreakdown = {
+        design: clamp(sb.design),
+        comfort: clamp(sb.comfort),
+        performance: clamp(sb.performance),
+        technology: clamp(sb.technology),
+        value: clamp(sb.value),
+      };
+    }
+
     if (!summary && pros.length === 0) {
       throw new LlmError("Resposta LLM sem conteúdo utilizável", "PARSE_ERROR");
     }
 
-    return { pros, cons, summary, rating };
+    return { pros, cons, summary, rating, scoreBreakdown };
   } catch (err) {
     if (err instanceof LlmError) throw err;
     throw new LlmError("Não foi possível interpretar a resposta do LLM", "PARSE_ERROR");

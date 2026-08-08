@@ -1,6 +1,13 @@
 import { and, asc, count, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import type { editorialLocale, fuelType, specGroup, vehicleCategory } from "@/lib/db/schema";
+import type {
+  EditorialScoreBreakdown,
+  EditorialTranscript,
+  editorialLocale,
+  fuelType,
+  specGroup,
+  vehicleCategory,
+} from "@/lib/db/schema";
 import {
   brands,
   editorial,
@@ -81,6 +88,8 @@ export interface CarDetail {
     cons: string[];
     summary: string | null;
     rating: string | null;
+    scoreBreakdown: EditorialScoreBreakdown | null;
+    transcripts: EditorialTranscript[];
     sourceVideos: { url: string; title?: string }[];
   } | null;
   sales: {
@@ -345,6 +354,8 @@ export async function getCarDetail(
           cons: editorialResult.cons,
           summary: editorialResult.summary,
           rating: editorialResult.rating,
+          scoreBreakdown: editorialResult.scoreBreakdown,
+          transcripts: editorialResult.transcripts,
           sourceVideos: editorialResult.sourceVideos,
         }
       : null,
@@ -435,6 +446,7 @@ export interface CompareCar {
     month: number | null;
     year: number | null;
   } | null;
+  editorialRating: string | null;
 }
 
 /** Fetch full comparison data for a list of model slugs (max 3). */
@@ -469,7 +481,7 @@ export async function getCompareCars(slugs: string[]): Promise<CompareCar[]> {
 
     if (!my) continue;
 
-    const [specs, salesRows] = await Promise.all([
+    const [specs, salesRows, editorialRow] = await Promise.all([
       getGroupedSpecs(my.id),
       db
         .select({
@@ -481,6 +493,11 @@ export async function getCompareCars(slugs: string[]): Promise<CompareCar[]> {
         .from(salesRankings)
         .where(eq(salesRankings.modelYearId, my.id))
         .orderBy(desc(salesRankings.year), desc(salesRankings.month))
+        .limit(1),
+      db
+        .select({ rating: editorial.rating })
+        .from(editorial)
+        .where(and(eq(editorial.modelYearId, my.id), eq(editorial.published, true)))
         .limit(1),
     ]);
 
@@ -496,6 +513,7 @@ export async function getCompareCars(slugs: string[]): Promise<CompareCar[]> {
       sizeCategory: model.sizeCategory,
       specs,
       sales: salesRows[0] ?? null,
+      editorialRating: editorialRow[0]?.rating ?? null,
     });
   }
 
