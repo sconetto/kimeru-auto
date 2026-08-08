@@ -189,7 +189,8 @@
       },
       "resources": {
         "title": "Recursos",
-        "about": "Sobre o projeto"
+        "about": "Sobre o projeto",
+        "admin": "Painel admin"
       },
       "project": {
         "title": "Projeto",

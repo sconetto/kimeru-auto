@@ -93,7 +93,7 @@ export async function SiteFooter({ locale }: Props) {
 
   const linkGroups: {
     title: string;
-    links: { href: string; label: string; external?: boolean }[];
+    links: { href: string; label: string; external?: boolean; noLocale?: boolean }[];
   }[] = [
     {
       title: tFooter("groups.explore.title"),
@@ -106,7 +106,10 @@ export async function SiteFooter({ locale }: Props) {
     },
     {
       title: tFooter("groups.resources.title"),
-      links: [{ href: "/about", label: tFooter("groups.resources.about") }],
+      links: [
+        { href: "/about", label: tFooter("groups.resources.about") },
+        { href: "/admin", label: tFooter("groups.resources.admin"), noLocale: true },
+      ],
     },
     {
       title: tFooter("groups.project.title"),
@@ -155,6 +158,15 @@ export async function SiteFooter({ locale }: Props) {
                         className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
                       >
                         <GitHubIcon className="h-4 w-4" />
+                        {link.label}
+                      </a>
+                    </li>
+                  ) : link.noLocale ? (
+                    <li key={link.href}>
+                      <a
+                        href={link.href}
+                        className="text-sm text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
+                      >
                         {link.label}
                       </a>
                     </li>

@@ -189,7 +189,8 @@
       },
       "resources": {
         "title": "Resources",
-        "about": "About the project"
+        "about": "About the project",
+        "admin": "Admin panel"
       },
       "project": {
         "title": "Project",
