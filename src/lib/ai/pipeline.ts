@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { editorial, type EditorialTranscript } from "@/lib/db/schema";
+import { type EditorialTranscript, editorial } from "@/lib/db/schema";
 import { type ExtractedEditorial, extractEditorial, LlmError } from "./llm";
 import { fetchTranscript, TranscriptError } from "./youtube";
 

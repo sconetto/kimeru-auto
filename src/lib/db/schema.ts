@@ -251,10 +251,7 @@ export const editorial = pgTable(
     summary: text("summary"),
     rating: numeric("rating", { precision: 2, scale: 1 }),
     scoreBreakdown: jsonb("score_breakdown").$type<EditorialScoreBreakdown>(),
-    transcripts: jsonb("transcripts")
-      .$type<EditorialTranscript[]>()
-      .notNull()
-      .default([]),
+    transcripts: jsonb("transcripts").$type<EditorialTranscript[]>().notNull().default([]),
     sourceVideos: jsonb("source_videos")
       .$type<{ url: string; title?: string }[]>()
       .notNull()
