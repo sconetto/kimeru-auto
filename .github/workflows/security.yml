@@ -25,6 +25,6 @@ jobs:
         continue-on-error: true # findings are reported, not fatal
 
       - name: Run Semgrep
-        uses: returntocorp/semgrep-action@v2
-        with:
-          config: auto
+        # returntocorp/semgrep-action is archived and has no v2 tag; run the
+        # official semgrep/semgrep Docker image with the community rule set.
+        run: docker run --rm -v "${{ github.workspace }}:/src" semgrep/semgrep:1.171.0 semgrep scan --config=auto /src
