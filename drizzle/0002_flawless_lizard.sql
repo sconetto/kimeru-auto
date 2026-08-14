@@ -1,2 +1,2 @@
-ALTER TABLE "editorial" ADD COLUMN "score_breakdown" jsonb;--> statement-breakpoint
-ALTER TABLE "editorial" ADD COLUMN "transcripts" jsonb DEFAULT '[]'::jsonb NOT NULL;
+ALTER TABLE "editorial" ADD COLUMN IF NOT EXISTS "score_breakdown" jsonb;--> statement-breakpoint
+ALTER TABLE "editorial" ADD COLUMN IF NOT EXISTS "transcripts" jsonb DEFAULT '[]'::jsonb NOT NULL;
