@@ -8,6 +8,7 @@ interface EditorialScoreSummaryProps {
   modelSlug: string;
   rating: string | null;
   scoreBreakdown: EditorialScoreBreakdown | null;
+  teaser: string | null;
   reviewLabel: string;
   readFullLabel: string;
   scoreLabels: Record<keyof EditorialScoreBreakdown, string>;
@@ -26,6 +27,7 @@ export function EditorialScoreSummary({
   modelSlug,
   rating,
   scoreBreakdown,
+  teaser,
   reviewLabel,
   readFullLabel,
   scoreLabels,
@@ -61,6 +63,12 @@ export function EditorialScoreSummary({
             );
           })}
         </div>
+      )}
+
+      {teaser && (
+        <p className="line-clamp-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+          {teaser}
+        </p>
       )}
 
       <Link
