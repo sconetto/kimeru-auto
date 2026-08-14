@@ -61,7 +61,7 @@
     "react-hook-form": "^7.84.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.8",
-    "typescript": "^5",
+    "typescript": "^7",
     "vitest": "^4.1.10",
     "zod": "^4.4.3"
   },
