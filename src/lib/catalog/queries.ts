@@ -1,6 +1,5 @@
 import { and, asc, count, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { editorialTeaser } from "@/lib/editorial/teaser";
 import type {
   EditorialScoreBreakdown,
   EditorialTranscript,
@@ -19,6 +18,7 @@ import {
   specCategories,
   specValues,
 } from "@/lib/db/schema";
+import { editorialTeaser } from "@/lib/editorial/teaser";
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
