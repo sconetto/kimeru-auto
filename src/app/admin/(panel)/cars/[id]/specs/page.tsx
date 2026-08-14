@@ -9,9 +9,9 @@ export const dynamic = "force-dynamic";
 export default async function SpecValuesPage({
   params,
 }: {
-  params: Promise<{ modelYearId: string }>;
+  params: Promise<{ id: string }>;
 }) {
-  const { modelYearId } = await params;
+  const { id: modelYearId } = await params;
   const id = Number(modelYearId);
 
   const [my] = await db

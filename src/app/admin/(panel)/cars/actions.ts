@@ -2,12 +2,11 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 import { logAudit } from "@/lib/admin/audit";
-import { auth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth/require-role";
 import { db } from "@/lib/db";
-import { fuelType, models, modelYears, vehicleCategory } from "@/lib/db/schema";
+import { fipeHistory, fuelType, models, modelYears, vehicleCategory } from "@/lib/db/schema";
 
 function slugify(s: string): string {
   return s
@@ -18,11 +17,6 @@ function slugify(s: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user) redirect("/admin/login");
-  return Number(session.user.id);
-}
 
 const modelSchema = z.object({
   brandId: z.coerce.number().int().positive(),
@@ -40,7 +34,8 @@ const modelYearSchema = z.object({
 });
 
 export async function createModel(formData: FormData) {
-  const adminId = await requireAdmin();
+  const adminId = await requireRole("admin", "editor");
+  if (adminId === null) return;
   const parsed = modelSchema.safeParse({
     brandId: formData.get("brandId"),
     name: formData.get("name"),
@@ -73,7 +68,8 @@ export async function createModel(formData: FormData) {
 }
 
 export async function createModelYear(formData: FormData) {
-  const adminId = await requireAdmin();
+  const adminId = await requireRole("admin", "editor");
+  if (adminId === null) return;
   const parsed = modelYearSchema.safeParse({
     modelId: formData.get("modelId"),
     year: formData.get("year"),
@@ -99,8 +95,122 @@ export async function createModelYear(formData: FormData) {
   revalidatePath("/", "layout");
 }
 
+const updateModelSchema = z.object({
+  id: z.coerce.number().int().positive(),
+  brandId: z.coerce.number().int().positive(),
+  name: z.string().min(1).max(200),
+  category: z.string().max(100).optional().nullable(),
+  sizeCategory: z.string().max(50).optional().nullable(),
+  imageUrl: z.string().url().optional().or(z.literal("")).default(""),
+  isActive: z.coerce.boolean().optional().default(true),
+});
+
+export async function updateModel(formData: FormData) {
+  const adminId = await requireRole("admin", "editor");
+  if (adminId === null) return;
+  const parsed = updateModelSchema.safeParse({
+    id: formData.get("id"),
+    brandId: formData.get("brandId"),
+    name: formData.get("name"),
+    category: formData.get("category") || null,
+    sizeCategory: formData.get("sizeCategory") || null,
+    imageUrl: formData.get("imageUrl"),
+    isActive: formData.get("isActive") === "on" || formData.get("isActive") === "true",
+  });
+  if (!parsed.success) return;
+
+  const { id, brandId, name, category, sizeCategory, imageUrl, isActive } = parsed.data;
+  const [existing] = await db.select().from(models).where(eq(models.id, id)).limit(1);
+  if (!existing) return;
+
+  const slug = name === existing.name ? existing.slug : slugify(name);
+
+  await db
+    .update(models)
+    .set({
+      brandId,
+      name,
+      slug,
+      category: (category || null) as (typeof models.$inferSelect)["category"],
+      sizeCategory: sizeCategory || null,
+      imageUrl: imageUrl || null,
+      isActive,
+      updatedAt: new Date(),
+    })
+    .where(eq(models.id, id));
+
+  await logAudit({
+    adminId,
+    action: "update",
+    entityType: "model",
+    entityId: id,
+    details: { name },
+  });
+  revalidatePath("/admin/cars");
+  revalidatePath("/", "layout");
+}
+
+const updateModelYearSchema = z.object({
+  id: z.coerce.number().int().positive(),
+  year: z.coerce.number().int().min(1980).max(2100),
+  fuelType: z.enum(fuelType.enumValues),
+  fipeCode: z.string().max(20).optional().default(""),
+  isZeroKm: z.coerce.boolean().optional().default(false),
+  priceFipe: z.string().optional().default(""),
+});
+
+export async function updateModelYear(formData: FormData) {
+  const adminId = await requireRole("admin", "editor");
+  if (adminId === null) return;
+  const parsed = updateModelYearSchema.safeParse({
+    id: formData.get("id"),
+    year: formData.get("year"),
+    fuelType: formData.get("fuelType"),
+    fipeCode: formData.get("fipeCode"),
+    isZeroKm: formData.get("isZeroKm") === "on",
+    priceFipe: formData.get("priceFipe"),
+  });
+  if (!parsed.success) return;
+
+  const { id, year, fuelType: fuel, fipeCode, isZeroKm, priceFipe } = parsed.data;
+  const [existing] = await db.select().from(modelYears).where(eq(modelYears.id, id)).limit(1);
+  if (!existing) return;
+
+  const price = priceFipe ? priceFipe.replace(",", ".") : null;
+  const [updated] = await db
+    .update(modelYears)
+    .set({
+      year,
+      fuelType: fuel,
+      fipeCode: fipeCode || null,
+      isZeroKm,
+      priceFipe: price ?? existing.priceFipe,
+      priceUpdatedAt: price ? new Date() : existing.priceUpdatedAt,
+      updatedAt: new Date(),
+    })
+    .where(eq(modelYears.id, id))
+    .returning();
+
+  if (price && price !== existing.priceFipe) {
+    const refMonth = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    await db.insert(fipeHistory).values({ modelYearId: id, referenceMonth: refMonth, price });
+  }
+
+  await logAudit({
+    adminId,
+    action: "update",
+    entityType: "model_year",
+    entityId: id,
+    details: { year, fipeCode },
+  });
+  revalidatePath("/admin/cars");
+  revalidatePath("/admin/model-years");
+  revalidatePath("/", "layout");
+}
+
 export async function deleteModel(formData: FormData) {
-  const adminId = await requireAdmin();
+  const adminId = await requireRole("admin");
+  if (adminId === null) return;
   const id = Number(formData.get("id"));
   await db.delete(models).where(eq(models.id, id));
   await logAudit({ adminId, action: "delete", entityType: "model", entityId: id });
@@ -109,7 +219,8 @@ export async function deleteModel(formData: FormData) {
 }
 
 export async function deleteModelYear(formData: FormData) {
-  const adminId = await requireAdmin();
+  const adminId = await requireRole("admin");
+  if (adminId === null) return;
   const id = Number(formData.get("id"));
   await db.delete(modelYears).where(eq(modelYears.id, id));
   await logAudit({ adminId, action: "delete", entityType: "model_year", entityId: id });

@@ -2,10 +2,9 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 import { logAudit } from "@/lib/admin/audit";
-import { auth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth/require-role";
 import { db } from "@/lib/db";
 import { brands } from "@/lib/db/schema";
 
@@ -24,14 +23,9 @@ const brandSchema = z.object({
   logoUrl: z.string().url().optional().or(z.literal("")).default(""),
 });
 
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user) redirect("/admin/login");
-  return Number(session.user.id);
-}
-
 export async function createBrand(formData: FormData) {
-  const adminId = await requireAdmin();
+  const adminId = await requireRole("admin", "editor");
+  if (adminId === null) return;
   const parsed = brandSchema.safeParse({
     name: formData.get("name"),
     originCountry: formData.get("originCountry"),
@@ -62,7 +56,8 @@ export async function createBrand(formData: FormData) {
 }
 
 export async function toggleBrand(formData: FormData) {
-  const adminId = await requireAdmin();
+  const adminId = await requireRole("admin", "editor");
+  if (adminId === null) return;
   const id = Number(formData.get("id"));
   const [brand] = await db.select().from(brands).where(eq(brands.id, id)).limit(1);
   if (!brand) return;
@@ -74,10 +69,61 @@ export async function toggleBrand(formData: FormData) {
 }
 
 export async function deleteBrand(formData: FormData) {
-  const adminId = await requireAdmin();
+  const adminId = await requireRole("admin");
+  if (adminId === null) return;
   const id = Number(formData.get("id"));
   await db.delete(brands).where(eq(brands.id, id));
   await logAudit({ adminId, action: "delete", entityType: "brand", entityId: id });
+  revalidatePath("/admin/brands");
+  revalidatePath("/", "layout");
+}
+
+const updateBrandSchema = z.object({
+  id: z.coerce.number(),
+  name: z.string().min(1).max(100),
+  originCountry: z.string().max(100).optional().default(""),
+  logoUrl: z.string().url().optional().or(z.literal("")).default(""),
+  isActive: z.coerce.boolean().optional().default(true),
+});
+
+export async function updateBrand(formData: FormData) {
+  const adminId = await requireRole("admin", "editor");
+  if (adminId === null) return;
+  const parsed = updateBrandSchema.safeParse({
+    id: formData.get("id"),
+    name: formData.get("name"),
+    originCountry: formData.get("originCountry"),
+    logoUrl: formData.get("logoUrl"),
+    isActive: formData.get("isActive") === "on" || formData.get("isActive") === "true",
+  });
+  if (!parsed.success) return;
+
+  const { id, name, originCountry, logoUrl, isActive } = parsed.data;
+  const [existing] = await db.select().from(brands).where(eq(brands.id, id)).limit(1);
+  if (!existing) return;
+
+  const slug =
+    name === existing.name ? existing.slug : slugify(name);
+
+  await db
+    .update(brands)
+    .set({
+      name,
+      slug,
+      originCountry: originCountry || null,
+      logoUrl: logoUrl || null,
+      isActive,
+      updatedAt: new Date(),
+    })
+    .where(eq(brands.id, id));
+
+  await logAudit({
+    adminId,
+    action: "update",
+    entityType: "brand",
+    entityId: id,
+    details: { name },
+  });
   revalidatePath("/admin/brands");
   revalidatePath("/", "layout");
 }

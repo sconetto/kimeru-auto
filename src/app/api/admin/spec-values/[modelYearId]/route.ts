@@ -93,3 +93,47 @@ export async function POST(
 
   return NextResponse.json({ ok: true, count: parsed.data.values.length });
 }
+
+const deleteBodySchema = z.object({
+  categoryId: z.number().int().positive(),
+});
+
+/** DELETE /api/admin/spec-values/[modelYearId] — remove a spec value for a model year. */
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ modelYearId: string }> },
+) {
+  const guard = await requireAdmin({ minRole: "editor" });
+  if (!guard.ok) return guard.response;
+  const session = guard.session;
+
+  const { modelYearId } = await params;
+  const id = Number(modelYearId);
+  if (Number.isNaN(id)) {
+    return NextResponse.json({ error: "ID inválido" }, { status: 400 });
+  }
+
+  const parsed = deleteBodySchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
+  }
+
+  await db
+    .delete(specValues)
+    .where(
+      and(
+        eq(specValues.modelYearId, id),
+        eq(specValues.specCategoryId, parsed.data.categoryId),
+      ),
+    );
+
+  await logAudit({
+    adminId: session.id,
+    action: "delete",
+    entityType: "spec_value",
+    entityId: id,
+    details: { categoryId: parsed.data.categoryId },
+  });
+
+  return NextResponse.json({ ok: true });
+}

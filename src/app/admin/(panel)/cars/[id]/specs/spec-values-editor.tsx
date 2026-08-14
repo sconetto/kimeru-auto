@@ -23,9 +23,14 @@ export function SpecValuesEditor({ modelYearId, categories, existing }: Props) {
 
   function save(formData: FormData) {
     const values: { categoryId: number; value: string; numericValue: string | null }[] = [];
+    const deleteCategoryIds: number[] = [];
     for (const cat of categories) {
       const raw = String(formData.get(`spec-${cat.id}`) ?? "");
-      if (!raw.trim()) continue;
+      const hasExisting = existingByCat.has(cat.id);
+      if (!raw.trim()) {
+        if (hasExisting) deleteCategoryIds.push(cat.id);
+        continue;
+      }
       let numericValue: string | null = null;
       if (cat.isNumeric) {
         const parsed = Number(raw.replace(",", "."));
@@ -35,6 +40,13 @@ export function SpecValuesEditor({ modelYearId, categories, existing }: Props) {
     }
 
     startTransition(async () => {
+      for (const categoryId of deleteCategoryIds) {
+        await fetch(`/api/admin/spec-values/${modelYearId}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ categoryId }),
+        });
+      }
       const res = await fetch(`/api/admin/spec-values/${modelYearId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -1,6 +1,7 @@
 "use client";
 
-import { Power, Trash2 } from "lucide-react";
+import { Pencil, Power, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { deleteBrand, toggleBrand } from "./actions";
 
 interface BrandRowProps {
@@ -34,6 +35,14 @@ export function BrandRow({ brand }: BrandRowProps) {
       </td>
       <td className="px-4 py-3">
         <div className="flex justify-end gap-1">
+          <Link
+            href={`/admin/brands/${brand.id}`}
+            className="rounded-md p-2 text-slate-400 hover:bg-slate-800 hover:text-blue-400"
+            aria-label="Editar"
+            title="Editar"
+          >
+            <Pencil className="h-4 w-4" />
+          </Link>
           <form action={toggleBrand}>
             <input type="hidden" name="id" value={brand.id} />
             <button

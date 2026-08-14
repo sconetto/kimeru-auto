@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { models, modelYears } from "@/lib/db/schema";
 import { fuelLabels } from "@/lib/format";
+import { DeleteModelYearButton } from "./delete-model-year-button";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,7 @@ export default async function AdminModelYearsPage({
               <th className="px-4 py-3">Combustível</th>
               <th className="px-4 py-3">Código FIPE</th>
               <th className="px-4 py-3">0km</th>
-              <th className="px-4 py-3 text-right">Especificações</th>
+              <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -55,13 +56,22 @@ export default async function AdminModelYearsPage({
                 <td className="px-4 py-3 text-slate-400">{fuelLabels[y.fuelType] ?? y.fuelType}</td>
                 <td className="px-4 py-3 text-slate-400">{y.fipeCode ?? "—"}</td>
                 <td className="px-4 py-3 text-slate-400">{y.isZeroKm ? "Sim" : "Não"}</td>
-                <td className="px-4 py-3 text-right">
-                  <Link
-                    href={`/admin/cars/${y.id}/specs`}
-                    className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-500"
-                  >
-                    Editar specs
-                  </Link>
+                <td className="px-4 py-3">
+                  <div className="flex justify-end gap-1.5">
+                    <Link
+                      href={`/admin/cars/${y.id}/specs`}
+                      className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-500"
+                    >
+                      Specs
+                    </Link>
+                    <Link
+                      href={`/admin/model-years/${y.id}`}
+                      className="rounded-md bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-slate-700"
+                    >
+                      Editar
+                    </Link>
+                    <DeleteModelYearButton id={y.id} />
+                  </div>
                 </td>
               </tr>
             ))}

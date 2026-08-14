@@ -1,6 +1,6 @@
 "use client";
 
-import { Gauge, Trash2 } from "lucide-react";
+import { Gauge, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { deleteModel } from "./actions";
 
@@ -30,6 +30,13 @@ export function ModelRow({ model }: ModelRowProps) {
       <td className="px-4 py-3 text-slate-400">{model.yearCount ?? 0}</td>
       <td className="px-4 py-3">
         <div className="flex justify-end gap-1">
+          <Link
+            href={`/admin/cars/${model.id}`}
+            className="rounded-md p-2 text-slate-400 hover:bg-slate-800 hover:text-blue-400"
+            title="Editar modelo"
+          >
+            <Pencil className="h-4 w-4" />
+          </Link>
           <Link
             href={`/admin/model-years?modelId=${model.id}`}
             className="rounded-md p-2 text-slate-400 hover:bg-slate-800 hover:text-blue-400"
