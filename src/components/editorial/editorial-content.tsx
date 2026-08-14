@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown, ChevronRight, ExternalLink, Video } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import type { EditorialScoreBreakdown, EditorialTranscript } from "@/lib/db/schema";
@@ -111,12 +112,13 @@ export function EditorialContent({
                   className="group flex items-center gap-2 rounded-md border border-slate-200 p-2 transition-colors hover:border-blue-400 dark:border-slate-700"
                 >
                   {id ? (
-                    <img
+                    <Image
                       src={`https://img.youtube.com/vi/${id}/mqdefault.jpg`}
                       alt=""
                       width={80}
                       height={45}
                       loading="lazy"
+                      unoptimized
                       className="h-[45px] w-20 shrink-0 rounded object-cover"
                     />
                   ) : (
