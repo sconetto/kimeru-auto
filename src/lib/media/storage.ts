@@ -1,6 +1,6 @@
-import { del, put } from "@vercel/blob";
 import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { del, put } from "@vercel/blob";
 
 /**
  * Image storage abstraction. Uses Vercel Blob when configured; falls back to
@@ -10,10 +10,7 @@ import path from "node:path";
 
 const hasBlob = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 
-export async function storeImage(input: {
-  file: File;
-  kind: string;
-}): Promise<{ url: string }> {
+export async function storeImage(input: { file: File; kind: string }): Promise<{ url: string }> {
   const { file } = input;
   const buffer = Buffer.from(await file.arrayBuffer());
 

@@ -72,7 +72,11 @@ export function AdminImageUpload({ name, label, value, onChange }: AdminImageUpl
         </div>
       ) : (
         <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-slate-700 px-3 py-4 text-sm text-slate-400 hover:border-blue-500 hover:text-blue-400">
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+          {uploading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <ImagePlus className="h-4 w-4" />
+          )}
           {uploading ? "Enviando…" : "Enviar imagem (JPG, PNG, WebP, AVIF — até 5 MB)"}
           <input
             ref={inputRef}

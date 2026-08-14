@@ -755,7 +755,12 @@ export const seedModels: SeedModel[] = [
   },
 ];
 
-export const seedVehicleCategories: { name: string; slug: string; icon: string | null; displayOrder: number }[] = [
+export const seedVehicleCategories: {
+  name: string;
+  slug: string;
+  icon: string | null;
+  displayOrder: number;
+}[] = [
   { name: "Hatch", slug: "hatch", icon: "car-front", displayOrder: 1 },
   { name: "Sedan", slug: "sedan", icon: "car-front", displayOrder: 2 },
   { name: "SUV", slug: "suv", icon: "car-front", displayOrder: 3 },
