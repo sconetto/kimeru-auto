@@ -30,7 +30,13 @@ export function ModelRow({ model }: ModelRowProps) {
       <td className="px-4 py-3 text-slate-400">{model.yearCount ?? 0}</td>
       <td className="px-4 py-3">
         <div className="flex justify-end gap-1">
-          <Link href={`/admin/specs/editor?modelYearId=0`} className="hidden" aria-hidden="true" />
+          <Link
+            href={`/admin/model-years?modelId=${model.id}`}
+            className="rounded-md p-2 text-slate-400 hover:bg-slate-800 hover:text-blue-400"
+            title="Versões e especificações"
+          >
+            <Gauge className="h-4 w-4" />
+          </Link>
           <form
             action={deleteModel}
             onSubmit={(e) => {
@@ -38,13 +44,6 @@ export function ModelRow({ model }: ModelRowProps) {
             }}
           >
             <input type="hidden" name="id" value={model.id} />
-            <Link
-              href={`/admin/model-years?modelId=${model.id}`}
-              className="rounded-md p-2 text-slate-400 hover:bg-slate-800 hover:text-blue-400"
-              title="Versões e especificações"
-            >
-              <Gauge className="h-4 w-4" />
-            </Link>
             <button
               type="submit"
               className="rounded-md p-2 text-slate-400 hover:bg-slate-800 hover:text-red-400"
