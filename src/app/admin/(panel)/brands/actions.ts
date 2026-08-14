@@ -102,8 +102,7 @@ export async function updateBrand(formData: FormData) {
   const [existing] = await db.select().from(brands).where(eq(brands.id, id)).limit(1);
   if (!existing) return;
 
-  const slug =
-    name === existing.name ? existing.slug : slugify(name);
+  const slug = name === existing.name ? existing.slug : slugify(name);
 
   await db
     .update(brands)

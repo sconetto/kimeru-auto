@@ -17,7 +17,6 @@ function slugify(s: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-
 const specCategorySchema = z.object({
   name: z.string().min(1).max(100),
   unit: z.string().max(40).optional().default(""),
@@ -98,7 +97,11 @@ export async function updateSpecCategory(formData: FormData) {
   if (!parsed.success) return;
 
   const { id, name, unit, group, displayOrder, higherIsBetter, isNumeric } = parsed.data;
-  const [existing] = await db.select().from(specCategories).where(eq(specCategories.id, id)).limit(1);
+  const [existing] = await db
+    .select()
+    .from(specCategories)
+    .where(eq(specCategories.id, id))
+    .limit(1);
   if (!existing) return;
 
   const slug = name === existing.name ? existing.slug : slugify(name);

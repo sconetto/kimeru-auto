@@ -121,10 +121,7 @@ export async function DELETE(
   await db
     .delete(specValues)
     .where(
-      and(
-        eq(specValues.modelYearId, id),
-        eq(specValues.specCategoryId, parsed.data.categoryId),
-      ),
+      and(eq(specValues.modelYearId, id), eq(specValues.specCategoryId, parsed.data.categoryId)),
     );
 
   await logAudit({

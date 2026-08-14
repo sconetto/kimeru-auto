@@ -17,7 +17,6 @@ function slugify(s: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-
 const modelSchema = z.object({
   brandId: z.coerce.number().int().positive(),
   name: z.string().min(1).max(200),
@@ -177,7 +176,7 @@ export async function updateModelYear(formData: FormData) {
   if (!existing) return;
 
   const price = priceFipe ? priceFipe.replace(",", ".") : null;
-  const [updated] = await db
+  await db
     .update(modelYears)
     .set({
       year,

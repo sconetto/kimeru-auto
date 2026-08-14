@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
@@ -15,7 +15,11 @@ export default async function AdminEditSpecCategoryPage({
 }) {
   const { id } = await params;
   const catId = Number(id);
-  const [category] = await db.select().from(specCategories).where(eq(specCategories.id, catId)).limit(1);
+  const [category] = await db
+    .select()
+    .from(specCategories)
+    .where(eq(specCategories.id, catId))
+    .limit(1);
   if (!category) notFound();
 
   return (
@@ -28,7 +32,10 @@ export default async function AdminEditSpecCategoryPage({
         <p className="mt-1 text-sm text-slate-400">{category.name}</p>
       </div>
 
-      <form action={updateSpecCategory} className="space-y-4 rounded-lg border border-slate-800 bg-slate-900 p-5">
+      <form
+        action={updateSpecCategory}
+        className="space-y-4 rounded-lg border border-slate-800 bg-slate-900 p-5"
+      >
         <input type="hidden" name="id" value={category.id} />
         <div>
           <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-slate-300">
@@ -84,7 +91,12 @@ export default async function AdminEditSpecCategoryPage({
           />
         </div>
         <label className="flex items-center gap-2 text-sm text-slate-300">
-          <input type="checkbox" name="isNumeric" defaultChecked={category.isNumeric} className="h-4 w-4" />
+          <input
+            type="checkbox"
+            name="isNumeric"
+            defaultChecked={category.isNumeric}
+            className="h-4 w-4"
+          />
           Valor numérico
         </label>
         <label className="flex items-center gap-2 text-sm text-slate-300">

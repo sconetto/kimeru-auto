@@ -37,7 +37,10 @@ export default async function AdminEditModelYearPage({
         </p>
       </div>
 
-      <form action={updateModelYear} className="space-y-4 rounded-lg border border-slate-800 bg-slate-900 p-5">
+      <form
+        action={updateModelYear}
+        className="space-y-4 rounded-lg border border-slate-800 bg-slate-900 p-5"
+      >
         <input type="hidden" name="id" value={my.id} />
         <div>
           <label htmlFor="year" className="mb-1.5 block text-sm font-medium text-slate-300">

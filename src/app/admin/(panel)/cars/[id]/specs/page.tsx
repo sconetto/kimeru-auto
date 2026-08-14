@@ -6,11 +6,7 @@ import { SpecValuesEditor } from "./spec-values-editor";
 
 export const dynamic = "force-dynamic";
 
-export default async function SpecValuesPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function SpecValuesPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: modelYearId } = await params;
   const id = Number(modelYearId);
 

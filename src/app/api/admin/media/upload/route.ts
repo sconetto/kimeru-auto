@@ -39,9 +39,7 @@ function magicBytesMatch(bytes: Uint8Array, mime: string): boolean {
   }
   // AVIF: ftyp box at offset 4
   if (mime === "image/avif") {
-    return (
-      bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70
-    );
+    return bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70;
   }
   return false;
 }
@@ -68,10 +66,7 @@ export async function POST(request: Request) {
     );
   }
   if (file.size > MAX_FILE_SIZE) {
-    return NextResponse.json(
-      { error: "Arquivo muito grande — limite de 5 MB" },
-      { status: 413 },
-    );
+    return NextResponse.json({ error: "Arquivo muito grande — limite de 5 MB" }, { status: 413 });
   }
 
   try {

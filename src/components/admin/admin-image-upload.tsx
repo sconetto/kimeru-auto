@@ -1,6 +1,7 @@
 "use client";
 
 import { ImagePlus, Loader2, Trash2 } from "lucide-react";
+import Image from "next/image";
 import { useRef, useState } from "react";
 
 interface AdminImageUploadProps {
@@ -48,7 +49,14 @@ export function AdminImageUpload({ name, label, value, onChange }: AdminImageUpl
       <input type="hidden" name={name} value={url ?? ""} />
       {url ? (
         <div className="flex items-center gap-3">
-          <img src={url} alt="" className="h-16 w-24 rounded-md border border-slate-700 object-cover" />
+          <Image
+            src={url}
+            alt=""
+            width={96}
+            height={64}
+            unoptimized
+            className="h-16 w-24 rounded-md border border-slate-700 object-cover"
+          />
           <button
             type="button"
             onClick={() => {
