@@ -31,8 +31,29 @@ async function ensureHb20Published(page: Page) {
     await page.goto(`/admin/editorial/${modelYearId}`);
   }
   await expect(page.getByRole("heading", { name: /Editar conteúdo/ })).toBeVisible();
+  // When recreating a deleted editorial the form starts empty — fill in the
+  // seeded-style markdown and media so the public review page is complete.
+  // Order matters: setState-triggering interactions (fill, checkbox) re-render
+  // the form and reset uncontrolled hidden inputs, so the hidden media fields
+  // must be written last, immediately before submit.
   const publish = page.getByLabel("Publicar (fica visível no site)");
   if (!(await publish.isChecked())) await publish.check();
+  const summary = page.getByLabel(/Resumo/);
+  if (!(await summary.inputValue()).trim()) {
+    await summary.fill(
+      "## Desempenho\nO motor entrega bom desempenho para o segmento.\n\n## Conforto\nRodar macio e boa posição de dirigir.\n\n## Tecnologia\nCentral multimídia completa.\n\n## Veredito\nRecomendado para quem busca um compacto completo.",
+    );
+  }
+  await page
+    .locator('input[name="transcripts"]')
+    .evaluate((el, v) => { (el as HTMLInputElement).value = v; }, JSON.stringify([
+      { videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", title: "Teste HB20", text: "O carro impressiona pela agilidade." },
+    ]));
+  await page
+    .locator('input[name="sourceVideos"]')
+    .evaluate((el, v) => { (el as HTMLInputElement).value = v; }, JSON.stringify([
+      { url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", title: "Teste HB20" },
+    ]));
   await page.getByRole("button", { name: "Salvar conteúdo" }).click();
   await expect(page).toHaveURL(/\/admin\/editorial$/);
 }
@@ -68,6 +89,7 @@ test.describe("Admin editorial workflow", () => {
 
     await expect(page.getByRole("heading", { name: /Editar conteúdo/ })).toBeVisible();
     const summary = page.getByLabel(/Resumo/);
+    const originalSummary = await summary.inputValue();
     await summary.fill("## Desempenho\n**Texto editado pelo E2E.**");
     await page.getByRole("button", { name: "Salvar conteúdo" }).click();
 
@@ -76,6 +98,16 @@ test.describe("Admin editorial workflow", () => {
     await page.goto("/pt-BR/car/hb20/review");
     await expect(page.getByRole("heading", { name: "Desempenho" })).toBeVisible();
     await expect(page.getByText("Texto editado pelo E2E.")).toBeVisible();
+
+    // Restore the original summary so later public-journey specs (which run
+    // after admin specs in CI's alphabetical single-worker order) still see
+    // the seeded editorial content.
+    await page.goto("/admin/editorial");
+    await page.locator("tr", { hasText: "HB20" }).first().getByRole("link", { name: "Editar" }).click();
+    await expect(page.getByRole("heading", { name: /Editar conteúdo/ })).toBeVisible();
+    await page.getByLabel(/Resumo/).fill(originalSummary);
+    await page.getByRole("button", { name: "Salvar conteúdo" }).click();
+    await expect(page).toHaveURL(/\/admin\/editorial$/);
   });
 
   test("unpublishes an editorial and the public page 404s", async ({ page }) => {
@@ -88,6 +120,10 @@ test.describe("Admin editorial workflow", () => {
     await expect(page.locator("tr", { hasText: "HB20" }).getByText("Rascunho")).toBeVisible();
     const resp = await page.goto("/pt-BR/car/hb20/review");
     expect(resp?.status()).toBe(404);
+
+    // Restore published state so later tests and public-journey specs are
+    // unaffected by this mutation.
+    await ensureHb20Published(page);
   });
 
   test("deletes an editorial with confirmation", async ({ page }) => {
@@ -98,5 +134,9 @@ test.describe("Admin editorial workflow", () => {
     await row.getByRole("button", { name: "Excluir conteúdo" }).click();
 
     await expect(page.locator("tr", { hasText: "HB20" })).toHaveCount(0);
+
+    // Restore state so later public-journey tests still find a published
+    // HB20 editorial (CI runs spec files in alphabetical order, one worker).
+    await ensureHb20Published(page);
   });
 });

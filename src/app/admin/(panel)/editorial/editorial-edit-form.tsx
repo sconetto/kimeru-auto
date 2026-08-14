@@ -61,6 +61,11 @@ export function EditorialEditForm({ modelYearId, editorial }: Props) {
     >
       <input type="hidden" name="modelYearId" value={modelYearId} />
       <input type="hidden" name="locale" value="pt-BR" />
+      {/* Preserve transcripts and source videos on save — they are not edited
+          on this form but must survive an edit to the summary/ratings.
+          defaultValue (uncontrolled) so the DOM value is read on submit. */}
+      <input type="hidden" name="transcripts" defaultValue={JSON.stringify(editorial?.transcripts ?? [])} />
+      <input type="hidden" name="sourceVideos" defaultValue={JSON.stringify(editorial?.sourceVideos ?? [])} />
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
