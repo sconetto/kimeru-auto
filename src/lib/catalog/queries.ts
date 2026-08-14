@@ -589,3 +589,54 @@ export async function getSalesTrend(
     .limit(12);
   return rows.map((r) => ({ ...r, unitsSold: Number(r.unitsSold) }));
 }
+
+/** A car with published editorial, for the review index list. */
+export interface ReviewListItem {
+  modelSlug: string;
+  brandName: string;
+  modelName: string;
+  year: number;
+  rating: string | null;
+  summaryExcerpt: string | null;
+  updatedAt: Date | null;
+}
+
+/** All cars with at least one published editorial (any locale), newest first. */
+export async function getPublishedReviews(): Promise<ReviewListItem[]> {
+  const rows = await db
+    .select({
+      modelYearId: modelYears.id,
+      modelSlug: models.slug,
+      brandName: brands.name,
+      modelName: models.name,
+      year: modelYears.year,
+      rating: editorial.rating,
+      summary: editorial.summary,
+      updatedAt: editorial.updatedAt,
+    })
+    .from(editorial)
+    .innerJoin(modelYears, eq(modelYears.id, editorial.modelYearId))
+    .innerJoin(models, eq(models.id, modelYears.modelId))
+    .innerJoin(brands, eq(brands.id, models.brandId))
+    .where(eq(editorial.published, true))
+    .orderBy(desc(editorial.updatedAt));
+
+  // Dedupe by model year: keep the first (pt-BR preferred, since it sorts
+  // by updatedAt desc; when both locales exist, prefer the pt-BR row).
+  const seen = new Set<number>();
+  const result: ReviewListItem[] = [];
+  for (const r of rows) {
+    if (seen.has(r.modelYearId)) continue;
+    seen.add(r.modelYearId);
+    result.push({
+      modelSlug: r.modelSlug,
+      brandName: r.brandName,
+      modelName: r.modelName,
+      year: r.year,
+      rating: r.rating,
+      summaryExcerpt: r.summary ? r.summary.slice(0, 140) : null,
+      updatedAt: r.updatedAt,
+    });
+  }
+  return result;
+}

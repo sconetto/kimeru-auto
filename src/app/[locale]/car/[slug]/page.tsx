@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { SpecTable } from "@/components/compare/spec-table";
-import { EditorialContent } from "@/components/editorial/editorial-content";
+import { EditorialScoreSummary } from "@/components/editorial/editorial-score-summary";
 import { PriceHistoryChart } from "@/components/fipe/price-history-chart";
 import { SalesSparkline } from "@/components/fipe/sales-sparkline";
 import { getCarDetail, getSalesTrend } from "@/lib/catalog/queries";
@@ -165,23 +165,19 @@ export default async function CarDetailPage({
           <SpecTable specs={car.specs} />
         </section>
 
-        {/* Sidebar: editorial + price history */}
+        {/* Sidebar: editorial summary + price history */}
         <aside className="space-y-6">
           {car.editorial && (
             <section
               id="editorial"
               className="scroll-mt-24 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
             >
-              <EditorialContent
+              <EditorialScoreSummary
+                modelSlug={slug}
                 rating={car.editorial.rating}
-                summary={car.editorial.summary}
                 scoreBreakdown={car.editorial.scoreBreakdown}
-                transcripts={car.editorial.transcripts}
-                sourceVideos={car.editorial.sourceVideos}
-                basedOnLabel={tCar("basedOn")}
-                seeVideoLabel={tCar("seeVideo")}
-                transcriptsLabel={tCar("transcripts")}
                 reviewLabel={tCar("editorial")}
+                readFullLabel={tCar("readFullReview")}
                 scoreLabels={{
                   design: tCar("scoreDesign"),
                   comfort: tCar("scoreComfort"),

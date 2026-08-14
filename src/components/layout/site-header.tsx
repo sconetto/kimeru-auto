@@ -6,6 +6,7 @@ import {
   House,
   Info,
   type LucideIcon,
+  Newspaper,
   Scale,
   TrendingUp,
 } from "lucide-react";
@@ -36,6 +37,7 @@ export async function SiteHeader({ locale }: Props) {
   const navLinks: { href: string; label: string; icon: LucideIcon }[] = [
     { href: "/", label: tNav("home"), icon: House },
     { href: "/compare", label: tNav("compare"), icon: Scale },
+    { href: "/reviews", label: tNav("reviews"), icon: Newspaper },
     { href: "/fipe", label: tNav("fipe"), icon: Banknote },
     { href: "/financing", label: tNav("financing"), icon: Calculator },
     { href: "/best-sellers", label: tNav("bestSellers"), icon: TrendingUp },

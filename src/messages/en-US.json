@@ -6,7 +6,8 @@
     "financing": "Financing",
     "bestSellers": "Best Sellers",
     "brands": "Brands",
-    "about": "About"
+    "about": "About",
+    "reviews": "Reviews"
   },
   "home": {
     "heroTitle": "Compare cars and decide with confidence",
@@ -157,7 +158,14 @@
     "scoreComfort": "Comfort",
     "scorePerformance": "Performance",
     "scoreTechnology": "Technology",
-    "scoreValue": "Value"
+    "scoreValue": "Value",
+    "readFullReview": "Read full review",
+    "reviewTitle": "Review: {brand} {model} {year}",
+    "reviewMetaTitle": "{brand} {model} Review | Kimeru Auto",
+    "reviewMetaDescription": "Full review of the {brand} {model}: performance, comfort, technology and verdict.",
+    "backToCar": "Back to the car",
+    "videoSingular": "video",
+    "videoPlural": "videos"
   },
   "brands": {
     "title": "Brands",
@@ -251,5 +259,12 @@
   "banner": {
     "text": "Site under construction 🚧👷🏻",
     "hint": "Great things come to those who wait! 💯"
+  },
+  "reviews": {
+    "metaTitle": "Car reviews",
+    "metaDescription": "Read full reviews of cars in the Brazilian market.",
+    "title": "Reviews",
+    "subtitle": "Full reviews of cars in the Brazilian market.",
+    "empty": "No reviews published yet. Check back soon!"
   }
 }

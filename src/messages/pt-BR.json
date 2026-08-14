@@ -6,7 +6,8 @@
     "financing": "Financiamento",
     "bestSellers": "Mais Vendidos",
     "brands": "Marcas",
-    "about": "Sobre"
+    "about": "Sobre",
+    "reviews": "Reviews"
   },
   "home": {
     "heroTitle": "Compare carros e decida com confiança",
@@ -157,7 +158,14 @@
     "scoreComfort": "Conforto",
     "scorePerformance": "Desempenho",
     "scoreTechnology": "Tecnologia",
-    "scoreValue": "Custo-benefício"
+    "scoreValue": "Custo-benefício",
+    "readFullReview": "Ler review completa",
+    "reviewTitle": "Review: {brand} {model} {year}",
+    "reviewMetaTitle": "Review {brand} {model} | Kimeru Auto",
+    "reviewMetaDescription": "Avaliação completa do {brand} {model}: desempenho, conforto, tecnologia e veredito.",
+    "backToCar": "Voltar para o carro",
+    "videoSingular": "vídeo",
+    "videoPlural": "vídeos"
   },
   "brands": {
     "title": "Marcas",
@@ -251,5 +259,12 @@
   "banner": {
     "text": "Site em construção 🚧👷🏻",
     "hint": "Coisas boas vêm para quem espera! 💯"
+  },
+  "reviews": {
+    "metaTitle": "Reviews de carros",
+    "metaDescription": "Leia as avaliações completas dos carros do mercado brasileiro.",
+    "title": "Reviews",
+    "subtitle": "Avaliações completas dos carros do mercado brasileiro.",
+    "empty": "Ainda não há reviews publicados. Volte em breve!"
   }
 }
