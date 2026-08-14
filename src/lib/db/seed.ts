@@ -268,7 +268,7 @@ async function main() {
           "A suspensão foi recalibrada e o rodar é **macio na cidade**. O isolamento acústico melhorou em relação à geração anterior.",
           "",
           "## Tecnologia",
-          "Central multimídia de 8\" com **Apple CarPlay e Android Auto**, painel digital e pacote completo de assistentes de direção.",
+          'Central multimídia de 8" com **Apple CarPlay e Android Auto**, painel digital e pacote completo de assistentes de direção.',
           "",
           "## Veredito",
           "O HB20 segue como uma das melhores opções entre os hatches compactos. **Recomendado** para quem busca um compacto completo.",
@@ -294,7 +294,10 @@ async function main() {
           },
         ],
         sourceVideos: [
-          { url: "https://www.youtube.com/watch?v=W-0y4HBmX_o", title: "Teste completo do HB20 2025" },
+          {
+            url: "https://www.youtube.com/watch?v=W-0y4HBmX_o",
+            title: "Teste completo do HB20 2025",
+          },
           { url: "https://www.youtube.com/watch?v=71dU9uE4Wy0", title: "HB20 na estrada" },
         ],
         aiGenerated: true,
@@ -302,7 +305,9 @@ async function main() {
       };
 
       if (existing.length === 0) {
-        await db.insert(editorial).values({ modelYearId: my[0].id, locale: "pt-BR", ...editorialData });
+        await db
+          .insert(editorial)
+          .values({ modelYearId: my[0].id, locale: "pt-BR", ...editorialData });
         console.log("  ✓ Editorial PT-BR criado para HB20");
       } else {
         await db.update(editorial).set(editorialData).where(eq(editorial.id, existing[0].id));
