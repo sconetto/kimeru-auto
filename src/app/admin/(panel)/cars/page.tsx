@@ -2,6 +2,7 @@ import { asc, count, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { brands, models, modelYears, vehicleCategories } from "@/lib/db/schema";
 import { categoryLabels } from "@/lib/format";
+import { ImportExportControls } from "@/components/admin/import-export-controls";
 import { ModelRow } from "./model-row";
 import { NewModelForm } from "./new-model-form";
 
@@ -33,6 +34,9 @@ export default async function AdminCarsPage() {
       <div>
         <h1 className="text-2xl font-bold text-white">Veículos</h1>
         <p className="mt-1 text-sm text-slate-400">Gerencie modelos e versões do catálogo</p>
+        <div className="mt-3">
+          <ImportExportControls entity="models" />
+        </div>
       </div>
 
       <NewModelForm brands={allBrands} categories={categories} />

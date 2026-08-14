@@ -2,6 +2,7 @@ import { asc } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { specCategories, specGroups } from "@/lib/db/schema";
 import { specGroupLabels } from "@/lib/format";
+import { ImportExportControls } from "@/components/admin/import-export-controls";
 import { NewSpecCategoryForm } from "./new-spec-category-form";
 import { SpecCategoryRow } from "./spec-category-row";
 
@@ -26,6 +27,9 @@ export default async function AdminSpecsPage() {
       <div>
         <h1 className="text-2xl font-bold text-white">Categorias de especificação</h1>
         <p className="mt-1 text-sm text-slate-400">Defina os campos comparáveis entre veículos</p>
+        <div className="mt-3">
+          <ImportExportControls entity="specs" />
+        </div>
       </div>
 
       <NewSpecCategoryForm groups={groups} />

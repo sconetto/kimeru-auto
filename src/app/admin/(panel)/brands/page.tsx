@@ -1,6 +1,7 @@
 import { asc, count, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { brands, models } from "@/lib/db/schema";
+import { ImportExportControls } from "@/components/admin/import-export-controls";
 import { BrandRow } from "./brand-row";
 import { NewBrandForm } from "./new-brand-form";
 
@@ -26,6 +27,9 @@ export default async function AdminBrandsPage() {
       <div>
         <h1 className="text-2xl font-bold text-white">Marcas</h1>
         <p className="mt-1 text-sm text-slate-400">Gerencie as marcas do catálogo</p>
+        <div className="mt-3">
+          <ImportExportControls entity="brands" />
+        </div>
       </div>
 
       <NewBrandForm />

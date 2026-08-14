@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { models, modelYears } from "@/lib/db/schema";
 import { fuelLabels } from "@/lib/format";
+import { ImportExportControls } from "@/components/admin/import-export-controls";
 import { DeleteModelYearButton } from "./delete-model-year-button";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +37,9 @@ export default async function AdminModelYearsPage({
         <p className="mt-1 text-sm text-slate-400">
           Gerencie as versões e especificações deste modelo
         </p>
+        <div className="mt-3">
+          <ImportExportControls entity="model-years" />
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-lg border border-slate-800">
