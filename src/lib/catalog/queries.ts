@@ -1,5 +1,6 @@
 import { and, asc, count, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { editorialTeaser } from "@/lib/editorial/teaser";
 import type {
   EditorialScoreBreakdown,
   EditorialTranscript,
@@ -634,7 +635,7 @@ export async function getPublishedReviews(): Promise<ReviewListItem[]> {
       modelName: r.modelName,
       year: r.year,
       rating: r.rating,
-      summaryExcerpt: r.summary ? r.summary.slice(0, 140) : null,
+      summaryExcerpt: editorialTeaser(r.summary),
       updatedAt: r.updatedAt,
     });
   }
