@@ -165,7 +165,8 @@
     "reviewMetaDescription": "Full review of the {brand} {model}: performance, comfort, technology and verdict.",
     "backToCar": "Back to the car",
     "videoSingular": "video",
-    "videoPlural": "videos"
+    "videoPlural": "videos",
+    "reviewLabel": "Kimeru Review"
   },
   "brands": {
     "title": "Brands",

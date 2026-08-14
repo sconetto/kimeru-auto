@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import type { EditorialScoreBreakdown, EditorialTranscript } from "@/lib/db/schema";
+import { youtubeId } from "@/lib/editorial/teaser";
 
 interface EditorialContentProps {
   rating: string | null;
@@ -26,12 +27,6 @@ const SCORE_ORDER: { key: keyof EditorialScoreBreakdown; color: string }[] = [
   { key: "technology", color: "bg-violet-500" },
   { key: "value", color: "bg-rose-500" },
 ];
-
-/** Extract the YouTube video ID from a URL (watch?v=, youtu.be/, shorts/, embed/). */
-function youtubeId(url: string): string | null {
-  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/);
-  return m?.[1] ?? null;
-}
 
 export function EditorialContent({
   rating,

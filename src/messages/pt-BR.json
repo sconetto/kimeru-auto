@@ -165,7 +165,8 @@
     "reviewMetaDescription": "Avaliação completa do {brand} {model}: desempenho, conforto, tecnologia e veredito.",
     "backToCar": "Voltar para o carro",
     "videoSingular": "vídeo",
-    "videoPlural": "vídeos"
+    "videoPlural": "vídeos",
+    "reviewLabel": "Avaliação Kimeru"
   },
   "brands": {
     "title": "Marcas",

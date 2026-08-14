@@ -7,6 +7,7 @@ import { EditorialScoreSummary } from "@/components/editorial/editorial-score-su
 import { PriceHistoryChart } from "@/components/fipe/price-history-chart";
 import { SalesSparkline } from "@/components/fipe/sales-sparkline";
 import { getCarDetail, getSalesTrend } from "@/lib/catalog/queries";
+import { editorialTeaser } from "@/lib/editorial/teaser";
 import { formatBRL, formatPercent, fuelLabels } from "@/lib/format";
 import { Link } from "@/lib/i18n/navigation";
 
@@ -144,7 +145,11 @@ export default async function CarDetailPage({
         </section>
 
         {/* Right: price, editorial, price history, sales */}
-        <aside className="min-w-0 space-y-6">
+        <aside className="min-w-0">
+          {/* Spacer matching the "Especificações técnicas" heading height
+              (text-lg line-height 28px + mb-4 16px) so the price card top
+              aligns with the specs container top, not the heading text. */}
+          <div aria-hidden="true" className="h-11" />
           {/* Price card */}
           <div className="rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
             <p className="text-sm text-slate-500">
@@ -168,7 +173,7 @@ export default async function CarDetailPage({
           {car.editorial && (
             <section
               id="editorial"
-              className="scroll-mt-24 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
+              className="scroll-mt-24 mt-6 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
             >
               <EditorialScoreSummary
                 modelSlug={slug}
@@ -188,7 +193,7 @@ export default async function CarDetailPage({
             </section>
           )}
 
-          <section className="rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <section className="mt-6 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
             <h2 className="mb-3 font-semibold text-slate-900 dark:text-white">
               {tCar("priceHistory")}
             </h2>
@@ -196,7 +201,7 @@ export default async function CarDetailPage({
           </section>
 
           {car.sales && (
-            <section className="rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="mt-6 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
               <h2 className="mb-3 flex items-center gap-1.5 font-semibold text-slate-900 dark:text-white">
                 <TrendingUp className="h-4 w-4 text-blue-600" /> {tCar("salesData")}
               </h2>
@@ -226,16 +231,4 @@ export default async function CarDetailPage({
       </div>
     </div>
   );
-}
-
-/** Strip markdown syntax and trim to a short plain-text editorial teaser. */
-function editorialTeaser(summary: string | null): string | null {
-  if (!summary) return null;
-  const plain = summary
-    .replace(/^#{1,6}\s+/gm, "")
-    .replace(/[*_`~]/g, "")
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/\s+/g, " ")
-    .trim();
-  return plain.length > 160 ? `${plain.slice(0, 160).trimEnd()}…` : plain;
 }

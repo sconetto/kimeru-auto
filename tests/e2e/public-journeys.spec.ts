@@ -23,6 +23,40 @@ test.describe("Public user journeys", () => {
     await expect(page.getByText("Especificações técnicas")).toBeVisible();
   });
 
+  test("car detail page shows slim editorial box with link to review", async ({ page }) => {
+    await page.goto("/pt-BR/car/hb20");
+    // Editorial summary box renders rating + read-review link
+    await expect(page.getByText("Avaliação Kimeru")).toBeVisible();
+    await expect(page.getByRole("link", { name: /Ler review completa/i })).toBeVisible();
+    // Full markdown body is NOT on the car page
+    await expect(page.getByRole("heading", { name: "Desempenho" })).toHaveCount(0);
+  });
+
+  test("review page renders full editorial content", async ({ page }) => {
+    await page.goto("/pt-BR/car/hb20/review");
+    await expect(page.getByRole("heading", { name: /Review: Hyundai HB20/i })).toBeVisible();
+    // Markdown sections render
+    await expect(page.getByRole("heading", { name: "Desempenho" })).toBeVisible();
+    // Score breakdown labels
+    await expect(page.getByText("Custo-benefício", { exact: true })).toBeVisible();
+    // Source video cards and transcripts
+    await expect(page.getByText("Baseado em análises de:", { exact: true })).toBeVisible();
+    await expect(page.getByText("Transcrições dos vídeos", { exact: true })).toBeVisible();
+  });
+
+  test("review index lists published reviews", async ({ page }) => {
+    await page.goto("/pt-BR/reviews");
+    await expect(page.getByRole("heading", { name: "Reviews" })).toBeVisible();
+    // HB20 has published editorial → appears in the index
+    await expect(page.getByRole("link", { name: /HB20/i })).toBeVisible();
+  });
+
+  test("review page 404 for car without editorial", async ({ page }) => {
+    const resp = await page.goto("/pt-BR/car/polo/review");
+    // A car without published editorial returns HTTP 404
+    expect(resp?.status()).toBe(404);
+  });
+
   test("comparison page with two cars via URL", async ({ page }) => {
     await page.goto("/pt-BR/compare?cars=hb20,onix");
     await expect(page.getByRole("heading", { name: "Comparar Carros" })).toBeVisible();
