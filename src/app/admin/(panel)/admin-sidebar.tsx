@@ -4,6 +4,7 @@ import {
   BarChart3,
   BookOpen,
   Car,
+  ClipboardList,
   FolderTree,
   Gauge,
   LayoutDashboard,
@@ -26,6 +27,7 @@ const navItems = [
   { href: "/admin/analytics", label: "Vendas (FENABRAVE)", icon: BarChart3 },
   { href: "/admin/users", label: "Usuários", icon: Users },
   { href: "/admin/types", label: "Tipos e grupos", icon: ListTree },
+  { href: "/admin/audit", label: "Auditoria", icon: ClipboardList },
 ];
 
 export function AdminSidebar() {

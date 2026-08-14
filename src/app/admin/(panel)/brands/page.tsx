@@ -1,13 +1,21 @@
-import { asc, count, eq } from "drizzle-orm";
+import { asc, count, eq, ilike, or } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { brands, models } from "@/lib/db/schema";
+import { AdminSearch } from "@/components/admin/admin-ui";
 import { ImportExportControls } from "@/components/admin/import-export-controls";
 import { BrandRow } from "./brand-row";
 import { NewBrandForm } from "./new-brand-form";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminBrandsPage() {
+export default async function AdminBrandsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
+  const query = q?.trim();
+
   const rows = await db
     .select({
       id: brands.id,
@@ -19,6 +27,11 @@ export default async function AdminBrandsPage() {
     })
     .from(brands)
     .leftJoin(models, eq(models.brandId, brands.id))
+    .where(
+      query
+        ? or(ilike(brands.name, `%${query}%`), ilike(brands.slug, `%${query}%`))
+        : undefined,
+    )
     .groupBy(brands.id)
     .orderBy(asc(brands.name));
 
@@ -27,7 +40,8 @@ export default async function AdminBrandsPage() {
       <div>
         <h1 className="text-2xl font-bold text-white">Marcas</h1>
         <p className="mt-1 text-sm text-slate-400">Gerencie as marcas do catálogo</p>
-        <div className="mt-3">
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <AdminSearch placeholder="Buscar marca…" />
           <ImportExportControls entity="brands" />
         </div>
       </div>
