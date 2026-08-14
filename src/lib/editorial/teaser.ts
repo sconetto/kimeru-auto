@@ -18,8 +18,6 @@ export function editorialTeaser(summary: string | null, maxLength = 160): string
 
 /** Extract the YouTube video ID from a URL (watch?v=, youtu.be/, shorts/, embed/). */
 export function youtubeId(url: string): string | null {
-  const m = url.match(
-    /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/,
-  );
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/);
   return m?.[1] ?? null;
 }

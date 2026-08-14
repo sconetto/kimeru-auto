@@ -257,19 +257,56 @@ async function main() {
         .from(editorial)
         .where(and(eq(editorial.modelYearId, my[0].id), eq(editorial.locale, "pt-BR")))
         .limit(1);
+      const editorialData = {
+        pros: ["Motor 1.0 turbo eficiente", "Bom pacote de segurança", "Conectividade completa"],
+        cons: ["Porta-malas compacto", "Acabamento interno simples"],
+        summary: [
+          "## Desempenho",
+          "O motor **1.0 Turbo Flex** de 120 cv entrega desempenho ágil para o segmento, com respostas rápidas em acelerações urbanas.",
+          "",
+          "## Conforto",
+          "A suspensão foi recalibrada e o rodar é **macio na cidade**. O isolamento acústico melhorou em relação à geração anterior.",
+          "",
+          "## Tecnologia",
+          "Central multimídia de 8\" com **Apple CarPlay e Android Auto**, painel digital e pacote completo de assistentes de direção.",
+          "",
+          "## Veredito",
+          "O HB20 segue como uma das melhores opções entre os hatches compactos. **Recomendado** para quem busca um compacto completo.",
+        ].join("\n"),
+        rating: "4.5",
+        scoreBreakdown: {
+          design: 4.0,
+          comfort: 4.0,
+          performance: 4.5,
+          technology: 4.0,
+          value: 4.5,
+        },
+        transcripts: [
+          {
+            videoUrl: "https://www.youtube.com/watch?v=W-0y4HBmX_o",
+            title: "Teste completo do HB20 2025",
+            text: "O HB20 impressiona pela agilidade do motor 1.0 turbo e pelo consumo eficiente na cidade.",
+          },
+          {
+            videoUrl: "https://www.youtube.com/watch?v=71dU9uE4Wy0",
+            title: "HB20 na estrada",
+            text: "Na estrada o carro se mostra estável, com bom isolamento acústico e direção precisa.",
+          },
+        ],
+        sourceVideos: [
+          { url: "https://www.youtube.com/watch?v=W-0y4HBmX_o", title: "Teste completo do HB20 2025" },
+          { url: "https://www.youtube.com/watch?v=71dU9uE4Wy0", title: "HB20 na estrada" },
+        ],
+        aiGenerated: true,
+        published: true,
+      };
+
       if (existing.length === 0) {
-        await db.insert(editorial).values({
-          modelYearId: my[0].id,
-          locale: "pt-BR",
-          pros: ["Motor 1.0 turbo eficiente", "Bom pacote de segurança", "Conectividade completa"],
-          cons: ["Porta-malas compacto", "Acabamento interno simples"],
-          summary:
-            "O HB20 1.0 Turbo é um dos hatches compactos mais completos do Brasil, combinando bom desempenho com consumo eficiente e um pacote generoso de equipamentos.",
-          rating: "4.5",
-          aiGenerated: true,
-          published: true,
-        });
+        await db.insert(editorial).values({ modelYearId: my[0].id, locale: "pt-BR", ...editorialData });
         console.log("  ✓ Editorial PT-BR criado para HB20");
+      } else {
+        await db.update(editorial).set(editorialData).where(eq(editorial.id, existing[0].id));
+        console.log("  ✓ Editorial PT-BR atualizado para HB20");
       }
     }
   }
