@@ -19,7 +19,8 @@
     "db:seed": "dotenv -e .env.local -- tsx src/lib/db/seed.ts",
     "db:studio": "drizzle-kit studio",
     "fipe:sync": "dotenv -e .env.local -- tsx src/lib/fipe/sync.ts",
-    "setup:local": "node scripts/setup-local.mjs"
+    "setup:local": "node scripts/setup-local.mjs",
+    "db:migrate:prod": "drizzle-kit migrate"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.1",
