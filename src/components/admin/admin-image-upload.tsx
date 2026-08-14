@@ -45,8 +45,10 @@ export function AdminImageUpload({ name, label, value, onChange }: AdminImageUpl
 
   return (
     <div className="space-y-1.5">
-      <label className="block text-sm font-medium text-slate-300">{label}</label>
-      <input type="hidden" name={name} value={url ?? ""} />
+      <label htmlFor={`${name}-field`} className="block text-sm font-medium text-slate-300">
+        {label}
+      </label>
+      <input type="hidden" id={`${name}-field`} name={name} value={url ?? ""} />
       {url ? (
         <div className="flex items-center gap-3">
           <Image
