@@ -34,6 +34,8 @@ export default defineConfig({
     command: "npm run dev",
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+    // Cold Turbopack compile after a .next cache clear can exceed 2 minutes
+    // (especially with many admin routes), so allow up to 5 minutes to boot.
+    timeout: 300_000,
   },
 });

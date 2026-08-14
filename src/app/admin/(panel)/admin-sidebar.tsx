@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   LogOut,
   Upload,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -22,6 +23,7 @@ const navItems = [
   { href: "/admin/editorial", label: "Conteúdo editorial", icon: BookOpen },
   { href: "/admin/imports", label: "Importar dados", icon: Upload },
   { href: "/admin/analytics", label: "Vendas (FENABRAVE)", icon: BarChart3 },
+  { href: "/admin/users", label: "Usuários", icon: Users },
 ];
 
 export function AdminSidebar() {
