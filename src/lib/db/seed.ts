@@ -10,9 +10,17 @@ import {
   modelYears,
   salesRankings,
   specCategories,
+  specGroups,
   specValues,
+  vehicleCategories,
 } from "./schema";
-import { seedBrands, seedModels, seedSpecCategories } from "./seed-data";
+import {
+  seedBrands,
+  seedModels,
+  seedSpecCategories,
+  seedSpecGroups,
+  seedVehicleCategories,
+} from "./seed-data";
 
 /**
  * Seed script — populates reference data for local development.
@@ -44,6 +52,48 @@ async function main() {
   console.log(
     `  ✓ Spec categories: ${createdCategories} created, ${seedSpecCategories.length} total`,
   );
+
+  /* 1b. Vehicle categories (upsert by slug) */
+  let createdVehicleCategories = 0;
+  for (const cat of seedVehicleCategories) {
+    const existing = await db
+      .select()
+      .from(vehicleCategories)
+      .where(eq(vehicleCategories.slug, cat.slug))
+      .limit(1);
+    if (existing.length === 0) {
+      await db.insert(vehicleCategories).values(cat);
+      createdVehicleCategories++;
+    } else {
+      await db
+        .update(vehicleCategories)
+        .set({ name: cat.name, icon: cat.icon, displayOrder: cat.displayOrder })
+        .where(eq(vehicleCategories.id, existing[0].id));
+    }
+  }
+  console.log(
+    `  ✓ Vehicle categories: ${createdVehicleCategories} created, ${seedVehicleCategories.length} total`,
+  );
+
+  /* 1c. Spec groups (upsert by slug) */
+  let createdSpecGroups = 0;
+  for (const group of seedSpecGroups) {
+    const existing = await db
+      .select()
+      .from(specGroups)
+      .where(eq(specGroups.slug, group.slug))
+      .limit(1);
+    if (existing.length === 0) {
+      await db.insert(specGroups).values(group);
+      createdSpecGroups++;
+    } else {
+      await db
+        .update(specGroups)
+        .set({ name: group.name, displayOrder: group.displayOrder })
+        .where(eq(specGroups.id, existing[0].id));
+    }
+  }
+  console.log(`  ✓ Spec groups: ${createdSpecGroups} created, ${seedSpecGroups.length} total`);
 
   /* 2. Brands (upsert by slug) */
   let createdBrands = 0;

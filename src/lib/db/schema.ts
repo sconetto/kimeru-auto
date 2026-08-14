@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -266,6 +266,85 @@ export const editorial = pgTable(
 );
 
 /* ------------------------------------------------------------------ */
+/* Vehicle Categories (admin-managed, replaces hard-coded enum usage)  */
+/* ------------------------------------------------------------------ */
+
+export const vehicleCategories = pgTable(
+  "vehicle_categories",
+  {
+    id: serial("id").primaryKey(),
+    name: varchar("name", { length: 100 }).notNull(),
+    slug: varchar("slug", { length: 120 }).notNull(),
+    icon: varchar("icon", { length: 50 }),
+    displayOrder: integer("display_order").notNull().default(0),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("vehicle_categories_slug_idx").on(table.slug)],
+);
+
+/* ------------------------------------------------------------------ */
+/* Spec Groups (admin-managed, replaces hard-coded enum usage)         */
+/* ------------------------------------------------------------------ */
+
+export const specGroups = pgTable(
+  "spec_groups",
+  {
+    id: serial("id").primaryKey(),
+    name: varchar("name", { length: 100 }).notNull(),
+    slug: varchar("slug", { length: 120 }).notNull(),
+    displayOrder: integer("display_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("spec_groups_slug_idx").on(table.slug)],
+);
+
+/* ------------------------------------------------------------------ */
+/* Vehicle Images (per-model gallery)                                  */
+/* ------------------------------------------------------------------ */
+
+export const vehicleImages = pgTable(
+  "vehicle_images",
+  {
+    id: serial("id").primaryKey(),
+    modelId: integer("model_id")
+      .notNull()
+      .references(() => models.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    caption: text("caption"),
+    position: integer("position").notNull().default(0),
+    isCover: boolean("is_cover").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("vehicle_images_model_idx").on(table.modelId),
+    uniqueIndex("vehicle_images_cover_unique")
+      .on(table.modelId)
+      .where(sql`${table.isCover} = true`),
+  ],
+);
+
+/* ------------------------------------------------------------------ */
+/* Media Assets (upload registry for the media management view)        */
+/* ------------------------------------------------------------------ */
+
+export const mediaAssets = pgTable(
+  "media_assets",
+  {
+    id: serial("id").primaryKey(),
+    url: text("url").notNull(),
+    kind: varchar("kind", { length: 40 }).notNull().default("image"),
+    mime: varchar("mime", { length: 100 }),
+    size: integer("size"),
+    uploadedBy: integer("uploaded_by").references(() => adminUsers.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("media_assets_uploaded_by_idx").on(table.uploadedBy)],
+);
+
+/* ------------------------------------------------------------------ */
 /* Sales Rankings (FENABRAVE)                                          */
 /* ------------------------------------------------------------------ */
 
@@ -328,6 +407,15 @@ export const brandsRelations = relations(brands, ({ many }) => ({
 export const modelsRelations = relations(models, ({ one, many }) => ({
   brand: one(brands, { fields: [models.brandId], references: [brands.id] }),
   modelYears: many(modelYears),
+  vehicleImages: many(vehicleImages),
+}));
+
+export const vehicleImagesRelations = relations(vehicleImages, ({ one }) => ({
+  model: one(models, { fields: [vehicleImages.modelId], references: [models.id] }),
+}));
+
+export const mediaAssetsRelations = relations(mediaAssets, ({ one }) => ({
+  uploader: one(adminUsers, { fields: [mediaAssets.uploadedBy], references: [adminUsers.id] }),
 }));
 
 export const modelYearsRelations = relations(modelYears, ({ one, many }) => ({
@@ -418,3 +506,11 @@ export type AdminUser = typeof adminUsers.$inferSelect;
 export type NewAdminUser = typeof adminUsers.$inferInsert;
 export type AdminAuditLog = typeof adminAuditLog.$inferSelect;
 export type NewAdminAuditLog = typeof adminAuditLog.$inferInsert;
+export type VehicleCategory = typeof vehicleCategories.$inferSelect;
+export type NewVehicleCategory = typeof vehicleCategories.$inferInsert;
+export type SpecGroup = typeof specGroups.$inferSelect;
+export type NewSpecGroup = typeof specGroups.$inferInsert;
+export type VehicleImage = typeof vehicleImages.$inferSelect;
+export type NewVehicleImage = typeof vehicleImages.$inferInsert;
+export type MediaAsset = typeof mediaAssets.$inferSelect;
+export type NewMediaAsset = typeof mediaAssets.$inferInsert;

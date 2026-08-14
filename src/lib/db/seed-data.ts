@@ -754,3 +754,33 @@ export const seedModels: SeedModel[] = [
     ],
   },
 ];
+
+export const seedVehicleCategories: { name: string; slug: string; icon: string | null; displayOrder: number }[] = [
+  { name: "Hatch", slug: "hatch", icon: "car-front", displayOrder: 1 },
+  { name: "Sedan", slug: "sedan", icon: "car-front", displayOrder: 2 },
+  { name: "SUV", slug: "suv", icon: "car-front", displayOrder: 3 },
+  { name: "Picape", slug: "pickup", icon: "truck", displayOrder: 4 },
+  { name: "Minivan", slug: "mpv", icon: "car-front", displayOrder: 5 },
+  { name: "Coupé", slug: "coupe", icon: "car-front", displayOrder: 6 },
+  { name: "Conversível", slug: "convertible", icon: "car-front", displayOrder: 7 },
+  { name: "Perua", slug: "wagon", icon: "car-front", displayOrder: 8 },
+  { name: "Van", slug: "van", icon: "truck", displayOrder: 9 },
+  { name: "Elétrico", slug: "ev", icon: "zap", displayOrder: 10 },
+];
+
+export const seedSpecGroups: { name: string; slug: string; displayOrder: number }[] = [
+  { name: "Preço", slug: "price", displayOrder: 1 },
+  { name: "Motor", slug: "engine", displayOrder: 2 },
+  { name: "Transmissão", slug: "transmission", displayOrder: 3 },
+  { name: "Peso", slug: "weight", displayOrder: 4 },
+  { name: "Direção", slug: "steering", displayOrder: 5 },
+  { name: "Dimensões", slug: "dimensions", displayOrder: 6 },
+  { name: "Consumo", slug: "consumption", displayOrder: 7 },
+  { name: "Suspensão", slug: "suspension", displayOrder: 8 },
+  { name: "Freios", slug: "brakes", displayOrder: 9 },
+  { name: "Garantia", slug: "warranty", displayOrder: 10 },
+  { name: "Acessórios", slug: "accessories", displayOrder: 11 },
+  { name: "Conforto e Tecnologia", slug: "comfort_technology", displayOrder: 12 },
+  { name: "Segurança", slug: "safety", displayOrder: 13 },
+  { name: "Vendas", slug: "sales", displayOrder: 14 },
+];
