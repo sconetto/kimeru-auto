@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
-import type { Brand } from "@/lib/db/schema";
-import { categoryLabels } from "@/lib/format";
+import type { Brand, VehicleCategory } from "@/lib/db/schema";
 import { createModel, createModelYear } from "./actions";
 
-const CATEGORIES = Object.entries(categoryLabels);
-
-export function NewModelForm({ brands }: { brands: Brand[] }) {
+export function NewModelForm({
+  brands,
+  categories,
+}: {
+  brands: Brand[];
+  categories: VehicleCategory[];
+}) {
   const [selectedBrand, setSelectedBrand] = useState("");
   const [modelId, setModelId] = useState<number | null>(null);
   const [showYearForm, setShowYearForm] = useState(false);
@@ -43,11 +46,13 @@ export function NewModelForm({ brands }: { brands: Brand[] }) {
             className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
           >
             <option value="">Categoria...</option>
-            {CATEGORIES.map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
+            {categories
+              .filter((c) => c.isActive)
+              .map((c) => (
+                <option key={c.slug} value={c.slug}>
+                  {c.name}
+                </option>
+              ))}
           </select>
           <SubmitButton label="Criar modelo" />
         </div>

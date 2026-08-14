@@ -1,12 +1,10 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { specGroupLabels } from "@/lib/format";
+import type { SpecGroup } from "@/lib/db/schema";
 import { createSpecCategory } from "./actions";
 
-const GROUPS = Object.entries(specGroupLabels);
-
-export function NewSpecCategoryForm() {
+export function NewSpecCategoryForm({ groups }: { groups: SpecGroup[] }) {
   return (
     <form
       action={createSpecCategory}
@@ -30,9 +28,9 @@ export function NewSpecCategoryForm() {
           required
           className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
         >
-          {GROUPS.map(([key, label]) => (
-            <option key={key} value={key}>
-              {label}
+          {groups.map((g) => (
+            <option key={g.slug} value={g.slug}>
+              {g.name}
             </option>
           ))}
         </select>

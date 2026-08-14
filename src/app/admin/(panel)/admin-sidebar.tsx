@@ -7,6 +7,7 @@ import {
   FolderTree,
   Gauge,
   LayoutDashboard,
+  ListTree,
   LogOut,
   Upload,
   Users,
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/admin/imports", label: "Importar dados", icon: Upload },
   { href: "/admin/analytics", label: "Vendas (FENABRAVE)", icon: BarChart3 },
   { href: "/admin/users", label: "Usuários", icon: Users },
+  { href: "/admin/types", label: "Tipos e grupos", icon: ListTree },
 ];
 
 export function AdminSidebar() {

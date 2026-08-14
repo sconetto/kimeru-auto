@@ -1,6 +1,6 @@
 import { asc, count, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { brands, models, modelYears } from "@/lib/db/schema";
+import { brands, models, modelYears, vehicleCategories } from "@/lib/db/schema";
 import { categoryLabels } from "@/lib/format";
 import { ModelRow } from "./model-row";
 import { NewModelForm } from "./new-model-form";
@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminCarsPage() {
   const allBrands = await db.select().from(brands).orderBy(asc(brands.name));
+  const categories = await db.select().from(vehicleCategories).orderBy(asc(vehicleCategories.displayOrder));
 
   const rows = await db
     .select({
@@ -34,7 +35,7 @@ export default async function AdminCarsPage() {
         <p className="mt-1 text-sm text-slate-400">Gerencie modelos e versões do catálogo</p>
       </div>
 
-      <NewModelForm brands={allBrands} />
+      <NewModelForm brands={allBrands} categories={categories} />
 
       <div className="overflow-hidden rounded-lg border border-slate-800">
         <table className="w-full text-sm">

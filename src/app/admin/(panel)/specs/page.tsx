@@ -1,6 +1,6 @@
 import { asc } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { specCategories } from "@/lib/db/schema";
+import { specCategories, specGroups } from "@/lib/db/schema";
 import { specGroupLabels } from "@/lib/format";
 import { NewSpecCategoryForm } from "./new-spec-category-form";
 import { SpecCategoryRow } from "./spec-category-row";
@@ -12,6 +12,7 @@ export default async function AdminSpecsPage() {
     .select()
     .from(specCategories)
     .orderBy(asc(specCategories.group), asc(specCategories.displayOrder));
+  const groups = await db.select().from(specGroups).orderBy(asc(specGroups.displayOrder));
 
   const byGroup = new Map<string, typeof rows>();
   for (const row of rows) {
@@ -27,7 +28,7 @@ export default async function AdminSpecsPage() {
         <p className="mt-1 text-sm text-slate-400">Defina os campos comparáveis entre veículos</p>
       </div>
 
-      <NewSpecCategoryForm />
+      <NewSpecCategoryForm groups={groups} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         {[...byGroup.entries()].map(([group, cats]) => (
