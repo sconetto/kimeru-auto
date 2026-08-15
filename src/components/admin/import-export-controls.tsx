@@ -117,10 +117,10 @@ export function ImportExportControls({ entity }: { entity: ExportableEntity }) {
                 </tr>
               </thead>
               <tbody>
-                {preview.previewRows.map((row, i) => (
-                  <tr key={i} className="border-t border-slate-800 text-slate-300">
-                    {row.map((cell, j) => (
-                      <td key={j} className="px-2 py-1">
+                {preview.previewRows.map((row) => (
+                  <tr key={row.join("|")} className="border-t border-slate-800 text-slate-300">
+                    {row.map((cell) => (
+                      <td key={cell} className="px-2 py-1">
                         {cell}
                       </td>
                     ))}

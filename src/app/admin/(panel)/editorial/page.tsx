@@ -141,7 +141,9 @@ export default async function AdminEditorialPage({
                   </p>
                   <p className="text-xs text-slate-500">ID {row.modelYearId}</p>
                 </td>
-                <td className="px-4 py-3 text-slate-400">{localeLabels[row.locale] ?? row.locale}</td>
+                <td className="px-4 py-3 text-slate-400">
+                  {localeLabels[row.locale] ?? row.locale}
+                </td>
                 <td className="px-4 py-3 text-slate-400">{row.rating ?? "—"}</td>
                 <td className="px-4 py-3">
                   <span

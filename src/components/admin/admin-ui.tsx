@@ -54,7 +54,9 @@ export function AdminSearch({
         className="w-64 rounded-md border border-slate-700 bg-slate-950 py-2 pl-9 pr-3 text-sm text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
         aria-label={placeholder}
       />
-      {isPending && <span className="absolute right-3 top-1/2 h-3 w-3 -translate-y-1/2 animate-spin rounded-full border-2 border-slate-500 border-t-transparent" />}
+      {isPending && (
+        <span className="absolute right-3 top-1/2 h-3 w-3 -translate-y-1/2 animate-spin rounded-full border-2 border-slate-500 border-t-transparent" />
+      )}
     </div>
   );
 }
@@ -119,7 +121,13 @@ export function AdminPagination({
 /* AdminEmptyState                                                     */
 /* ------------------------------------------------------------------ */
 
-export function AdminEmptyState({ message, action }: { message: string; action?: React.ReactNode }) {
+export function AdminEmptyState({
+  message,
+  action,
+}: {
+  message: string;
+  action?: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col items-center gap-3 p-10 text-center">
       <p className="text-sm text-slate-500">{message}</p>
@@ -147,6 +155,8 @@ export function AdminBadge({
     gray: "bg-slate-700 text-slate-400",
   };
   return (
-    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${tones[tone]}`}>{children}</span>
+    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${tones[tone]}`}>
+      {children}
+    </span>
   );
 }

@@ -92,7 +92,11 @@ export async function updateVehicleCategory(formData: FormData) {
   if (!parsed.success) return;
 
   const { id, name, icon, displayOrder, isActive } = parsed.data;
-  const [existing] = await db.select().from(vehicleCategories).where(eq(vehicleCategories.id, id)).limit(1);
+  const [existing] = await db
+    .select()
+    .from(vehicleCategories)
+    .where(eq(vehicleCategories.id, id))
+    .limit(1);
   if (!existing) return;
 
   const slug = name === existing.name ? existing.slug : slugify(name);
@@ -102,7 +106,13 @@ export async function updateVehicleCategory(formData: FormData) {
     .set({ name, slug, icon: icon || null, displayOrder, isActive, updatedAt: new Date() })
     .where(eq(vehicleCategories.id, id));
 
-  await logAudit({ adminId, action: "update", entityType: "vehicle_category", entityId: id, details: { name } });
+  await logAudit({
+    adminId,
+    action: "update",
+    entityType: "vehicle_category",
+    entityId: id,
+    details: { name },
+  });
   revalidatePath("/admin/types");
   revalidatePath("/", "layout");
 }
@@ -174,7 +184,13 @@ export async function updateSpecGroup(formData: FormData) {
     .set({ name, slug, displayOrder, updatedAt: new Date() })
     .where(eq(specGroups.id, id));
 
-  await logAudit({ adminId, action: "update", entityType: "spec_group", entityId: id, details: { name } });
+  await logAudit({
+    adminId,
+    action: "update",
+    entityType: "spec_group",
+    entityId: id,
+    details: { name },
+  });
   revalidatePath("/admin/types");
   revalidatePath("/", "layout");
 }
@@ -212,8 +228,14 @@ export async function reorderType(formData: FormData) {
 
   if (!neighbor) return;
 
-  await db.update(table).set({ displayOrder: neighbor.displayOrder }).where(eq(table.id, current.id));
-  await db.update(table).set({ displayOrder: current.displayOrder }).where(eq(table.id, neighbor.id));
+  await db
+    .update(table)
+    .set({ displayOrder: neighbor.displayOrder })
+    .where(eq(table.id, current.id));
+  await db
+    .update(table)
+    .set({ displayOrder: current.displayOrder })
+    .where(eq(table.id, neighbor.id));
 
   await logAudit({
     adminId,
@@ -227,7 +249,10 @@ export async function reorderType(formData: FormData) {
 }
 
 export async function listTypes() {
-  const categories = await db.select().from(vehicleCategories).orderBy(asc(vehicleCategories.displayOrder));
+  const categories = await db
+    .select()
+    .from(vehicleCategories)
+    .orderBy(asc(vehicleCategories.displayOrder));
   const groups = await db.select().from(specGroups).orderBy(asc(specGroups.displayOrder));
   return { categories, groups };
 }

@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { adminUsers, brands, editorial, models, modelYears } from "@/lib/db/schema";
+import { brands, editorial, models, modelYears } from "@/lib/db/schema";
 import { EditorialEditForm } from "../editorial-edit-form";
 
 export const dynamic = "force-dynamic";

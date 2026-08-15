@@ -2,7 +2,7 @@ import { asc } from "drizzle-orm";
 import { Pencil } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { adminUsers, adminRole } from "@/lib/db/schema";
+import { adminRole, adminUsers } from "@/lib/db/schema";
 import { createUser } from "./actions";
 import { DeleteUserButton } from "./delete-user-button";
 

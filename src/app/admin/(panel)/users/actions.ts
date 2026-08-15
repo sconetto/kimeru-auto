@@ -8,7 +8,7 @@ import { z } from "zod";
 import { logAudit } from "@/lib/admin/audit";
 import { requireRole } from "@/lib/auth/require-role";
 import { db } from "@/lib/db";
-import { adminUsers, adminRole } from "@/lib/db/schema";
+import { adminRole, adminUsers } from "@/lib/db/schema";
 
 const userSchema = z.object({
   email: z.string().email().max(255),
@@ -21,7 +21,10 @@ const updateUserSchema = z.object({
   id: z.coerce.number().int().positive(),
   name: z.string().max(150).optional().default(""),
   role: z.enum(adminRole.enumValues),
-  password: z.union([z.string().min(8).max(200), z.literal("")]).optional().default(""),
+  password: z
+    .union([z.string().min(8).max(200), z.literal("")])
+    .optional()
+    .default(""),
   isActive: z.coerce.boolean().optional().default(true),
 });
 

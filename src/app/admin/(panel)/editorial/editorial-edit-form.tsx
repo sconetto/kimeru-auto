@@ -39,8 +39,14 @@ export function EditorialEditForm({ modelYearId, editorial }: Props) {
 
   function handleSubmit(formData: FormData) {
     const payload = {
-      pros: pros.split("\n").map((s) => s.trim()).filter(Boolean),
-      cons: cons.split("\n").map((s) => s.trim()).filter(Boolean),
+      pros: pros
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean),
+      cons: cons
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean),
       summary,
       rating,
       scoreBreakdown: breakdown,
@@ -64,8 +70,16 @@ export function EditorialEditForm({ modelYearId, editorial }: Props) {
       {/* Preserve transcripts and source videos on save — they are not edited
           on this form but must survive an edit to the summary/ratings.
           defaultValue (uncontrolled) so the DOM value is read on submit. */}
-      <input type="hidden" name="transcripts" defaultValue={JSON.stringify(editorial?.transcripts ?? [])} />
-      <input type="hidden" name="sourceVideos" defaultValue={JSON.stringify(editorial?.sourceVideos ?? [])} />
+      <input
+        type="hidden"
+        name="transcripts"
+        defaultValue={JSON.stringify(editorial?.transcripts ?? [])}
+      />
+      <input
+        type="hidden"
+        name="sourceVideos"
+        defaultValue={JSON.stringify(editorial?.sourceVideos ?? [])}
+      />
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
@@ -140,9 +154,7 @@ export function EditorialEditForm({ modelYearId, editorial }: Props) {
                 max={5}
                 step={0.1}
                 value={breakdown[key]}
-                onChange={(e) =>
-                  setBreakdown({ ...breakdown, [key]: Number(e.target.value) })
-                }
+                onChange={(e) => setBreakdown({ ...breakdown, [key]: Number(e.target.value) })}
                 className="w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
               />
             </div>

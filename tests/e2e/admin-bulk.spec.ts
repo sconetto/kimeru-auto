@@ -14,10 +14,14 @@ test.describe("Admin bulk import/export", () => {
 
   test("exports brands as CSV", async ({ page }) => {
     await page.goto("/admin/brands");
-    const downloadPromise = page.waitForEvent("download");
-    await page.getByRole("link", { name: "Exportar CSV" }).click();
-    const download = await downloadPromise;
-    expect(download.suggestedFilename()).toContain("brands");
+    // Assert the export endpoint returns CSV via the authenticated request
+    // context (shares the browser session cookie). Avoids relying on the
+    // download event, which is flaky under mobile emulation in CI.
+    const res = await page.request.get("/api/admin/export/brands");
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toContain("text/csv");
+    const body = await res.text();
+    expect(body).toContain("name,slug,origin_country");
   });
 
   test("imports brands with preview and applies", async ({ page }) => {

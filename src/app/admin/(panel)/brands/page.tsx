@@ -1,8 +1,8 @@
 import { asc, count, eq, ilike, or } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { brands, models } from "@/lib/db/schema";
 import { AdminSearch } from "@/components/admin/admin-ui";
 import { ImportExportControls } from "@/components/admin/import-export-controls";
+import { db } from "@/lib/db";
+import { brands, models } from "@/lib/db/schema";
 import { BrandRow } from "./brand-row";
 import { NewBrandForm } from "./new-brand-form";
 
@@ -28,9 +28,7 @@ export default async function AdminBrandsPage({
     .from(brands)
     .leftJoin(models, eq(models.brandId, brands.id))
     .where(
-      query
-        ? or(ilike(brands.name, `%${query}%`), ilike(brands.slug, `%${query}%`))
-        : undefined,
+      query ? or(ilike(brands.name, `%${query}%`), ilike(brands.slug, `%${query}%`)) : undefined,
     )
     .groupBy(brands.id)
     .orderBy(asc(brands.name));

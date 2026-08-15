@@ -44,16 +44,13 @@ export default async function AdminAuditPage({
   if (action && (actionLabels as Record<string, string>)[action]) {
     filters.push(eq(adminAuditLog.action, action as never));
   }
-  if (entity && entity.trim()) {
+  if (entity?.trim()) {
     filters.push(eq(adminAuditLog.entityType, entity.trim()));
   }
 
   const where = filters.length > 0 ? and(...filters) : undefined;
 
-  const [{ total }] = await db
-    .select({ total: count() })
-    .from(adminAuditLog)
-    .where(where);
+  const [{ total }] = await db.select({ total: count() }).from(adminAuditLog).where(where);
   const totalPages = Math.max(1, Math.ceil(Number(total) / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages);
 
@@ -130,7 +127,9 @@ export default async function AdminAuditPage({
                   <span className="font-medium text-slate-300">{row.entityType}</span>
                   {row.entityId != null && <span className="text-slate-500"> #{row.entityId}</span>}
                 </td>
-                <td className="px-4 py-3 text-slate-400">{row.adminName ?? row.adminEmail ?? "—"}</td>
+                <td className="px-4 py-3 text-slate-400">
+                  {row.adminName ?? row.adminEmail ?? "—"}
+                </td>
                 <td className="px-4 py-3 text-slate-400">{formatDate(row.createdAt)}</td>
               </tr>
             ))}

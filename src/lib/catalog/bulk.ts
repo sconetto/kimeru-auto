@@ -3,28 +3,23 @@ import { db } from "@/lib/db";
 import {
   brands,
   fuelType,
-  modelYears,
   models,
+  modelYears,
   specCategories,
   specGroups,
   vehicleCategories,
 } from "@/lib/db/schema";
-import {
-  ENTITY_LABELS,
-  EXPORTABLE_ENTITIES,
-  type ExportableEntity,
-} from "./bulk-entities";
 
 /* ------------------------------------------------------------------ */
 /* CSV helpers                                                        */
 /* ------------------------------------------------------------------ */
 
 export function toCsv(headers: string[], rows: (string | number | null | undefined)[][]): string {
-  const escape = (v: string | number | null | undefined): string => {
+  const csvEscape = (v: string | number | null | undefined): string => {
     const s = v == null ? "" : String(v);
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
-  return [headers.join(","), ...rows.map((r) => r.map(escape).join(","))].join("\n");
+  return [headers.join(","), ...rows.map((r) => r.map(csvEscape).join(","))].join("\n");
 }
 
 export function parseCsv(text: string): string[][] {
@@ -114,7 +109,15 @@ export async function exportEntity(entity: string): Promise<ExportSpec | null> {
         .innerJoin(brands, eq(brands.id, models.brandId))
         .orderBy(asc(brands.name), asc(models.name));
       return {
-        headers: ["brand_slug", "name", "slug", "category", "size_category", "image_url", "is_active"],
+        headers: [
+          "brand_slug",
+          "name",
+          "slug",
+          "category",
+          "size_category",
+          "image_url",
+          "is_active",
+        ],
         rows: rows.map((r) => [
           r.brandSlug,
           r.name,
@@ -252,12 +255,20 @@ export async function importEntity(
       const name = row[nameIdx]?.trim();
       const brandSlug = row[brandIdx]?.trim();
       if (!name || !brandSlug) {
-        outcome.errors.push({ rowNumber: r + 2, status: "error", message: "Nome e brand_slug obrigatórios" });
+        outcome.errors.push({
+          rowNumber: r + 2,
+          status: "error",
+          message: "Nome e brand_slug obrigatórios",
+        });
         continue;
       }
       const [brand] = await db.select().from(brands).where(eq(brands.slug, brandSlug)).limit(1);
       if (!brand) {
-        outcome.errors.push({ rowNumber: r + 2, status: "error", message: `Marca desconhecida: ${brandSlug}` });
+        outcome.errors.push({
+          rowNumber: r + 2,
+          status: "error",
+          message: `Marca desconhecida: ${brandSlug}`,
+        });
         continue;
       }
       const categorySlug = categoryIdx >= 0 ? row[categoryIdx]?.trim() : undefined;
@@ -268,7 +279,11 @@ export async function importEntity(
           .where(eq(vehicleCategories.slug, categorySlug))
           .limit(1);
         if (!cat) {
-          outcome.errors.push({ rowNumber: r + 2, status: "error", message: `Categoria desconhecida: ${categorySlug}` });
+          outcome.errors.push({
+            rowNumber: r + 2,
+            status: "error",
+            message: `Categoria desconhecida: ${categorySlug}`,
+          });
           continue;
         }
       }
@@ -313,17 +328,29 @@ export async function importEntity(
       const modelSlug = row[modelIdx]?.trim();
       const year = Number(row[yearIdx]?.trim());
       if (!modelSlug || Number.isNaN(year)) {
-        outcome.errors.push({ rowNumber: r + 2, status: "error", message: "model_slug e year obrigatórios" });
+        outcome.errors.push({
+          rowNumber: r + 2,
+          status: "error",
+          message: "model_slug e year obrigatórios",
+        });
         continue;
       }
       const [model] = await db.select().from(models).where(eq(models.slug, modelSlug)).limit(1);
       if (!model) {
-        outcome.errors.push({ rowNumber: r + 2, status: "error", message: `Modelo desconhecido: ${modelSlug}` });
+        outcome.errors.push({
+          rowNumber: r + 2,
+          status: "error",
+          message: `Modelo desconhecido: ${modelSlug}`,
+        });
         continue;
       }
       const fuel = fuelIdx >= 0 ? row[fuelIdx]?.trim() : "flex";
       if (!fuelValues.includes(fuel)) {
-        outcome.errors.push({ rowNumber: r + 2, status: "error", message: `Combustível inválido: ${fuel}` });
+        outcome.errors.push({
+          rowNumber: r + 2,
+          status: "error",
+          message: `Combustível inválido: ${fuel}`,
+        });
         continue;
       }
       const isZeroKm = zeroIdx >= 0 ? csvBool(row[zeroIdx]) : false;
@@ -381,7 +408,11 @@ export async function importEntity(
         continue;
       }
       const slug = slugify(name);
-      const existing = await db.select().from(specCategories).where(eq(specCategories.slug, slug)).limit(1);
+      const existing = await db
+        .select()
+        .from(specCategories)
+        .where(eq(specCategories.slug, slug))
+        .limit(1);
       const values = {
         name,
         slug,
@@ -404,4 +435,3 @@ export async function importEntity(
 
   return null;
 }
-

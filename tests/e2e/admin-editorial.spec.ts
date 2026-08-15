@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "admin@kimeru.example";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "admin123456";
@@ -44,16 +44,24 @@ async function ensureHb20Published(page: Page) {
       "## Desempenho\nO motor entrega bom desempenho para o segmento.\n\n## Conforto\nRodar macio e boa posição de dirigir.\n\n## Tecnologia\nCentral multimídia completa.\n\n## Veredito\nRecomendado para quem busca um compacto completo.",
     );
   }
-  await page
-    .locator('input[name="transcripts"]')
-    .evaluate((el, v) => { (el as HTMLInputElement).value = v; }, JSON.stringify([
-      { videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", title: "Teste HB20", text: "O carro impressiona pela agilidade." },
-    ]));
-  await page
-    .locator('input[name="sourceVideos"]')
-    .evaluate((el, v) => { (el as HTMLInputElement).value = v; }, JSON.stringify([
-      { url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", title: "Teste HB20" },
-    ]));
+  await page.locator('input[name="transcripts"]').evaluate(
+    (el, v) => {
+      (el as HTMLInputElement).value = v;
+    },
+    JSON.stringify([
+      {
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        title: "Teste HB20",
+        text: "O carro impressiona pela agilidade.",
+      },
+    ]),
+  );
+  await page.locator('input[name="sourceVideos"]').evaluate(
+    (el, v) => {
+      (el as HTMLInputElement).value = v;
+    },
+    JSON.stringify([{ url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", title: "Teste HB20" }]),
+  );
   await page.getByRole("button", { name: "Salvar conteúdo" }).click();
   await expect(page).toHaveURL(/\/admin\/editorial$/);
 }
@@ -103,7 +111,11 @@ test.describe("Admin editorial workflow", () => {
     // after admin specs in CI's alphabetical single-worker order) still see
     // the seeded editorial content.
     await page.goto("/admin/editorial");
-    await page.locator("tr", { hasText: "HB20" }).first().getByRole("link", { name: "Editar" }).click();
+    await page
+      .locator("tr", { hasText: "HB20" })
+      .first()
+      .getByRole("link", { name: "Editar" })
+      .click();
     await expect(page.getByRole("heading", { name: /Editar conteúdo/ })).toBeVisible();
     await page.getByLabel(/Resumo/).fill(originalSummary);
     await page.getByRole("button", { name: "Salvar conteúdo" }).click();

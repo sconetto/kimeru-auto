@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth/require-admin";
-import { EXPORTABLE_ENTITIES } from "@/lib/catalog/bulk-entities";
-import { importEntity, parseCsv } from "@/lib/catalog/bulk";
 import { logAudit } from "@/lib/admin/audit";
+import { requireAdmin } from "@/lib/auth/require-admin";
+import { importEntity, parseCsv } from "@/lib/catalog/bulk";
+import { EXPORTABLE_ENTITIES } from "@/lib/catalog/bulk-entities";
 import { isSameOrigin } from "@/lib/ratelimit";
 
 export const dynamic = "force-dynamic";
@@ -15,10 +15,7 @@ const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB
  * Preview parses + validates rows without writing; apply performs the import
  * and returns per-row results.
  */
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ entity: string }> },
-) {
+export async function POST(request: Request, { params }: { params: Promise<{ entity: string }> }) {
   if (!isSameOrigin(request)) {
     return NextResponse.json({ error: "Origem inválida" }, { status: 403 });
   }
@@ -38,7 +35,10 @@ export async function POST(
     return NextResponse.json({ error: "Arquivo não encontrado no upload" }, { status: 400 });
   }
   if (!file.name.toLowerCase().endsWith(".csv")) {
-    return NextResponse.json({ error: "Formato inválido — envie um arquivo .csv" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Formato inválido — envie um arquivo .csv" },
+      { status: 400 },
+    );
   }
   if (file.size > MAX_FILE_SIZE) {
     return NextResponse.json({ error: "Arquivo muito grande — limite de 2 MB" }, { status: 413 });
@@ -47,7 +47,10 @@ export async function POST(
   const text = await file.text();
   const parsed = parseCsv(text);
   if (parsed.length < 2) {
-    return NextResponse.json({ error: "CSV vazio — precisa de cabeçalho e ao menos uma linha" }, { status: 400 });
+    return NextResponse.json(
+      { error: "CSV vazio — precisa de cabeçalho e ao menos uma linha" },
+      { status: 400 },
+    );
   }
   const headers = parsed[0];
   const dataRows = parsed.slice(1);

@@ -70,7 +70,6 @@ function TypeRow({
   kind,
   id,
   name,
-  displayOrder,
   canMoveUp,
   canMoveDown,
   deleteAction,

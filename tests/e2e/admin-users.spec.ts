@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "admin@kimeru.example";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "admin123456";

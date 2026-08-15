@@ -10,7 +10,8 @@ export function EditorialRowActions({ id, published }: { id: number; published: 
         <form
           action={unpublishEditorial}
           onSubmit={(e) => {
-            if (!confirm("Despublicar este conteúdo? Ele ficará oculto no site.")) e.preventDefault();
+            if (!confirm("Despublicar este conteúdo? Ele ficará oculto no site."))
+              e.preventDefault();
           }}
         >
           <input type="hidden" name="id" value={id} />

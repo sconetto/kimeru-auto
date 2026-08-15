@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { exportEntity, toCsv } from "@/lib/catalog/bulk";
 import { EXPORTABLE_ENTITIES } from "@/lib/catalog/bulk-entities";
-import { toCsv, exportEntity } from "@/lib/catalog/bulk";
 
 export const dynamic = "force-dynamic";
 
 /** GET /api/admin/export/[entity] — download catalog data as CSV (admin/editor). */
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ entity: string }> },
-) {
+export async function GET(_request: Request, { params }: { params: Promise<{ entity: string }> }) {
   const guard = await requireAdmin({ minRole: "editor" });
   if (!guard.ok) return guard.response;
 

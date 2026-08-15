@@ -102,8 +102,17 @@ export async function unpublishEditorial(formData: FormData) {
   if (adminId === null) return;
 
   const id = Number(formData.get("id"));
-  await db.update(editorial).set({ published: false, updatedAt: new Date() }).where(eq(editorial.id, id));
-  await logAudit({ adminId, action: "update", entityType: "editorial", entityId: id, details: { unpublished: true } });
+  await db
+    .update(editorial)
+    .set({ published: false, updatedAt: new Date() })
+    .where(eq(editorial.id, id));
+  await logAudit({
+    adminId,
+    action: "update",
+    entityType: "editorial",
+    entityId: id,
+    details: { unpublished: true },
+  });
   revalidatePath("/admin/editorial");
   revalidatePath("/", "layout");
 }
