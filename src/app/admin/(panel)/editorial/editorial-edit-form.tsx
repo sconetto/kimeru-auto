@@ -175,6 +175,7 @@ export function EditorialEditForm({ modelYearId, editorial }: Props) {
 
       <button
         type="submit"
+        title="Salvar conteúdo"
         className="flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-500"
       >
         <Save className="h-4 w-4" />

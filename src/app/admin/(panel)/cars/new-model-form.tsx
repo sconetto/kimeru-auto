@@ -110,6 +110,7 @@ export function NewModelForm({
             setShowYearForm(!showYearForm);
             setModelId(null);
           }}
+          title="Alternar formulário de versão"
           className="text-blue-400 hover:underline"
         >
           {showYearForm ? "Cancelar versão" : "+ Adicionar versão manualmente"}
@@ -133,6 +134,7 @@ function SubmitButton({ label }: { label: string }) {
     <button
       type="submit"
       disabled={pending}
+      title="Criar modelo ou versão"
       className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:opacity-50"
     >
       {pending ? "..." : label}

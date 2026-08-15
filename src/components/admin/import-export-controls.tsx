@@ -134,6 +134,7 @@ export function ImportExportControls({ entity }: { entity: ExportableEntity }) {
               type="button"
               onClick={() => void apply()}
               disabled={busy}
+              title="Confirmar importação dos dados"
               className="rounded-md bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
             >
               {busy ? "Importando…" : "Confirmar importação"}
@@ -144,6 +145,7 @@ export function ImportExportControls({ entity }: { entity: ExportableEntity }) {
                 setPreview(null);
                 setFile(null);
               }}
+              title="Cancelar importação"
               className="rounded-md px-3 py-1.5 text-xs text-slate-400 hover:text-white"
             >
               Cancelar

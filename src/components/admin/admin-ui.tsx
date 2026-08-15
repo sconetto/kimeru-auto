@@ -98,6 +98,7 @@ export function AdminPagination({
           type="button"
           onClick={() => go(page - 1)}
           disabled={page <= 1}
+          title="Página anterior"
           className="flex items-center gap-1 rounded-md bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-700 disabled:opacity-40"
           aria-label="Página anterior"
         >
@@ -107,6 +108,7 @@ export function AdminPagination({
           type="button"
           onClick={() => go(page + 1)}
           disabled={page >= totalPages}
+          title="Próxima página"
           className="flex items-center gap-1 rounded-md bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-700 disabled:opacity-40"
           aria-label="Próxima página"
         >

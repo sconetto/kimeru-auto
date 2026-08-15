@@ -131,6 +131,7 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
                 key={l}
                 type="button"
                 onClick={() => setLocale(l)}
+                title="Alterar idioma do conteúdo"
                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                   locale === l
                     ? "bg-blue-600 text-white"
@@ -160,6 +161,7 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
           type="button"
           onClick={generate}
           disabled={isPending || status === "loading"}
+          title="Gerar conteúdo com IA a partir dos vídeos"
           className="flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:opacity-50"
         >
           {status === "loading" ? (
@@ -216,6 +218,7 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
                 <button
                   type="button"
                   onClick={() => setShowPreview(!showPreview)}
+                  title="Alternar pré-visualização do resumo"
                   className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
                 >
                   <Eye className="h-3.5 w-3.5" />
@@ -328,6 +331,7 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
                     <div key={i} className="border-b border-slate-800 last:border-0">
                       <button
                         type="button"
+                        title="Expandir ou recolher transcrição"
                         onClick={() =>
                           setExpandedTranscripts((prev) => {
                             const next = new Set(prev);
@@ -362,6 +366,7 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
                 type="button"
                 onClick={publish}
                 disabled={isPending}
+                title="Publicar conteúdo no site"
                 className="flex items-center gap-2 rounded-md bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
               >
                 <CheckCircle2 className="h-4 w-4" />
@@ -370,6 +375,7 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
               <button
                 type="button"
                 onClick={() => setContent(null)}
+                title="Descartar conteúdo gerado"
                 className="rounded-md border border-slate-700 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800"
               >
                 Descartar

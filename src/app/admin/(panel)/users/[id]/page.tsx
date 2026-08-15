@@ -85,6 +85,7 @@ export default async function AdminEditUserPage({ params }: { params: Promise<{ 
         </label>
         <button
           type="submit"
+          title="Salvar alterações"
           className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
         >
           Salvar alterações

@@ -37,6 +37,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
+      title="Criar marca"
       className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:opacity-50"
     >
       {pending ? "..." : "Criar"}

@@ -103,6 +103,7 @@ function TypeRow({
         />
         <button
           type="submit"
+          title="Salvar alterações"
           className="rounded-md bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-500"
         >
           Salvar
@@ -113,6 +114,7 @@ function TypeRow({
             setValue(name);
             setEditing(false);
           }}
+          title="Cancelar edição"
           className="rounded-md px-2 py-1 text-xs text-slate-400 hover:text-white"
         >
           Cancelar
