@@ -29,6 +29,13 @@
       "when": 1786738684917,
       "tag": "0003_admin-catalog-management",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786839218033,
+      "tag": "0004_seed-reference-lists",
+      "breakpoints": true
     }
   ]
 }
