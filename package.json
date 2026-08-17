@@ -44,7 +44,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.12.1",
+    "@axe-core/playwright": "^4.13.0",
     "@biomejs/biome": "^2.5.7",
     "@hookform/resolvers": "^5.7.1",
     "@playwright/test": "^1.62.1",
