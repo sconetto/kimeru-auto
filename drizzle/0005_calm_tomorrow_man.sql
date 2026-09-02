@@ -1,0 +1,1 @@
+ALTER TABLE "brands" ADD COLUMN IF NOT EXISTS "fipe_code" varchar(20);

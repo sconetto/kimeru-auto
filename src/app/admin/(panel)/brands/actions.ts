@@ -20,6 +20,7 @@ function slugify(s: string): string {
 const brandSchema = z.object({
   name: z.string().min(1).max(100),
   originCountry: z.string().max(100).optional().default(""),
+  fipeCode: z.string().max(20).optional().default(""),
   logoUrl: z.string().url().optional().or(z.literal("")).default(""),
 });
 
@@ -29,6 +30,7 @@ export async function createBrand(formData: FormData) {
   const parsed = brandSchema.safeParse({
     name: formData.get("name"),
     originCountry: formData.get("originCountry"),
+    fipeCode: formData.get("fipeCode"),
     logoUrl: formData.get("logoUrl"),
   });
   if (!parsed.success) return;
@@ -40,6 +42,7 @@ export async function createBrand(formData: FormData) {
       name: parsed.data.name,
       slug,
       originCountry: parsed.data.originCountry || null,
+      fipeCode: parsed.data.fipeCode || null,
       logoUrl: parsed.data.logoUrl || null,
     })
     .returning();
@@ -82,6 +85,7 @@ const updateBrandSchema = z.object({
   id: z.coerce.number(),
   name: z.string().min(1).max(100),
   originCountry: z.string().max(100).optional().default(""),
+  fipeCode: z.string().max(20).optional().default(""),
   logoUrl: z.string().url().optional().or(z.literal("")).default(""),
   isActive: z.coerce.boolean().optional().default(true),
 });
@@ -93,12 +97,13 @@ export async function updateBrand(formData: FormData) {
     id: formData.get("id"),
     name: formData.get("name"),
     originCountry: formData.get("originCountry"),
+    fipeCode: formData.get("fipeCode"),
     logoUrl: formData.get("logoUrl"),
     isActive: formData.get("isActive") === "on" || formData.get("isActive") === "true",
   });
   if (!parsed.success) return;
 
-  const { id, name, originCountry, logoUrl, isActive } = parsed.data;
+  const { id, name, originCountry, fipeCode, logoUrl, isActive } = parsed.data;
   const [existing] = await db.select().from(brands).where(eq(brands.id, id)).limit(1);
   if (!existing) return;
 
@@ -110,6 +115,7 @@ export async function updateBrand(formData: FormData) {
       name,
       slug,
       originCountry: originCountry || null,
+      fipeCode: fipeCode || null,
       logoUrl: logoUrl || null,
       isActive,
       updatedAt: new Date(),

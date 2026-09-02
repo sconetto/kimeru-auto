@@ -70,7 +70,11 @@ export async function syncFipeReferenceData(): Promise<SyncResult> {
 
   const brandResults = await mapWithConcurrency(localBrands, async (localBrand) => {
     const brandStats = { matched: 0, yearsWarmed: 0, errors: [] as string[] };
-    const fipeBrand = fipeBrands.find((b) => normalize(b.name) === normalize(localBrand.name));
+    // Explicit FIPE code first; FIPE's official brand names differ from the
+    // catalog's display names (e.g. "GM - Chevrolet"), so fall back to name.
+    const fipeBrand =
+      (localBrand.fipeCode && fipeBrands.find((b) => b.code === localBrand.fipeCode)) ??
+      fipeBrands.find((b) => normalize(b.name) === normalize(localBrand.name));
     if (!fipeBrand) return brandStats;
     brandStats.matched = 1;
 

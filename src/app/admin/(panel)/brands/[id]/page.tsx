@@ -55,6 +55,23 @@ export default async function AdminEditBrandPage({ params }: { params: Promise<{
             className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
           />
         </div>
+        <div>
+          <label htmlFor="fipeCode" className="mb-1.5 block text-sm font-medium text-slate-300">
+            Código FIPE
+          </label>
+          <input
+            id="fipeCode"
+            name="fipeCode"
+            inputMode="numeric"
+            defaultValue={brand.fipeCode ?? ""}
+            placeholder="Código da marca na tabela FIPE (ex: 21 para Fiat)"
+            className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
+          />
+          <p className="mt-1 text-xs text-slate-500">
+            Usado para casar a marca com a tabela FIPE no sync mensal. Deixe vazio para tentar casar
+            pelo nome.
+          </p>
+        </div>
         <AdminImageUpload name="logoUrl" label="Logo" value={brand.logoUrl} />
         <label className="flex items-center gap-2 text-sm text-slate-300">
           <input

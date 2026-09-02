@@ -7,7 +7,7 @@ export function NewBrandForm() {
   return (
     <form action={createBrand} className="rounded-lg border border-slate-800 bg-slate-900 p-5">
       <h2 className="mb-3 text-sm font-medium text-white">Nova marca</h2>
-      <div className="grid gap-3 sm:grid-cols-[1fr_1fr_1.5fr_auto]">
+      <div className="grid gap-3 sm:grid-cols-[1fr_1fr_0.6fr_1.5fr_auto]">
         <input
           name="name"
           placeholder="Nome (ex: Fiat)"
@@ -17,6 +17,13 @@ export function NewBrandForm() {
         <input
           name="originCountry"
           placeholder="País de origem"
+          className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
+        />
+        <input
+          name="fipeCode"
+          inputMode="numeric"
+          placeholder="Código FIPE"
+          title="Código da marca na tabela FIPE (opcional)"
           className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
         />
         <input

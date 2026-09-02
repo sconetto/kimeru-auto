@@ -90,8 +90,15 @@ export async function exportEntity(entity: string): Promise<ExportSpec | null> {
     case "brands": {
       const rows = await db.select().from(brands).orderBy(asc(brands.name));
       return {
-        headers: ["name", "slug", "origin_country", "logo_url", "is_active"],
-        rows: rows.map((r) => [r.name, r.slug, r.originCountry, r.logoUrl, r.isActive ? 1 : 0]),
+        headers: ["name", "slug", "origin_country", "fipe_code", "logo_url", "is_active"],
+        rows: rows.map((r) => [
+          r.name,
+          r.slug,
+          r.originCountry,
+          r.fipeCode,
+          r.logoUrl,
+          r.isActive ? 1 : 0,
+        ]),
       };
     }
     case "models": {
@@ -210,6 +217,7 @@ export async function importEntity(
   if (entity === "brands") {
     const nameIdx = idx("name");
     const originIdx = idx("origin_country");
+    const fipeIdx = idx("fipe_code");
     const logoIdx = idx("logo_url");
     const activeIdx = idx("is_active");
     const outcome: ImportOutcome = { entity, created: 0, updated: 0, skipped: 0, errors: [] };
@@ -227,6 +235,7 @@ export async function importEntity(
         name,
         slug,
         originCountry: originIdx >= 0 && row[originIdx]?.trim() ? row[originIdx].trim() : null,
+        fipeCode: fipeIdx >= 0 && row[fipeIdx]?.trim() ? row[fipeIdx].trim() : null,
         logoUrl: logoIdx >= 0 && row[logoIdx]?.trim() ? row[logoIdx].trim() : null,
         isActive: activeIdx >= 0 ? csvBool(row[activeIdx], true) : true,
       };

@@ -87,6 +87,7 @@ export const brands = pgTable(
     slug: varchar("slug", { length: 120 }).notNull(),
     logoUrl: text("logo_url"),
     originCountry: varchar("origin_country", { length: 100 }),
+    fipeCode: varchar("fipe_code", { length: 20 }),
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

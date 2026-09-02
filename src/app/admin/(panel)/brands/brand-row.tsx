@@ -10,6 +10,7 @@ interface BrandRowProps {
     name: string;
     slug: string;
     originCountry: string | null;
+    fipeCode: string | null;
     isActive: boolean;
     modelCount: number;
   };
@@ -23,6 +24,7 @@ export function BrandRow({ brand }: BrandRowProps) {
         <p className="text-xs text-slate-500">/{brand.slug}</p>
       </td>
       <td className="px-4 py-3 text-slate-400">{brand.originCountry ?? "—"}</td>
+      <td className="px-4 py-3 text-slate-400">{brand.fipeCode ?? "—"}</td>
       <td className="px-4 py-3 text-slate-400">{brand.modelCount}</td>
       <td className="px-4 py-3">
         <span

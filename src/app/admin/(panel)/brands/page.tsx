@@ -22,6 +22,7 @@ export default async function AdminBrandsPage({
       name: brands.name,
       slug: brands.slug,
       originCountry: brands.originCountry,
+      fipeCode: brands.fipeCode,
       isActive: brands.isActive,
       modelCount: count(models.id),
     })
@@ -52,6 +53,7 @@ export default async function AdminBrandsPage({
             <tr className="border-b border-slate-800 bg-slate-900 text-left text-xs uppercase tracking-wide text-slate-400">
               <th className="px-4 py-3">Marca</th>
               <th className="px-4 py-3">País</th>
+              <th className="px-4 py-3">FIPE</th>
               <th className="px-4 py-3">Modelos</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3 text-right">Ações</th>
