@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { BrandLogo } from "@/components/catalog/brand-logo";
 import { SearchCars } from "@/components/catalog/search-cars";
 import { getAllActiveModels, getBrandsWithCounts } from "@/lib/catalog/queries";
 import { Link } from "@/lib/i18n/navigation";
@@ -51,9 +52,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               href={`/brands/${brand.slug}`}
               className="group flex flex-col items-center justify-center gap-3 rounded-lg border border-slate-200 bg-white p-6 transition-all hover:border-blue-500 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-xl font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                {brand.name.charAt(0)}
-              </div>
+              <BrandLogo logoUrl={brand.logoUrl} name={brand.name} size={48} />
               <div className="text-center">
                 <p className="font-semibold text-slate-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
                   {brand.name}

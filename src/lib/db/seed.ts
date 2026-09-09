@@ -97,14 +97,28 @@ async function main() {
 
   /* 2. Brands (upsert by slug) */
   let createdBrands = 0;
+  let updatedBrands = 0;
   for (const brand of seedBrands) {
     const existing = await db.select().from(brands).where(eq(brands.slug, brand.slug)).limit(1);
     if (existing.length === 0) {
       await db.insert(brands).values(brand);
       createdBrands++;
+    } else {
+      await db
+        .update(brands)
+        .set({
+          name: brand.name,
+          originCountry: brand.originCountry,
+          fipeCode: brand.fipeCode ?? null,
+          logoUrl: brand.logoUrl ?? null,
+        })
+        .where(eq(brands.id, existing[0].id));
+      updatedBrands++;
     }
   }
-  console.log(`  ✓ Brands: ${createdBrands} created, ${seedBrands.length} total`);
+  console.log(
+    `  ✓ Brands: ${createdBrands} created, ${updatedBrands} updated, ${seedBrands.length} total`,
+  );
 
   /* 3. Models + model years + specs */
   let createdModels = 0;

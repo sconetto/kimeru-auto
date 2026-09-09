@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { BrandLogo } from "@/components/catalog/brand-logo";
 import { CarCard } from "@/components/catalog/car-card";
 import { getModelsByBrand } from "@/lib/catalog/queries";
 import { categoryLabels } from "@/lib/format-labels";
@@ -38,7 +39,10 @@ export default async function BrandPage({
           </Link>{" "}
           / <span className="text-slate-400">{tBrands("title")}</span>
         </p>
-        <h1 className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{brandName}</h1>
+        <div className="mt-2 flex items-center gap-3">
+          <BrandLogo logoUrl={models[0].brandLogoUrl} name={brandName} size={48} />
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{brandName}</h1>
+        </div>
         <p className="mt-1 text-sm text-slate-500">
           {tBrands("modelsAvailable", { count: models.length })}
         </p>

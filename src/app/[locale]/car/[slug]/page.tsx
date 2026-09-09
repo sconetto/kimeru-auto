@@ -2,6 +2,7 @@ import { Calculator, Scale, TrendingUp } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { BrandLogo } from "@/components/catalog/brand-logo";
 import { SpecTable } from "@/components/compare/spec-table";
 import { EditorialScoreSummary } from "@/components/editorial/editorial-score-summary";
 import { PriceHistoryChart } from "@/components/fipe/price-history-chart";
@@ -102,6 +103,7 @@ export default async function CarDetailPage({
       {/* Title + actions (full width) */}
       <div className="mb-8">
         <div className="flex flex-wrap items-center gap-3">
+          <BrandLogo logoUrl={car.brandLogoUrl} name={car.brandName} size={44} />
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">
             {car.brandName} {car.modelName}
           </h1>

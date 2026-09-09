@@ -38,6 +38,7 @@ export interface ModelCard {
   brandId: number;
   brandName: string;
   brandSlug: string;
+  brandLogoUrl: string | null;
   name: string;
   slug: string;
   category: (typeof vehicleCategory.enumValues)[number] | null;
@@ -72,6 +73,7 @@ export interface CarDetail {
   brandId: number;
   brandName: string;
   brandSlug: string;
+  brandLogoUrl: string | null;
   modelId: number;
   modelName: string;
   modelSlug: string;
@@ -136,6 +138,7 @@ export async function getModelsByBrand(brandSlug: string): Promise<ModelCard[]> 
       brandId: brands.id,
       brandName: brands.name,
       brandSlug: brands.slug,
+      brandLogoUrl: brands.logoUrl,
       name: models.name,
       slug: models.slug,
       category: models.category,
@@ -170,6 +173,7 @@ export async function getModelsByBrand(brandSlug: string): Promise<ModelCard[]> 
     brandId: r.brandId,
     brandName: r.brandName,
     brandSlug: r.brandSlug,
+    brandLogoUrl: r.brandLogoUrl,
     name: r.name,
     slug: r.slug,
     category: r.category,
@@ -239,6 +243,7 @@ export async function getCarDetail(
       brandId: models.brandId,
       brandName: brands.name,
       brandSlug: brands.slug,
+      brandLogoUrl: brands.logoUrl,
       modelId: models.id,
       modelName: models.name,
       modelSlug: models.slug,
@@ -378,6 +383,7 @@ export async function getAllActiveModels(): Promise<ModelCard[]> {
       brandId: brands.id,
       brandName: brands.name,
       brandSlug: brands.slug,
+      brandLogoUrl: brands.logoUrl,
       name: models.name,
       slug: models.slug,
       category: models.category,
@@ -412,6 +418,7 @@ export async function getAllActiveModels(): Promise<ModelCard[]> {
     brandId: r.brandId,
     brandName: r.brandName,
     brandSlug: r.brandSlug,
+    brandLogoUrl: r.brandLogoUrl,
     name: r.name,
     slug: r.slug,
     category: r.category,
@@ -433,6 +440,7 @@ export async function getAllActiveModels(): Promise<ModelCard[]> {
 export interface CompareCar {
   slug: string;
   brandName: string;
+  brandLogoUrl: string | null;
   modelName: string;
   year: number;
   fuelType: (typeof fuelType.enumValues)[number];
@@ -462,6 +470,7 @@ export async function getCompareCars(slugs: string[]): Promise<CompareCar[]> {
         id: models.id,
         slug: models.slug,
         brandName: brands.name,
+        brandLogoUrl: brands.logoUrl,
         modelName: models.name,
         category: models.category,
         sizeCategory: models.sizeCategory,
@@ -505,6 +514,7 @@ export async function getCompareCars(slugs: string[]): Promise<CompareCar[]> {
     result.push({
       slug: model.slug,
       brandName: model.brandName,
+      brandLogoUrl: model.brandLogoUrl,
       modelName: model.modelName,
       year: my.year,
       fuelType: my.fuelType,

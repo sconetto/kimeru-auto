@@ -29,6 +29,7 @@ function makeCar(
   return {
     slug,
     brandName: "Marca",
+    brandLogoUrl: null,
     modelName: slug,
     year: 2025,
     fuelType: "flex",

@@ -3,6 +3,7 @@
 import { AlertTriangle, Calculator, Link2, Plus, Star, Trophy, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
+import { BrandLogo } from "@/components/catalog/brand-logo";
 import { RadarChart } from "@/components/compare/radar-chart";
 import type { CompareCar, ModelCard } from "@/lib/catalog/queries";
 import { bestCarIndices, computeRadarScores } from "@/lib/compare/scoring";
@@ -252,7 +253,10 @@ export function CompareClient({ initialCars }: Props) {
             >
               <X className="h-4 w-4" />
             </button>
-            <p className="text-xs text-slate-500">{car.brandName}</p>
+            <div className="flex items-center gap-2">
+              <BrandLogo logoUrl={car.brandLogoUrl} name={car.brandName} size={24} />
+              <p className="text-xs text-slate-500">{car.brandName}</p>
+            </div>
             <h3 className="font-semibold text-slate-900 dark:text-white">{car.modelName}</h3>
             <p className="mt-1 text-xs text-slate-500">
               {car.year} · {car.isZeroKm ? t("zeroKm") : t("used")}
