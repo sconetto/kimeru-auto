@@ -18,7 +18,7 @@
  * failures instead of aborting.
  */
 
-import * as XLSX from "xlsx";
+import * as XLSX from "@e965/xlsx";
 
 export interface ParsedSaleRow {
   /** Ranking position in the source report (1-based). */

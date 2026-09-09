@@ -1,3 +1,4 @@
+import "server-only";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
@@ -6,12 +7,18 @@ import * as schema from "./schema";
  * Database connection singleton.
  *
  * Uses postgres-js (lightweight, serverless-friendly) with a single
- * pooled connection. Falls back to a local development URL so the
- * app can boot without a DATABASE_URL set.
+ * pooled connection. Fails closed when DATABASE_URL is missing.
  */
 
-const connectionString =
-  process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/kimeru-auto";
+function requireConnectionString(): string {
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    throw new Error("DATABASE_URL is not set");
+  }
+  return url;
+}
+
+const connectionString = requireConnectionString();
 
 // In dev, reuse a single connection across hot reloads.
 const globalForDb = globalThis as unknown as { __kimeruDb?: ReturnType<typeof createDb> };

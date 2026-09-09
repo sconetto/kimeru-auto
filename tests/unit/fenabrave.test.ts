@@ -1,5 +1,5 @@
+import * as XLSX from "@e965/xlsx";
 import { describe, expect, it } from "vitest";
-import * as XLSX from "xlsx";
 import { bestMatch, scoreMatch, stripBrandPrefix } from "@/lib/fenabrave/matcher";
 import { parseFenabraveXlsx } from "@/lib/fenabrave/parser";
 
