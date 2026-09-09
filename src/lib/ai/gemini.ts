@@ -9,7 +9,7 @@ import { LlmError } from "./llm";
  */
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-3.6-flash";
 
 const REVIEW_PROMPT =
   "Assista a este vídeo de review de carro e produza um resumo detalhado em Markdown, em português brasileiro, do que o avaliador disse: pontos fortes, pontos fracos, desempenho, conforto, tecnologia, design, consumo, segurança e veredito final. Use títulos e listas em Markdown. Seja objetivo e baseado apenas no que foi dito no vídeo.";
