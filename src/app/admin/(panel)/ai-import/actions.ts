@@ -93,13 +93,23 @@ export async function createCarFromAi(payload: unknown): Promise<CreateCarResult
     }
   }
 
-  // 2. Create the model
+  // 2. Create the model (guard against duplicate slug)
+  const modelSlug = slugify(model);
+  const [existingModel] = await db
+    .select({ id: models.id })
+    .from(models)
+    .where(eq(models.slug, modelSlug))
+    .limit(1);
+  if (existingModel) {
+    return { ok: false, error: `Modelo "${model}" já existe no catálogo` };
+  }
+
   const [insertedModel] = await db
     .insert(models)
     .values({
       brandId: resolvedBrandId,
       name: model,
-      slug: slugify(model),
+      slug: modelSlug,
       category,
       sizeCategory,
     })
