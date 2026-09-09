@@ -3,7 +3,7 @@ import Image from "next/image";
 // Logos whose identity is carried by color (multiple hues), not just the
 // transparent silhouette — monochrome-white on dark would collapse them into
 // featureless shapes (BMW's quadrants, Subaru's stars, Denza's mark).
-const COLOR_LOGO_SLUGS = new Set(["bmw", "denza", "subaru"]);
+const COLOR_LOGO_SLUGS = new Set(["bmw"]);
 
 function logoSlug(logoUrl: string): string {
   return (logoUrl.split("/").pop() ?? "").replace(/\.png$/i, "");
