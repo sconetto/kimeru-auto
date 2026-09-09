@@ -14,7 +14,7 @@ const bodySchema = z.object({
   content: z.object({
     pros: z.array(z.string().max(200)).max(5),
     cons: z.array(z.string().max(200)).max(5),
-    summary: z.string().max(2000),
+    summary: z.string().max(20000),
     rating: z.number().min(1).max(5),
     scoreBreakdown: z
       .object({
