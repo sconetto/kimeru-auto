@@ -310,14 +310,16 @@ export function CompareClient({ initialCars }: Props) {
             <p className="mt-3 text-xl font-bold text-slate-900 dark:text-white">
               {formatBRL(car.priceFipe)}
             </p>
-            {carWins[ci].length > 0 && (
-              <span
-                className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
-                title={t("wonIn", { categories: carWins[ci].join(", ") })}
-              >
-                🏆 {t("victory", { count: carWins[ci].length })}
-              </span>
-            )}
+            <span
+              className={`mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                carWins[ci].length > 0
+                  ? "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+                  : "invisible"
+              }`}
+              title={t("wonIn", { categories: carWins[ci].join(", ") })}
+            >
+              🏆 {t("victory", { count: carWins[ci].length })}
+            </span>
             <Link
               href={`/financing?price=${car.priceFipe ?? ""}&model=${car.modelName}`}
               className="mt-3 flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-500"
