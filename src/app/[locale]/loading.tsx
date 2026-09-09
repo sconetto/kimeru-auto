@@ -1,7 +1,7 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 
-export default async function Loading({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params;
+export default async function Loading() {
+  const locale = await getLocale();
   const t = await getTranslations({ locale, namespace: "common" });
   return (
     <div
