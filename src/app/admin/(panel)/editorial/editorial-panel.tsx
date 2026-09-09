@@ -1,9 +1,11 @@
 "use client";
 
-import { Bot, CheckCircle2, ChevronDown, ChevronRight, Eye, Loader2, Sparkles } from "lucide-react";
+import MDEditor from "@uiw/react-md-editor";
+import { Bot, CheckCircle2, ChevronDown, ChevronRight, Loader2, Sparkles } from "lucide-react";
 import { useState, useTransition } from "react";
-import ReactMarkdown from "react-markdown";
 import type { EditorialScoreBreakdown, EditorialTranscript } from "@/lib/db/schema";
+import "@uiw/react-md-editor/markdown-editor.css";
+import "@uiw/react-markdown-preview/markdown.css";
 
 interface CarOption {
   modelYearId: number;
@@ -41,7 +43,6 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
   const [content, setContent] = useState<GeneratedContent | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
   const [expandedTranscripts, setExpandedTranscripts] = useState<Set<number>>(new Set());
   const [isPending, startTransition] = useTransition();
 
@@ -211,33 +212,24 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
             </div>
 
             <div>
-              <div className="mb-1 flex items-center justify-between">
-                <label htmlFor="ed-summary" className="block text-xs text-slate-400">
-                  Resumo (Markdown)
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowPreview(!showPreview)}
-                  title="Alternar pré-visualização do resumo"
-                  className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
-                >
-                  <Eye className="h-3.5 w-3.5" />
-                  {showPreview ? "Editar" : "Pré-visualizar"}
-                </button>
-              </div>
-              {showPreview ? (
-                <div className="prose prose-invert max-w-none rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white">
-                  <ReactMarkdown>{content.summary}</ReactMarkdown>
-                </div>
-              ) : (
-                <textarea
-                  id="ed-summary"
-                  value={content.summary}
-                  onChange={(e) => setContent({ ...content, summary: e.target.value })}
-                  rows={8}
-                  className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
-                />
-              )}
+              <label htmlFor="ed-summary" className="mb-1 block text-xs text-slate-400">
+                Resumo (Markdown)
+              </label>
+              <MDEditor
+                data-color-mode="dark"
+                value={content.summary}
+                onChange={(value) => setContent({ ...content, summary: value ?? "" })}
+                textareaProps={{ id: "ed-summary" }}
+                preview="live"
+                height={300}
+                style={
+                  {
+                    "--color-canvas-default": "#020617",
+                    "--color-border-default": "#334155",
+                    "--color-fg-default": "#f8fafc",
+                  } as React.CSSProperties
+                }
+              />
             </div>
 
             {/* Score breakdown */}
