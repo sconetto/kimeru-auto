@@ -7,7 +7,7 @@ import { logAudit } from "@/lib/admin/audit";
 import { requireRole } from "@/lib/auth/require-role";
 import { slugify } from "@/lib/catalog/slug";
 import { db } from "@/lib/db";
-import { specCategories, specGroup } from "@/lib/db/schema";
+import { fuelType, specCategories, specGroup } from "@/lib/db/schema";
 
 const specCategorySchema = z.object({
   name: z.string().min(1).max(100),
@@ -16,6 +16,13 @@ const specCategorySchema = z.object({
   higherIsBetter: z.coerce.boolean().optional().default(true),
   isNumeric: z.coerce.boolean().optional().default(false),
 });
+
+function parseFuelTypes(formData: FormData) {
+  const fuels = (formData.getAll("applicableFuelTypes") as string[]).filter((f) =>
+    (fuelType.enumValues as readonly string[]).includes(f),
+  );
+  return fuels.length > 0 ? (fuels as (typeof fuelType.enumValues)[number][]) : null;
+}
 
 export async function createSpecCategory(formData: FormData) {
   const adminId = await requireRole("admin", "editor");
@@ -39,6 +46,7 @@ export async function createSpecCategory(formData: FormData) {
       group: parsed.data.group,
       higherIsBetter: parsed.data.higherIsBetter,
       isNumeric: parsed.data.isNumeric,
+      applicableFuelTypes: parseFuelTypes(formData),
       displayOrder: 1000,
     })
     .returning();
@@ -108,6 +116,7 @@ export async function updateSpecCategory(formData: FormData) {
       displayOrder,
       higherIsBetter,
       isNumeric,
+      applicableFuelTypes: parseFuelTypes(formData),
     })
     .where(eq(specCategories.id, id));
 

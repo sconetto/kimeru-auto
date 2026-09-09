@@ -2,8 +2,8 @@ import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { specCategories, specGroup } from "@/lib/db/schema";
-import { specGroupLabels } from "@/lib/format-labels";
+import { fuelType, specCategories, specGroup } from "@/lib/db/schema";
+import { fuelLabels, specGroupLabels } from "@/lib/format-labels";
 import { updateSpecCategory } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -108,6 +108,25 @@ export default async function AdminEditSpecCategoryPage({
           />
           Maior é melhor
         </label>
+        <div>
+          <span className="mb-1.5 block text-sm font-medium text-slate-300">
+            Aplica-se aos combustíveis (vazio = todos)
+          </span>
+          <div className="flex flex-wrap gap-x-4 gap-y-2">
+            {fuelType.enumValues.map((f) => (
+              <label key={f} className="flex items-center gap-1.5 text-sm text-slate-300">
+                <input
+                  type="checkbox"
+                  name="applicableFuelTypes"
+                  value={f}
+                  defaultChecked={category.applicableFuelTypes?.includes(f) ?? false}
+                  className="h-4 w-4"
+                />
+                {fuelLabels[f] ?? f}
+              </label>
+            ))}
+          </div>
+        </div>
         <button
           type="submit"
           title="Salvar alterações"

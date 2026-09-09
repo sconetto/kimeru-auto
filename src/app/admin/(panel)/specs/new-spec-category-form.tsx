@@ -2,6 +2,8 @@
 
 import { useFormStatus } from "react-dom";
 import type { SpecGroup } from "@/lib/db/schema";
+import { fuelType } from "@/lib/db/schema";
+import { fuelLabels } from "@/lib/format-labels";
 import { createSpecCategory } from "./actions";
 
 export function NewSpecCategoryForm({ groups }: { groups: SpecGroup[] }) {
@@ -48,6 +50,24 @@ export function NewSpecCategoryForm({ groups }: { groups: SpecGroup[] }) {
             Maior = melhor
           </label>
           <SubmitButton />
+        </div>
+      </div>
+      <div className="mt-3">
+        <span className="mb-1.5 block text-xs font-medium text-slate-400">
+          Aplica-se aos combustíveis (vazio = todos)
+        </span>
+        <div className="flex flex-wrap gap-x-4 gap-y-2">
+          {fuelType.enumValues.map((f) => (
+            <label key={f} className="flex items-center gap-1.5 text-xs text-slate-300">
+              <input
+                type="checkbox"
+                name="applicableFuelTypes"
+                value={f}
+                className="accent-blue-600"
+              />
+              {fuelLabels[f] ?? f}
+            </label>
+          ))}
         </div>
       </div>
     </form>
