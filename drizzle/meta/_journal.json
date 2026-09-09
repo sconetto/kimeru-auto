@@ -50,6 +50,13 @@
       "when": 1788910860083,
       "tag": "0006_wild_network",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788964725685,
+      "tag": "0007_add-brands",
+      "breakpoints": true
     }
   ]
 }
