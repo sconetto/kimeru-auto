@@ -3,14 +3,18 @@ import type { Metadata } from "next";
 import { Mozilla_Headline, Mozilla_Text } from "next/font/google";
 import "./globals.css";
 
+// next/font can't resolve metric overrides for these Google Fonts, which
+// would otherwise emit "Failed to find font override values" on every build.
 const mozillaText = Mozilla_Text({
   variable: "--font-mozilla-text",
   subsets: ["latin"],
+  adjustFontFallback: false,
 });
 
 const mozillaHeadline = Mozilla_Headline({
   variable: "--font-mozilla-headline",
   subsets: ["latin"],
+  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {
