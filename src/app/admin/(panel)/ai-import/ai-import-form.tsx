@@ -2,6 +2,8 @@
 
 import { Info } from "lucide-react";
 import { useState } from "react";
+import { SpecFields } from "@/components/admin/spec-fields";
+import type { SpecCategory } from "@/lib/db/schema";
 import { createCarFromAi } from "./actions";
 
 const YEAR_TOOLTIP =
@@ -45,7 +47,7 @@ interface EditableCar {
   category: string;
   sizeCategory: string;
   fipeCode: string;
-  specs: { slug: string; value: string }[];
+  specs: Record<number, string>;
 }
 
 interface ParsedData {
@@ -74,9 +76,11 @@ const inputClass =
 export function AiImportForm({
   brands,
   categories,
+  specCategories,
 }: {
   brands: BrandOption[];
   categories: CategoryOption[];
+  specCategories: SpecCategory[];
 }) {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -89,14 +93,8 @@ export function AiImportForm({
     setCar((c) => (c ? { ...c, ...patch } : c));
   }
 
-  function patchSpec(index: number, value: string) {
-    setCar((c) =>
-      c ? { ...c, specs: c.specs.map((s, i) => (i === index ? { ...s, value } : s)) } : c,
-    );
-  }
-
-  function removeSpec(index: number) {
-    setCar((c) => (c ? { ...c, specs: c.specs.filter((_, i) => i !== index) } : c));
+  function patchSpec(categoryId: number, value: string) {
+    setCar((c) => (c ? { ...c, specs: { ...c.specs, [categoryId]: value } } : c));
   }
 
   async function parse() {
@@ -114,6 +112,12 @@ export function AiImportForm({
       if (!res.ok) {
         setError(json.error ?? "Falha ao analisar a fonte");
       } else if (json.data) {
+        const slugToId = new Map(specCategories.map((c) => [c.slug, c.id]));
+        const specs: Record<number, string> = {};
+        for (const s of json.data.specs) {
+          const id = slugToId.get(s.slug);
+          if (id != null) specs[id] = s.value;
+        }
         setCar({
           brandId: json.brandMatch?.id ?? "",
           brandName: json.data.brand,
@@ -125,7 +129,7 @@ export function AiImportForm({
           category: json.data.category ?? "",
           sizeCategory: json.data.sizeCategory ?? "",
           fipeCode: json.data.fipeCode ?? "",
-          specs: json.data.specs.map((s) => ({ slug: s.slug, value: s.value })),
+          specs,
         });
       }
     } catch {
@@ -139,6 +143,15 @@ export function AiImportForm({
     if (!car) return;
     setCreating(true);
     setResult("");
+    const idToSlug = new Map(specCategories.map((c) => [c.id, c.slug]));
+    const specs = Object.entries(car.specs)
+      .filter(([, value]) => value.trim())
+      .map(([categoryId, value]) => ({
+        slug: idToSlug.get(Number(categoryId)) ?? "",
+        value,
+        numericValue: parseNumeric(value),
+      }))
+      .filter((s) => s.slug);
     const r = await createCarFromAi({
       brandId: car.brandId === "" ? null : Number(car.brandId),
       brandName: car.brandName,
@@ -150,11 +163,7 @@ export function AiImportForm({
       category: car.category || null,
       sizeCategory: car.sizeCategory || null,
       fipeCode: car.fipeCode || null,
-      specs: car.specs.map((s) => ({
-        slug: s.slug,
-        value: s.value,
-        numericValue: parseNumeric(s.value),
-      })),
+      specs,
     });
     setResult(r.ok ? `✓ Carro criado (modelo ID ${r.modelId})` : (r.error ?? "Falha ao criar"));
     setCreating(false);
@@ -307,33 +316,10 @@ export function AiImportForm({
             0km
           </label>
 
-          {car.specs.length > 0 && (
-            <div>
-              <h3 className="mb-2 text-xs font-medium text-slate-500">
-                Especificações ({car.specs.length})
-              </h3>
-              <div className="space-y-2">
-                {car.specs.map((s, i) => (
-                  <div key={s.slug} className="flex items-center gap-3">
-                    <span className="w-48 shrink-0 text-xs text-slate-400">{s.slug}</span>
-                    <input
-                      value={s.value}
-                      onChange={(e) => patchSpec(i, e.target.value)}
-                      className={`flex-1 ${inputClass}`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeSpec(i)}
-                      title="Remover"
-                      className="rounded-md px-2 py-1 text-xs text-slate-500 hover:bg-slate-800 hover:text-red-400"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <div>
+            <h3 className="mb-2 text-xs font-medium text-slate-500">Especificações</h3>
+            <SpecFields categories={specCategories} values={car.specs} onChange={patchSpec} />
+          </div>
 
           <button
             type="button"
