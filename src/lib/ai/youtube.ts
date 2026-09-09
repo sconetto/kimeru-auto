@@ -36,9 +36,11 @@ export function extractVideoId(url: string): string | null {
 
 interface CaptionTrack {
   id: string;
-  kind: string;
-  language: string;
-  name?: string;
+  snippet?: {
+    language?: string;
+    trackKind?: string;
+    name?: string;
+  };
 }
 
 async function fetchJson<T>(url: string): Promise<T> {
@@ -75,9 +77,9 @@ export async function fetchTranscript(url: string): Promise<string> {
   const tracks = captions.items ?? [];
   // Prefer Portuguese (pt) tracks, then any manual track, then auto-generated
   const ptTrack =
-    tracks.find((t) => t.language.startsWith("pt")) ??
-    tracks.find((t) => t.kind === "standard") ??
-    tracks.find((t) => t.kind === "asr") ??
+    tracks.find((t) => t.snippet?.language?.startsWith("pt")) ??
+    tracks.find((t) => t.snippet?.trackKind === "standard") ??
+    tracks.find((t) => t.snippet?.trackKind?.toLowerCase() === "asr") ??
     tracks[0];
 
   if (!ptTrack) {
@@ -86,7 +88,7 @@ export async function fetchTranscript(url: string): Promise<string> {
 
   // 3. Download the caption content (requires OAuth for download, so this
   // uses the timedtext endpoint which is public for public videos).
-  const timedTextUrl = `https://www.youtube.com/api/timedtext?v=${videoId}&lang=${ptTrack.language}&fmt=json3`;
+  const timedTextUrl = `https://www.youtube.com/api/timedtext?v=${videoId}&lang=${ptTrack.snippet?.language ?? "pt"}&fmt=json3`;
   const ttRes = await fetch(timedTextUrl);
 
   if (!ttRes.ok) {
