@@ -38,7 +38,7 @@ export default async function AdminBrandsPage({
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-white">Marcas</h1>
-        <p className="mt-1 text-sm text-slate-400">Gerencie as marcas do catálogo</p>
+        <p className="mt-1 text-sm text-slate-400">Organize as marcas do catálogo.</p>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <AdminSearch placeholder="Buscar marca…" />
           <ImportExportControls entity="brands" />

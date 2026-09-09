@@ -42,7 +42,7 @@ export function ImportForm() {
         <Upload className="h-8 w-8 text-slate-500" />
         <div>
           <p className="text-sm font-medium text-white">
-            {isPending ? "Importando..." : "Clique para selecionar o arquivo XLSX"}
+            {isPending ? "Importando..." : "Selecionar arquivo XLSX"}
           </p>
           <p className="mt-1 text-xs text-slate-500">Arquivos .xlsx da FENABRAVE</p>
         </div>

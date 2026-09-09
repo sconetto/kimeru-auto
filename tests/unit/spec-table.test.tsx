@@ -1,7 +1,10 @@
 import { render, screen } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { describe, expect, it } from "vitest";
 import { SpecTable } from "@/components/compare/spec-table";
 import type { SpecGrouped } from "@/lib/catalog/queries";
+
+const messages = { common: { unavailable: "Não informado" } };
 
 const sampleSpecs: SpecGrouped[] = [
   {
@@ -45,26 +48,36 @@ const sampleSpecs: SpecGrouped[] = [
   },
 ];
 
+function renderTable(specs: SpecGrouped[]) {
+  return render(
+    <NextIntlClientProvider locale="pt-BR" messages={messages}>
+      <SpecTable specs={specs} />
+    </NextIntlClientProvider>,
+  );
+}
+
 describe("SpecTable", () => {
   it("renders grouped spec sections with labels", () => {
-    render(<SpecTable specs={sampleSpecs} />);
+    renderTable(sampleSpecs);
     expect(screen.getByText("Motor")).toBeInTheDocument();
     expect(screen.getByText("Potência")).toBeInTheDocument();
   });
 
-  it("displays display values", () => {
-    render(<SpecTable specs={sampleSpecs} />);
+  it("displays normalized values with unit", () => {
+    renderTable(sampleSpecs);
     expect(screen.getByText("120 cv")).toBeInTheDocument();
+    expect(screen.getByText("9,9 s")).toBeInTheDocument();
     expect(screen.getByText("Flex")).toBeInTheDocument();
   });
 
-  it("renders unit hints", () => {
-    render(<SpecTable specs={sampleSpecs} />);
-    expect(screen.getByText("(cv)")).toBeInTheDocument();
+  it("appends unit to the value instead of beside the label", () => {
+    renderTable(sampleSpecs);
+    expect(screen.queryByText("(cv)")).not.toBeInTheDocument();
+    expect(screen.getByText("120 cv")).toBeInTheDocument();
   });
 
   it("renders empty state for no specs", () => {
-    render(<SpecTable specs={[]} />);
+    renderTable([]);
     expect(screen.queryByText("Motor")).not.toBeInTheDocument();
   });
 });

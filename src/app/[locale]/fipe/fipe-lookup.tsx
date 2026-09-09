@@ -242,7 +242,7 @@ export function FipeLookup() {
                   .sort((a, b) => b.price - a.price)
                   .map((p) => {
                     const maxPrice = Math.max(...allPrices.map((x) => x.price));
-                    const pct = maxPrice > 0 ? ((p.price / maxPrice) * 100).toFixed(0) : "—";
+                    const pct = maxPrice > 0 ? ((p.price / maxPrice) * 100).toFixed(0) : "0";
                     const isZeroKm = p.isZeroKm;
                     return (
                       <div key={p.modelYear + p.fuel} className="flex items-center gap-3">

@@ -62,7 +62,7 @@ export default async function AnalyticsPage() {
       <div>
         <h1 className="text-2xl font-bold text-white">Vendas (FENABRAVE)</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Rankings mensais de emplacamentos por modelo — dados oficiais da FENABRAVE
+          Rankings mensais de emplacamentos por modelo. Dados oficiais da FENABRAVE
         </p>
       </div>
 
@@ -87,7 +87,7 @@ export default async function AnalyticsPage() {
                 Total emplacamentos
               </p>
               <p className="mt-2 text-2xl font-bold text-white">
-                {monthlyTotal?.total?.toLocaleString("pt-BR") ?? "—"}
+                {monthlyTotal?.total?.toLocaleString("pt-BR") ?? "Não informado"}
               </p>
               <p className="mt-1 text-xs text-slate-500">
                 {latestMonth
@@ -106,13 +106,15 @@ export default async function AnalyticsPage() {
                 Líder do mês
               </p>
               <p className="mt-2 text-2xl font-bold text-white">
-                {rankings[0]?.brandName ?? "—"}{" "}
+                {rankings[0]?.brandName ?? "Não informado"}{" "}
                 <span className="text-lg font-normal text-slate-400">
                   {rankings[0]?.modelName ?? ""}
                 </span>
               </p>
               <p className="mt-1 text-xs text-slate-500">
-                {rankings[0] ? `${rankings[0].unitsSold?.toLocaleString("pt-BR")} unidades` : "—"}
+                {rankings[0]
+                  ? `${rankings[0].unitsSold?.toLocaleString("pt-BR")} unidades`
+                  : "Não informado"}
               </p>
             </div>
           </div>
@@ -188,7 +190,7 @@ export default async function AnalyticsPage() {
                     <tr key={row.brandName} className="border-b border-slate-800/50 last:border-0">
                       <td className="px-4 py-3 font-medium text-slate-200">{row.brandName}</td>
                       <td className="px-4 py-3 text-right font-mono tabular-nums text-slate-200">
-                        {row.total?.toLocaleString("pt-BR") ?? "—"}
+                        {row.total?.toLocaleString("pt-BR") ?? "Não informado"}
                       </td>
                     </tr>
                   ))}

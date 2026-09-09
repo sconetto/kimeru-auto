@@ -102,7 +102,7 @@ export function ImportExportControls({ entity }: { entity: ExportableEntity }) {
       {preview && !result && (
         <div className="w-full rounded-md border border-slate-700 bg-slate-950 p-3 text-sm">
           <p className="mb-2 text-slate-300">
-            {preview.rowCount} linha(s) detectadas — colunas:{" "}
+            {preview.rowCount} linha(s) detectadas. Colunas:{" "}
             <span className="font-mono text-xs text-slate-400">{preview.headers.join(", ")}</span>
           </p>
           <div className="mb-3 overflow-x-auto">

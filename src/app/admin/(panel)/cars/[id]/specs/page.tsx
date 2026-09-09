@@ -34,7 +34,7 @@ export default async function SpecValuesPage({ params }: { params: Promise<{ id:
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white">
-          {my.modelName} {my.year} — Especificações
+          {my.modelName} {my.year}: Especificações
         </h1>
         <p className="mt-1 text-sm text-slate-400">
           Preencha os valores de cada categoria de especificação para este modelo.

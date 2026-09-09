@@ -79,7 +79,7 @@ export function AdminImageUpload({ name, label, value, onChange }: AdminImageUpl
           ) : (
             <ImagePlus className="h-4 w-4" />
           )}
-          {uploading ? "Enviando…" : "Enviar imagem (JPG, PNG, WebP, AVIF — até 5 MB)"}
+          {uploading ? "Enviando…" : "Enviar imagem (JPG, PNG, WebP ou AVIF; até 5 MB)"}
           <input
             ref={inputRef}
             type="file"

@@ -210,7 +210,7 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
                 Nota: {content.rating.toFixed(1)}
               </span>
               <span className="text-xs text-slate-500">
-                Rascunho gerado por IA — revise antes de publicar
+                Rascunho gerado por IA. Revise o conteúdo antes de publicar
               </span>
             </div>
 
@@ -333,7 +333,7 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
                           <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
                         )}
                         Review {i + 1}
-                        {t.title ? ` — ${t.title}` : ""}
+                        {t.title ? ` Review ${i + 1}: ${t.title}` : ""}
                       </button>
                       {expanded && (
                         <p className="whitespace-pre-wrap px-4 pb-3 text-xs leading-relaxed text-slate-500">

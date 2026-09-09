@@ -278,7 +278,7 @@ export function AiImportForm({
                 onChange={(e) => patchCar({ category: e.target.value })}
                 className={`mt-1 w-full ${inputClass}`}
               >
-                <option value="">—</option>
+                <option value="">Selecione uma categoria</option>
                 {categories.map((c) => (
                   <option key={c.slug} value={c.slug}>
                     {c.name}

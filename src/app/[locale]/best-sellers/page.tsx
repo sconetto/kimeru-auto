@@ -13,6 +13,7 @@ export default async function MaisVendidosPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "sales" });
+  const tCommon = await getTranslations({ locale, namespace: "common" });
   const rankings = await getSalesRankings().catch(() => []);
 
   if (rankings.length === 0) {
@@ -80,7 +81,9 @@ export default async function MaisVendidosPage({
                   </span>
                 </td>
                 <td className="px-4 py-3 text-slate-500">
-                  {row.category ? (categoryLabels[row.category] ?? row.category) : "—"}
+                  {row.category
+                    ? (categoryLabels[row.category] ?? row.category)
+                    : tCommon("unavailable")}
                 </td>
                 <td className="px-4 py-3 text-right font-semibold text-slate-900 dark:text-white">
                   {row.unitsSold.toLocaleString(locale)}

@@ -18,7 +18,7 @@ export default async function AdminTypesPage() {
       <div>
         <h1 className="text-2xl font-bold text-white">Tipos e grupos</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Gerencie categorias de veículos e grupos de especificações
+          Organize categorias e grupos de especificações.
         </p>
       </div>
 

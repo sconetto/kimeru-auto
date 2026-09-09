@@ -212,13 +212,15 @@ export default async function CarDetailPage({
                 <div>
                   <p className="text-slate-500">{tCar("ranking")}</p>
                   <p className="font-semibold text-slate-900 dark:text-white">
-                    #{car.sales.rankingPosition ?? "—"}
+                    {car.sales.rankingPosition
+                      ? `#${car.sales.rankingPosition}`
+                      : tCommon("unavailable")}
                   </p>
                 </div>
                 <div>
                   <p className="text-slate-500">{tCar("unitsPerMonth")}</p>
                   <p className="font-semibold text-slate-900 dark:text-white">
-                    {car.sales.unitsSold?.toLocaleString(locale) ?? "—"}
+                    {car.sales.unitsSold?.toLocaleString(locale) ?? tCommon("unavailable")}
                   </p>
                 </div>
               </div>

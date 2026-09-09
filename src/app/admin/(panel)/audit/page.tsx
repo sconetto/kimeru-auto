@@ -128,7 +128,7 @@ export default async function AdminAuditPage({
                   {row.entityId != null && <span className="text-slate-500"> #{row.entityId}</span>}
                 </td>
                 <td className="px-4 py-3 text-slate-400">
-                  {row.adminName ?? row.adminEmail ?? "—"}
+                  {row.adminName ?? row.adminEmail ?? "Não informado"}
                 </td>
                 <td className="px-4 py-3 text-slate-400">{formatDate(row.createdAt)}</td>
               </tr>

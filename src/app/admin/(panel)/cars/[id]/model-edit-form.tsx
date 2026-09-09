@@ -62,7 +62,7 @@ export function ModelEditForm({
             defaultValue={model.category ?? ""}
             className={`mt-1 w-full ${inputClass}`}
           >
-            <option value="">—</option>
+            <option value="">Selecione</option>
             {categories
               .filter((c) => c.isActive)
               .map((c) => (

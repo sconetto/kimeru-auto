@@ -70,7 +70,7 @@ export default async function EditModelPage({ params }: { params: Promise<{ id: 
         <h2 className="text-lg font-semibold text-white">Versões e especificações</h2>
         {years.length === 0 && (
           <p className="rounded-lg border border-slate-800 bg-slate-900 p-5 text-sm text-slate-500">
-            Nenhuma versão cadastrada. Adicione a primeira abaixo.
+            Ainda não há versões.
           </p>
         )}
         {years.map((y) => (

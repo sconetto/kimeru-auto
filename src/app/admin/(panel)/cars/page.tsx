@@ -36,7 +36,7 @@ export default async function AdminCarsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-white">Veículos</h1>
-        <p className="mt-1 text-sm text-slate-400">Gerencie modelos e versões do catálogo</p>
+        <p className="mt-1 text-sm text-slate-400">Organize modelos e versões do catálogo.</p>
         <div className="mt-3">
           <ImportExportControls entity="models" />
         </div>
@@ -63,7 +63,7 @@ export default async function AdminCarsPage() {
                   ...row,
                   categoryLabel: row.category
                     ? (categoryLabels[row.category] ?? row.category)
-                    : "—",
+                    : "Não informado",
                 }}
               />
             ))}

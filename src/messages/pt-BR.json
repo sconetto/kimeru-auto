@@ -38,14 +38,14 @@
     "noData": "Sem dados",
     "simulateFinancing": "Simular financiamento",
     "remove": "Remover",
-    "overviewTitle": "Visão geral — melhor carro por especificações",
+    "overviewTitle": "Visão geral: melhor carro por especificações",
     "overviewHint": "Pontuação de 0 a 100 por categoria, calculada entre os veículos comparados. Preço menor = mais pontos.",
     "winnerBadge": "Melhor no geral: {cars}",
     "tieBadge": "Empate técnico: {cars}",
     "tieAllBadge": "Empate geral",
     "leadsTitle": "Quem lidera cada categoria",
     "leadsLine": "lidera em: {categories}",
-    "leadsNone": "Nenhum veículo se destaca isoladamente — todas as categorias estão empatadas.",
+    "leadsNone": "Nenhum veículo se destaca isoladamente; todas as categorias estão empatadas.",
     "victory": "{count} {count, plural, one {vitória} other {vitórias}}",
     "wonIn": "Venceu em: {categories}",
     "mixedCategoriesWarning": "Você está comparando veículos de categorias diferentes ({categories}). Os resultados podem não refletir uma comparação justa entre segmentos distintos.",
@@ -90,7 +90,7 @@
     "tacFee": "TAC (R$)",
     "insuranceFee": "Seguro (R$)",
     "registrationFee": "Registro (R$)",
-    "tacTooltip": "Taxa de Abertura de Crédito — cobrada pelo banco ao liberar o financiamento.",
+    "tacTooltip": "Taxa de Abertura de Crédito (cobrada pelo banco ao liberar o financiamento).",
     "insuranceTooltip": "Seguro do veículo incluído no financiamento (proteção e outros seguros).",
     "registrationTooltip": "Taxa de registro do contrato no órgão de trânsito (DETRAN).",
     "ordinalSuffix": "ª",
@@ -130,15 +130,15 @@
   },
   "sales": {
     "title": "Mais Vendidos",
-    "subtitle": "Os veículos mais emplacados do Brasil em {month} de {year} — dados FENABRAVE.",
+    "subtitle": "Os veículos mais emplacados do Brasil em {month} de {year}, dados FENABRAVE.",
     "empty": "Dados de vendas em breve. Nossa equipe está processando os números mais recentes da FENABRAVE.",
     "vehicle": "Veículo",
     "category": "Categoria",
     "registrations": "Emplacamentos",
-    "source": "Fonte: FENABRAVE — Federação Nacional da Distribuição de Veículos Automotores."
+    "source": "Fonte: FENABRAVE (Federação Nacional da Distribuição de Veículos Automotores)."
   },
   "car": {
-    "metaTitle": "{brand} {model} {year} — Preço, Ficha técnica e Vendas",
+    "metaTitle": "{brand} {model} {year} | Preço, Ficha técnica e Vendas",
     "metaDescription": "Ficha técnica completa do {brand} {model} {year}: motor, consumo, dimensões, segurança, preço FIPE {price} e dados de vendas.",
     "priceFipe": "Preço FIPE",
     "priceZeroKm": "Preço 0km (Tabela FIPE)",
@@ -201,6 +201,7 @@
     "errorTitle": "Algo deu errado",
     "errorDescription": "Ocorreu um erro inesperado. Tente novamente.",
     "retry": "Tentar novamente",
+    "unavailable": "Não informado",
     "notFoundTitle": "Página não encontrada",
     "notFoundDescription": "A página que você procura não existe ou foi movida.",
     "backHome": "Voltar ao início"
@@ -262,11 +263,11 @@
       "text": "O Kimeru Auto é gratuito e continuará sendo. Se a plataforma te ajudou a tomar uma decisão melhor, considere apoiar o projeto com um café virtual no Ko-fi. Qualquer contribuição ajuda a manter o serviço no ar e evoluindo.",
       "button": "Me pague um café ☕"
     },
-    "backToHome": "← Voltar para o início",
+    "backToHome": "Voltar para o início",
     "name": {
       "title": "De onde vem o nome?",
       "p1": "“Kimeru” (決める) é uma palavra japonesa que significa “decidir”. É o coração do projeto: nossa missão é dar a você os dados certos para decidir, com clareza e confiança, qual é o carro ideal para a sua vida.",
-      "p2": "Já “Auto” vem do alemão “das Auto” — a palavra para carro. É uma homenagem à engenharia alemã e à paixão automotiva que inspiram o projeto.",
+      "p2": "Já “Auto” vem do alemão “das Auto”, a palavra para carro. É uma homenagem à engenharia alemã e à paixão automotiva que inspiram o projeto.",
       "p3": "Juntos, Kimeru Auto é um convite: decida melhor, dirija melhor."
     }
   },

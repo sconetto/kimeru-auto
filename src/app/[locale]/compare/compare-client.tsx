@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertTriangle, Calculator, Link2, Plus, Star, Trophy, X } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { BrandLogo } from "@/components/catalog/brand-logo";
 import { RadarChart } from "@/components/compare/radar-chart";
@@ -9,7 +9,7 @@ import { powertrainOf } from "@/lib/catalog/powertrain";
 import type { CompareCar, ModelCard } from "@/lib/catalog/queries";
 import { isConsumptionSlug, toKmPerKwh } from "@/lib/compare/consumption";
 import { bestCarIndices, computeRadarScores } from "@/lib/compare/scoring";
-import { formatBRL } from "@/lib/format";
+import { formatBRL, formatSpecValue } from "@/lib/format";
 import {
   categoryLabels,
   powertrainLabels,
@@ -27,8 +27,14 @@ interface Props {
 
 const MAX_CARS = 3;
 
+interface RowValue {
+  value: string | null;
+  numericValue: string | number | null;
+}
+
 export function CompareClient({ initialCars }: Props) {
   const t = useTranslations("compare");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [cars, setCars] = useState<CompareCar[]>(initialCars);
   const [error, setError] = useState<string | null>(null);
@@ -88,7 +94,7 @@ export function CompareClient({ initialCars }: Props) {
       unit: string | null;
       higherIsBetter: boolean;
       isNumeric: boolean;
-      values: (string | null)[];
+      values: RowValue[];
       bestIndexes: number[];
       isTie: boolean;
     }
@@ -145,11 +151,18 @@ export function CompareClient({ initialCars }: Props) {
       const values = cars.map((car) => {
         if (isConsumption) {
           const kmPerKwh = toKmPerKwh(slug, numericValue(car, slug));
-          return kmPerKwh != null ? kmPerKwh.toFixed(2) : null;
+          return {
+            value: null,
+            numericValue:
+              kmPerKwh != null && Number.isFinite(kmPerKwh) ? Number(kmPerKwh.toFixed(2)) : null,
+          };
         }
         const group = car.specs.find((g) => g.group === meta.group);
         const spec = group?.specs.find((s) => s.slug === slug);
-        return spec?.displayValue ?? spec?.value ?? null;
+        return {
+          value: spec?.displayValue ?? spec?.value ?? null,
+          numericValue: spec?.numericValue ?? null,
+        };
       });
 
       let bestIndexes: number[] = [];
@@ -301,10 +314,10 @@ export function CompareClient({ initialCars }: Props) {
             </div>
             <h3 className="font-semibold text-slate-900 dark:text-white">{car.modelName}</h3>
             <p className="mt-1 text-xs text-slate-500">
-              {car.year} · {car.isZeroKm ? t("zeroKm") : t("used")}
-              {car.category ? ` · ${categoryLabels[car.category] ?? car.category}` : ""}
+              {car.year}, {car.isZeroKm ? t("zeroKm") : t("used")}
+              {car.category ? `, ${categoryLabels[car.category] ?? car.category}` : ""}
               {car.sizeCategory
-                ? ` · ${sizeCategoryLabels[car.sizeCategory] ?? car.sizeCategory}`
+                ? `, ${sizeCategoryLabels[car.sizeCategory] ?? car.sizeCategory}`
                 : ""}
             </p>
             <p className="mt-3 text-xl font-bold text-slate-900 dark:text-white">
@@ -457,9 +470,12 @@ export function CompareClient({ initialCars }: Props) {
                   >
                     {car.sales ? (
                       <>
-                        {t("rankingPosition", { rank: car.sales.rankingPosition ?? "—" })}
+                        {t("rankingPosition", {
+                          rank: car.sales.rankingPosition ?? tCommon("unavailable"),
+                        })}
                         <span className="block text-xs font-normal text-slate-500">
-                          {car.sales.unitsSold?.toLocaleString("pt-BR") ?? "—"} {t("units")}
+                          {car.sales.unitsSold?.toLocaleString("pt-BR") ?? tCommon("unavailable")}{" "}
+                          {t("units")}
                         </span>
                       </>
                     ) : (
@@ -478,6 +494,8 @@ export function CompareClient({ initialCars }: Props) {
 
 function GroupRows({ group, cars }: { group: { group: string; rows: Row[] }; cars: CompareCar[] }) {
   const label = specGroupLabels[group.group] ?? group.group;
+  const locale = useLocale();
+  const tCommon = useTranslations("common");
 
   return (
     <>
@@ -491,10 +509,7 @@ function GroupRows({ group, cars }: { group: { group: string; rows: Row[] }; car
       </tr>
       {group.rows.map((row) => (
         <tr key={row.name} className="border-b border-slate-100 dark:border-slate-800">
-          <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300">
-            {row.name}
-            {row.unit ? <span className="ml-1 text-xs text-slate-400">({row.unit})</span> : null}
-          </td>
+          <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300">{row.name}</td>
           {row.values.map((v, i) => {
             const isSharedBest = row.bestIndexes.length > 1 && row.bestIndexes.includes(i);
             const isSoleBest = row.bestIndexes.length === 1 && row.bestIndexes.includes(i);
@@ -509,7 +524,15 @@ function GroupRows({ group, cars }: { group: { group: string; rows: Row[] }; car
                       : "text-slate-900 dark:text-white"
                 }`}
               >
-                {v ?? "—"}
+                {formatSpecValue(
+                  {
+                    value: v.value,
+                    numericValue: v.numericValue,
+                    unit: row.unit,
+                    isNumeric: row.isNumeric,
+                  },
+                  { locale, unavailableText: tCommon("unavailable") },
+                )}
                 {isSharedBest && (
                   <span className="ml-1 text-xs font-bold text-amber-500 dark:text-amber-400">
                     =
@@ -530,7 +553,7 @@ interface Row {
   unit: string | null;
   higherIsBetter: boolean;
   isNumeric: boolean;
-  values: (string | null)[];
+  values: RowValue[];
   bestIndexes: number[];
   isTie: boolean;
 }
@@ -577,7 +600,8 @@ function CarSelector({
         </option>
         {options.map((m) => (
           <option key={m.id} value={m.slug}>
-            {m.brandName} {m.name} — {m.year ?? ""}
+            {m.brandName} {m.name}
+            {m.year ? ` (${m.year})` : ""}
           </option>
         ))}
       </select>

@@ -23,8 +23,8 @@ export function BrandRow({ brand }: BrandRowProps) {
         <p className="font-medium text-white">{brand.name}</p>
         <p className="text-xs text-slate-500">/{brand.slug}</p>
       </td>
-      <td className="px-4 py-3 text-slate-400">{brand.originCountry ?? "—"}</td>
-      <td className="px-4 py-3 text-slate-400">{brand.fipeCode ?? "—"}</td>
+      <td className="px-4 py-3 text-slate-400">{brand.originCountry ?? "Não informado"}</td>
+      <td className="px-4 py-3 text-slate-400">{brand.fipeCode ?? "Não informado"}</td>
       <td className="px-4 py-3 text-slate-400">{brand.modelCount}</td>
       <td className="px-4 py-3">
         <span

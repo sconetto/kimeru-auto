@@ -110,7 +110,8 @@ export function EditorialEditForm({ modelYearId, editorial }: Props) {
 
       <div>
         <label htmlFor="summary" className="mb-1.5 block text-sm font-medium text-slate-300">
-          Resumo <span className="text-xs text-slate-500">(Markdown — ## seções renderizadas)</span>
+          Resumo{" "}
+          <span className="text-xs text-slate-500">(Markdown. Use ## para títulos de seção.)</span>
         </label>
         <textarea
           id="summary"
@@ -124,7 +125,7 @@ export function EditorialEditForm({ modelYearId, editorial }: Props) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="rating" className="mb-1.5 block text-sm font-medium text-slate-300">
-            Nota geral <span className="text-xs text-slate-500">(1.0–5.0)</span>
+            Nota geral <span className="text-xs text-slate-500">(de 1,0 a 5,0)</span>
           </label>
           <input
             id="rating"

@@ -21,9 +21,7 @@ export default async function AdminUsersPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-white">Usuários</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Gerencie contas de acesso ao painel administrativo
-        </p>
+        <p className="mt-1 text-sm text-slate-400">Controle o acesso ao painel.</p>
       </div>
 
       <form

@@ -38,14 +38,14 @@
     "noData": "No data",
     "simulateFinancing": "Simulate financing",
     "remove": "Remove",
-    "overviewTitle": "Overview — best car by specifications",
+    "overviewTitle": "Overview: best car by specifications",
     "overviewHint": "Score from 0 to 100 per category, calculated among the compared vehicles. Lower price = more points.",
     "winnerBadge": "Best overall: {cars}",
     "tieBadge": "Technical tie: {cars}",
     "tieAllBadge": "Overall tie",
     "leadsTitle": "Who leads each category",
     "leadsLine": "leads in: {categories}",
-    "leadsNone": "No vehicle stands out on its own — all categories are tied.",
+    "leadsNone": "No vehicle stands out on its own; all categories are tied.",
     "victory": "{count} {count, plural, one {win} other {wins}}",
     "wonIn": "Won in: {categories}",
     "mixedCategoriesWarning": "You are comparing vehicles from different categories ({categories}). Results may not reflect a fair comparison between distinct segments.",
@@ -90,7 +90,7 @@
     "tacFee": "TAC (R$)",
     "insuranceFee": "Insurance (R$)",
     "registrationFee": "Registration (R$)",
-    "tacTooltip": "Credit Opening Fee (TAC) — charged by the bank when the financing is approved.",
+    "tacTooltip": "Credit Opening Fee (TAC), charged by the bank when the financing is approved.",
     "insuranceTooltip": "Vehicle insurance included in the financing (protection and other coverage).",
     "registrationTooltip": "Contract registration fee charged by the traffic authority (DETRAN).",
     "ordinalSuffix": "th",
@@ -130,15 +130,15 @@
   },
   "sales": {
     "title": "Best Sellers",
-    "subtitle": "The most registered vehicles in Brazil in {month} {year} — FENABRAVE data.",
+    "subtitle": "The most registered vehicles in Brazil in {month} {year}, FENABRAVE data.",
     "empty": "Sales data coming soon. Our team is processing the latest FENABRAVE numbers.",
     "vehicle": "Vehicle",
     "category": "Category",
     "registrations": "Registrations",
-    "source": "Source: FENABRAVE — Brazilian Federation of Motor Vehicle Distribution."
+    "source": "Source: FENABRAVE (Brazilian Federation of Motor Vehicle Distribution)."
   },
   "car": {
-    "metaTitle": "{brand} {model} {year} — Price, Specs and Sales",
+    "metaTitle": "{brand} {model} {year} | Price, Specs and Sales",
     "metaDescription": "Full technical specifications of the {brand} {model} {year}: engine, consumption, dimensions, safety, FIPE price {price} and sales data.",
     "priceFipe": "FIPE price",
     "priceZeroKm": "0km price (FIPE table)",
@@ -201,6 +201,7 @@
     "errorTitle": "Something went wrong",
     "errorDescription": "An unexpected error occurred. Please try again.",
     "retry": "Try again",
+    "unavailable": "Not informed",
     "notFoundTitle": "Page not found",
     "notFoundDescription": "The page you are looking for does not exist or was moved.",
     "backHome": "Back to home"
@@ -262,11 +263,11 @@
       "text": "Kimeru Auto is free and will stay that way. If the platform helped you make a better decision, consider supporting the project with a virtual coffee on Ko-fi. Any contribution helps keep the service running and evolving.",
       "button": "Buy me a coffee ☕"
     },
-    "backToHome": "← Back to home",
+    "backToHome": "Back to home",
     "name": {
       "title": "Where does the name come from?",
       "p1": "“Kimeru” (決める) is a Japanese word meaning “to decide”. It is the heart of the project: our mission is to give you the right data to decide, with clarity and confidence, which car is ideal for your life.",
-      "p2": "“Auto”, in turn, comes from the German “das Auto” — the word for car. It is a nod to German engineering and the automotive passion that inspires the project.",
+      "p2": "“Auto”, in turn, comes from the German “das Auto”, the word for car. It is a nod to German engineering and the automotive passion that inspires the project.",
       "p3": "Together, Kimeru Auto is an invitation: decide better, drive better."
     }
   },

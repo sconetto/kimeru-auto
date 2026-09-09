@@ -6,7 +6,7 @@ export function ImportResult({ result }: { result: ImportOutcome }) {
     <div className="space-y-4 rounded-lg border border-slate-800 bg-slate-900 p-5">
       <div className="flex items-center gap-2">
         <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-        <h3 className="font-medium text-white">Importação concluída — {result.referenceLabel}</h3>
+        <h3 className="font-medium text-white">Importação concluída: {result.referenceLabel}</h3>
       </div>
 
       <div className="grid grid-cols-3 gap-4 text-center">

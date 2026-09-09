@@ -1,4 +1,4 @@
-import { Heart, Languages, Sparkles, User } from "lucide-react";
+import { ArrowLeft, Heart, Languages, Sparkles, User } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/lib/i18n/navigation";
@@ -131,7 +131,8 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       </section>
 
       <p className="mt-8 text-center text-xs text-slate-400">
-        <Link href="/" className="hover:text-blue-600">
+        <Link href="/" className="inline-flex items-center gap-1 hover:text-blue-600">
+          <ArrowLeft className="h-3.5 w-3.5" />
           {t("backToHome")}
         </Link>
       </p>

@@ -1,3 +1,4 @@
+import { ArrowRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { ModelCard } from "@/lib/catalog/queries";
 import { formatBRL } from "@/lib/format";
@@ -46,15 +47,16 @@ export async function CarCard({ model, href, locale = "pt-BR" }: Props) {
           )}
           {model.year && model.fuelType && (
             <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-              {model.year} · {fuelLabels[model.fuelType] ?? model.fuelType}
+              {model.year}, {fuelLabels[model.fuelType] ?? model.fuelType}
               {model.unitsSold
-                ? ` · ${t("sold", { count: model.unitsSold.toLocaleString("pt-BR") })}`
+                ? `, ${t("sold", { count: model.unitsSold.toLocaleString("pt-BR") })}`
                 : ""}
             </p>
           )}
         </div>
-        <span className="text-sm font-medium text-blue-600 dark:text-blue-400 opacity-0 transition-opacity group-hover:opacity-100">
-          {t("view")} →
+        <span className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400 opacity-0 transition-opacity group-hover:opacity-100">
+          {t("view")}
+          <ArrowRight className="h-4 w-4" />
         </span>
       </div>
     </Link>

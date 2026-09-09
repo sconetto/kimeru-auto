@@ -11,7 +11,7 @@ export function generateStaticParams() {
 const metaByLocale: Record<Locale, Metadata> = {
   "pt-BR": {
     title: {
-      default: "Kimeru Auto — Compare e decida seu próximo carro",
+      default: "Kimeru Auto: Compare e decida seu próximo carro",
       template: "%s | Kimeru Auto",
     },
     description:
@@ -19,7 +19,7 @@ const metaByLocale: Record<Locale, Metadata> = {
   },
   "en-US": {
     title: {
-      default: "Kimeru Auto — Compare and decide your next car",
+      default: "Kimeru Auto: Compare and decide your next car",
       template: "%s | Kimeru Auto",
     },
     description:

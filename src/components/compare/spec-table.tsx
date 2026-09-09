@@ -1,9 +1,10 @@
 "use client";
 
 import { ChevronDown, ChevronRight, Trophy } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import type { SpecGrouped } from "@/lib/catalog/queries";
-import { formatNumber } from "@/lib/format";
+import { formatSpecValue } from "@/lib/format";
 import { specGroupLabels } from "@/lib/format-labels";
 
 interface Props {
@@ -26,6 +27,8 @@ export function SpecTable({ specs }: Props) {
 
 function SpecSection({ group }: { group: SpecGrouped }) {
   const [open, setOpen] = useState(true);
+  const locale = useLocale();
+  const t = useTranslations("common");
 
   return (
     <section className="rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
@@ -51,14 +54,9 @@ function SpecSection({ group }: { group: SpecGrouped }) {
               key={spec.categoryId}
               className="flex items-center justify-between px-4 py-2.5 text-sm"
             >
-              <span className="text-slate-600 dark:text-slate-300">
-                {spec.name}
-                {spec.unit ? (
-                  <span className="ml-1 text-xs text-slate-400">({spec.unit})</span>
-                ) : null}
-              </span>
+              <span className="text-slate-600 dark:text-slate-300">{spec.name}</span>
               <span className="font-medium text-slate-900 dark:text-white">
-                {spec.displayValue ?? spec.value ?? "—"}
+                {formatSpecValue(spec, { locale, unavailableText: t("unavailable") })}
               </span>
             </div>
           ))}
@@ -82,7 +80,9 @@ export function SpecRow({
   higherIsBetter: boolean;
   isNumeric: boolean;
 }) {
-  // Find the best numeric value
+  const locale = useLocale();
+  const t = useTranslations("common");
+
   const nums = values.map((v) =>
     typeof v === "number" ? v : v != null ? Number(String(v).replace(",", ".")) : NaN,
   );
@@ -95,10 +95,7 @@ export function SpecRow({
 
   return (
     <div className="flex items-center justify-between px-4 py-2.5 text-sm">
-      <span className="text-slate-600 dark:text-slate-300">
-        {name}
-        {unit ? <span className="ml-1 text-xs text-slate-400">({unit})</span> : null}
-      </span>
+      <span className="text-slate-600 dark:text-slate-300">{name}</span>
       <div className="flex items-center gap-4">
         {values.map((v, i) => (
           <span
@@ -110,7 +107,15 @@ export function SpecRow({
                 : "text-slate-900 dark:text-white"
             }`}
           >
-            {v == null || v === "" ? "—" : formatNumber(String(v))}
+            {formatSpecValue(
+              {
+                value: v == null ? null : String(v),
+                numericValue: v == null ? null : Number(String(v).replace(",", ".")),
+                unit,
+                isNumeric,
+              },
+              { locale, unavailableText: t("unavailable") },
+            )}
             {i === bestIndex && (
               <Trophy className="absolute -left-5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-amber-500" />
             )}

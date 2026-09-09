@@ -1,4 +1,5 @@
 import { desc, eq } from "drizzle-orm";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ImportExportControls } from "@/components/admin/import-export-controls";
@@ -30,12 +31,16 @@ export default async function AdminModelYearsPage({
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/admin/cars" className="text-sm text-blue-400 hover:underline">
-          ← Voltar
+        <Link
+          href="/admin/cars"
+          className="flex items-center gap-1 text-sm text-blue-400 hover:underline"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">{model.name} — Versões</h1>
+        <h1 className="mt-2 text-2xl font-bold text-white">{model.name}: Versões</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Gerencie as versões e especificações deste modelo
+          Organize as versões e especificações deste modelo.
         </p>
         <div className="mt-3">
           <ImportExportControls entity="model-years" />
@@ -58,7 +63,7 @@ export default async function AdminModelYearsPage({
               <tr key={y.id} className="border-b border-slate-800 last:border-0">
                 <td className="px-4 py-3 font-medium text-white">{y.year}</td>
                 <td className="px-4 py-3 text-slate-400">{fuelLabels[y.fuelType] ?? y.fuelType}</td>
-                <td className="px-4 py-3 text-slate-400">{y.fipeCode ?? "—"}</td>
+                <td className="px-4 py-3 text-slate-400">{y.fipeCode ?? "Não informado"}</td>
                 <td className="px-4 py-3 text-slate-400">{y.isZeroKm ? "Sim" : "Não"}</td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-1.5">

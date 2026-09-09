@@ -33,7 +33,7 @@ export default async function FipePage({ params }: { params: Promise<{ locale: s
       </div>
 
       <p className="mt-8 text-xs text-slate-400">
-        Fonte: FIPE — Fundação Instituto de Pesquisas Econômicas. Os valores são preços médios de
+        Fonte: FIPE (Fundação Instituto de Pesquisas Econômicas). Os valores são preços médios de
         referência e podem variar conforme a região e o estado de conservação do veículo.
       </p>
     </div>

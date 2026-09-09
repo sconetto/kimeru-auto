@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
@@ -39,15 +40,21 @@ export default async function AdminEditEditorialPage({
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link href="/admin/editorial" className="text-sm text-blue-400 hover:underline">
-          ← Voltar para conteúdo editorial
+        <Link
+          href="/admin/editorial"
+          className="flex items-center gap-1 text-sm text-blue-400 hover:underline"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar para conteúdo editorial
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">
-          Editar conteúdo — {modelYear.brandName} {modelYear.modelName} {modelYear.year}
+          Editar conteúdo: {modelYear.brandName} {modelYear.modelName} {modelYear.year}
         </h1>
         <p className="mt-1 text-sm text-slate-400">
           {existing?.published ? "Publicado" : "Rascunho"} ·{" "}
-          {existing ? "edite e salve as alterações" : "nenhum conteúdo ainda — salve para criar"}
+          {existing
+            ? "Salve as alterações para publicar."
+            : "Ainda não há conteúdo editorial. Salve para criar o primeiro rascunho."}
         </p>
       </div>
 

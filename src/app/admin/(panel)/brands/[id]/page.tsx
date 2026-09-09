@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminImageUpload } from "@/components/admin/admin-image-upload";
@@ -17,8 +18,12 @@ export default async function AdminEditBrandPage({ params }: { params: Promise<{
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <div>
-        <Link href="/admin/brands" className="text-sm text-blue-400 hover:underline">
-          ← Voltar para marcas
+        <Link
+          href="/admin/brands"
+          className="flex items-center gap-1 text-sm text-blue-400 hover:underline"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar para marcas
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Editar marca</h1>
         <p className="mt-1 text-sm text-slate-400">{brand.name}</p>

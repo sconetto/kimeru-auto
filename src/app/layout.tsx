@@ -20,7 +20,7 @@ const mozillaHeadline = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: "Kimeru Auto — Compare e decida seu próximo carro",
+    default: "Kimeru Auto: Compare e decida seu próximo carro",
     template: "%s | Kimeru Auto",
   },
   description:
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "Kimeru Auto",
-    title: "Kimeru Auto — Compare e decida seu próximo carro",
+    title: "Kimeru Auto: Compare e decida seu próximo carro",
     description:
       "Compare carros do mercado brasileiro: especificações técnicas, preços FIPE, financiamento com CET e dados de vendas.",
   },
