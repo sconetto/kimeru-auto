@@ -57,6 +57,13 @@
       "when": 1788964725685,
       "tag": "0007_add-brands",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788965496053,
+      "tag": "0008_denza-logo",
+      "breakpoints": true
     }
   ]
 }

@@ -614,6 +614,7 @@ export const seedBrands: SeedBrand[] = [
     slug: "denza",
     originCountry: "China",
     fipeCode: "263",
+    logoUrl: "/logos/denza.png",
   },
   {
     name: "Jetour",
