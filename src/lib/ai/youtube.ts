@@ -61,6 +61,9 @@ export async function fetchTranscript(url: string): Promise<string> {
     if (!text) throw new TranscriptError("Vídeo sem transcrição disponível", "NO_CAPTIONS");
     return text;
   } catch (err) {
+    const name = err instanceof Error ? err.constructor.name : "unknown";
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[youtube-transcript] ${name}: ${msg}`);
     if (err instanceof TranscriptError) throw err;
     if (
       err instanceof YoutubeTranscriptDisabledError ||
