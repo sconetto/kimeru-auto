@@ -11,7 +11,7 @@ describe("test pipeline", () => {
   });
 
   it("resolves the @ alias", async () => {
-    const { sum } = await import("@/lib/math");
-    expect(sum(1, 2)).toBe(3);
+    const { slugify } = await import("@/lib/catalog/slug");
+    expect(slugify("Honda Civic")).toBe("honda-civic");
   });
 });

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { ImportExportControls } from "@/components/admin/import-export-controls";
 import { db } from "@/lib/db";
 import { models, modelYears } from "@/lib/db/schema";
-import { fuelLabels } from "@/lib/format";
+import { fuelLabels } from "@/lib/format-labels";
 import { DeleteModelYearButton } from "./delete-model-year-button";
 
 export const dynamic = "force-dynamic";

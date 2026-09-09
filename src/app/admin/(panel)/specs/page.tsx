@@ -2,7 +2,7 @@ import { asc } from "drizzle-orm";
 import { ImportExportControls } from "@/components/admin/import-export-controls";
 import { db } from "@/lib/db";
 import { specCategories, specGroups } from "@/lib/db/schema";
-import { specGroupLabels } from "@/lib/format";
+import { specGroupLabels } from "@/lib/format-labels";
 import { NewSpecCategoryForm } from "./new-spec-category-form";
 import { SpecCategoryRow } from "./spec-category-row";
 

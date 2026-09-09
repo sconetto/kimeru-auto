@@ -3,7 +3,7 @@
 import { Save } from "lucide-react";
 import { useTransition } from "react";
 import type { SpecCategory, SpecValue } from "@/lib/db/schema";
-import { specGroupLabels } from "@/lib/format";
+import { specGroupLabels } from "@/lib/format-labels";
 
 interface Props {
   modelYearId: number;

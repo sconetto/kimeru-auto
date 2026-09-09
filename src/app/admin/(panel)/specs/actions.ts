@@ -5,17 +5,9 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { logAudit } from "@/lib/admin/audit";
 import { requireRole } from "@/lib/auth/require-role";
+import { slugify } from "@/lib/catalog/slug";
 import { db } from "@/lib/db";
 import { specCategories, specGroup } from "@/lib/db/schema";
-
-function slugify(s: string): string {
-  return s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
 
 const specCategorySchema = z.object({
   name: z.string().min(1).max(100),

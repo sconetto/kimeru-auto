@@ -4,7 +4,8 @@ import { Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import type { ModelCard } from "@/lib/catalog/queries";
-import { formatBRL, fuelLabels } from "@/lib/format";
+import { formatBRL } from "@/lib/format";
+import { fuelLabels } from "@/lib/format-labels";
 import { Link } from "@/lib/i18n/navigation";
 
 interface Props {

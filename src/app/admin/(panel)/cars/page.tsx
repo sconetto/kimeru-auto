@@ -2,7 +2,7 @@ import { asc, count, eq } from "drizzle-orm";
 import { ImportExportControls } from "@/components/admin/import-export-controls";
 import { db } from "@/lib/db";
 import { brands, models, modelYears, vehicleCategories } from "@/lib/db/schema";
-import { categoryLabels } from "@/lib/format";
+import { categoryLabels } from "@/lib/format-labels";
 import { ModelRow } from "./model-row";
 import { NewModelForm } from "./new-model-form";
 

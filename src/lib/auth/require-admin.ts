@@ -4,6 +4,10 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { adminUsers } from "@/lib/db/schema";
 
+// API route-handler guard (NextResponse-based). Use inside `route.ts` handlers;
+// it re-validates the DB row on every call. For server actions / server
+// components, use `requireRole` from `./require-role` instead (redirect-based).
+
 const ROLE_LEVEL: Record<"admin" | "editor" | "viewer", number> = {
   viewer: 1,
   editor: 2,

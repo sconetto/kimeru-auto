@@ -1,7 +1,12 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import type { AdminRole } from "./require-admin";
 
-export type AdminRole = "admin" | "editor" | "viewer";
+export type { AdminRole };
+
+// Server-action / server-component guard (redirect-based). Use inside
+// `"use server"` actions and server components; for API route handlers use
+// `requireAdmin` from `./require-admin` (NextResponse + DB re-validation).
 
 /**
  * Require an authenticated admin session with at least one of the given
@@ -20,14 +25,4 @@ export async function requireRole(...roles: AdminRole[]): Promise<number | null>
     return null;
   }
   return Number(session.user.id);
-}
-
-/** Require an authenticated admin session (any role). Redirects to login. */
-export async function requireAdmin(): Promise<number> {
-  const adminId = await requireRole();
-  if (adminId === null) {
-    redirect("/admin/login");
-    return 0;
-  }
-  return adminId;
 }

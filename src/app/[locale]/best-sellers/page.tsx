@@ -1,7 +1,7 @@
 import { TrendingUp } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { getSalesRankings } from "@/lib/catalog/queries";
-import { categoryLabels, fuelLabels } from "@/lib/format";
+import { categoryLabels, fuelLabels } from "@/lib/format-labels";
 import { Link } from "@/lib/i18n/navigation";
 
 export const revalidate = 3600;

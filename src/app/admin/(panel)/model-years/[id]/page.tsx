@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { fipeHistory, fuelType, modelYears } from "@/lib/db/schema";
-import { fuelLabels } from "@/lib/format";
+import { fuelLabels } from "@/lib/format-labels";
 import { updateModelYear } from "../../cars/actions";
 
 export const dynamic = "force-dynamic";

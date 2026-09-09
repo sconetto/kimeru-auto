@@ -9,6 +9,7 @@ import {
   specGroups,
   vehicleCategories,
 } from "@/lib/db/schema";
+import { slugify } from "./slug";
 
 /* ------------------------------------------------------------------ */
 /* CSV helpers                                                        */
@@ -60,15 +61,6 @@ export function parseCsv(text: string): string[][] {
     rows.push(row);
   }
   return rows.filter((r) => r.some((c) => c.trim() !== ""));
-}
-
-export function slugify(s: string): string {
-  return s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
 }
 
 export function csvBool(v: string | undefined, fallback = false): boolean {

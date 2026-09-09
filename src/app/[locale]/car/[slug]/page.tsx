@@ -8,7 +8,8 @@ import { PriceHistoryChart } from "@/components/fipe/price-history-chart";
 import { SalesSparkline } from "@/components/fipe/sales-sparkline";
 import { getCarDetail, getSalesTrend } from "@/lib/catalog/queries";
 import { editorialTeaser } from "@/lib/editorial/teaser";
-import { formatBRL, formatPercent, fuelLabels } from "@/lib/format";
+import { formatBRL, formatPercent } from "@/lib/format";
+import { fuelLabels } from "@/lib/format-labels";
 import { Link } from "@/lib/i18n/navigation";
 
 export const revalidate = 3600;

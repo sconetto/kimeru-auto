@@ -120,7 +120,12 @@
     "errorBrands": "Não foi possível carregar as marcas da FIPE.",
     "errorModels": "Não foi possível carregar os modelos.",
     "errorYears": "Não foi possível carregar os anos.",
-    "errorPrice": "Não foi possível consultar o preço. Tente novamente."
+    "errorPrice": "Não foi possível consultar o preço. Tente novamente.",
+    "sparklineInsufficient": "Dados insuficientes para gráfico.",
+    "salesTrendAria": "Tendência de vendas mensais",
+    "historyUnderConstruction": "Histórico de preços em construção.",
+    "historyAria": "Histórico de preços FIPE",
+    "depreciation12m": "Depreciação 12 meses:"
   },
   "sales": {
     "title": "Mais Vendidos",
@@ -190,7 +195,13 @@
     "language": "Idioma",
     "home": "Início",
     "portuguese": "Português",
-    "english": "English"
+    "english": "English",
+    "errorTitle": "Algo deu errado",
+    "errorDescription": "Ocorreu um erro inesperado. Tente novamente.",
+    "retry": "Tentar novamente",
+    "notFoundTitle": "Página não encontrada",
+    "notFoundDescription": "A página que você procura não existe ou foi movida.",
+    "backHome": "Voltar ao início"
   },
   "footer": {
     "rights": "© {year} Kimeru Auto. Dados FIPE e FENABRAVE para fins informativos.",

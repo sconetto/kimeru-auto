@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { CarCard } from "@/components/catalog/car-card";
 import { getAllActiveModels } from "@/lib/catalog/queries";
-import { categoryLabels } from "@/lib/format";
+import { categoryLabels } from "@/lib/format-labels";
 import { Link } from "@/lib/i18n/navigation";
 
 export const revalidate = 3600;

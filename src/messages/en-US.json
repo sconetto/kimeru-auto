@@ -120,7 +120,12 @@
     "errorBrands": "Could not load FIPE brands.",
     "errorModels": "Could not load models.",
     "errorYears": "Could not load years.",
-    "errorPrice": "Could not check the price. Try again."
+    "errorPrice": "Could not check the price. Try again.",
+    "sparklineInsufficient": "Insufficient data for chart.",
+    "salesTrendAria": "Monthly sales trend",
+    "historyUnderConstruction": "Price history under construction.",
+    "historyAria": "FIPE price history",
+    "depreciation12m": "12-month depreciation:"
   },
   "sales": {
     "title": "Best Sellers",
@@ -190,7 +195,13 @@
     "language": "Language",
     "home": "Home",
     "portuguese": "Português",
-    "english": "English"
+    "english": "English",
+    "errorTitle": "Something went wrong",
+    "errorDescription": "An unexpected error occurred. Please try again.",
+    "retry": "Try again",
+    "notFoundTitle": "Page not found",
+    "notFoundDescription": "The page you are looking for does not exist or was moved.",
+    "backHome": "Back to home"
   },
   "footer": {
     "rights": "© {year} Kimeru Auto. FIPE and FENABRAVE data for informational purposes.",

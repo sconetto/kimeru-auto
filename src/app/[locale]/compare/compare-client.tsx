@@ -6,7 +6,8 @@ import { useEffect, useMemo, useState } from "react";
 import { RadarChart } from "@/components/compare/radar-chart";
 import type { CompareCar, ModelCard } from "@/lib/catalog/queries";
 import { bestCarIndices, computeRadarScores } from "@/lib/compare/scoring";
-import { categoryLabels, formatBRL, sizeCategoryLabels, specGroupLabels } from "@/lib/format";
+import { formatBRL } from "@/lib/format";
+import { categoryLabels, sizeCategoryLabels, specGroupLabels } from "@/lib/format-labels";
 import { Link, useRouter } from "@/lib/i18n/navigation";
 
 // Matches the RadarChart color palette so legend dots align with the graph.

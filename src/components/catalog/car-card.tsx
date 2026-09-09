@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import type { ModelCard } from "@/lib/catalog/queries";
-import { formatBRL, fuelLabels } from "@/lib/format";
+import { formatBRL } from "@/lib/format";
+import { fuelLabels } from "@/lib/format-labels";
 import { Link } from "@/lib/i18n/navigation";
 
 interface Props {

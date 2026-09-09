@@ -3,7 +3,8 @@
 import { ChevronDown, ChevronRight, Trophy } from "lucide-react";
 import { useState } from "react";
 import type { SpecGrouped } from "@/lib/catalog/queries";
-import { formatNumber, specGroupLabels } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
+import { specGroupLabels } from "@/lib/format-labels";
 
 interface Props {
   specs: SpecGrouped[];

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { specCategories, specGroup } from "@/lib/db/schema";
-import { specGroupLabels } from "@/lib/format";
+import { specGroupLabels } from "@/lib/format-labels";
 import { updateSpecCategory } from "../actions";
 
 export const dynamic = "force-dynamic";
