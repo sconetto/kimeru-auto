@@ -67,7 +67,7 @@ export async function deleteBrand(formData: FormData) {
   const adminId = await requireRole("admin");
   if (adminId === null) return;
   const id = Number(formData.get("id"));
-  await db.update(brands).set({ isActive: false }).where(eq(brands.id, id));
+  await db.delete(brands).where(eq(brands.id, id));
   await logAudit({ adminId, action: "delete", entityType: "brand", entityId: id });
   revalidatePath("/admin/brands");
   revalidatePath("/", "layout");
