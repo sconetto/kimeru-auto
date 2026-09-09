@@ -177,6 +177,7 @@
     "title": "Marcas",
     "modelsAvailable": "{count} modelos disponíveis",
     "modelsCount": "{count} modelos",
+    "noModels": "Nenhum modelo cadastrado ainda",
     "others": "Outros"
   },
   "category": {

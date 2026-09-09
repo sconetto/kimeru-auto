@@ -177,6 +177,7 @@
     "title": "Brands",
     "modelsAvailable": "{count} models available",
     "modelsCount": "{count} models",
+    "noModels": "No models available yet",
     "others": "Others"
   },
   "category": {

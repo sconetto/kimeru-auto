@@ -130,6 +130,27 @@ export async function getBrandsWithCounts(): Promise<BrandWithCount[]> {
   return rows.map((r) => ({ ...r, modelCount: Number(r.modelCount) }));
 }
 
+/** A single brand by slug, regardless of whether it has models yet. */
+export async function getBrandBySlug(slug: string): Promise<BrandWithCount | null> {
+  const rows = await db
+    .select({
+      id: brands.id,
+      name: brands.name,
+      slug: brands.slug,
+      logoUrl: brands.logoUrl,
+      originCountry: brands.originCountry,
+      modelCount: count(models.id),
+    })
+    .from(brands)
+    .leftJoin(models, and(eq(models.brandId, brands.id), eq(models.isActive, true)))
+    .where(eq(brands.slug, slug))
+    .groupBy(brands.id)
+    .limit(1);
+
+  const row = rows[0];
+  return row ? { ...row, modelCount: Number(row.modelCount) } : null;
+}
+
 /** Models for a brand, grouped by category, with latest price + sales. */
 export async function getModelsByBrand(brandSlug: string): Promise<ModelCard[]> {
   const rows = await db
