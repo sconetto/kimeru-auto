@@ -30,6 +30,7 @@ export interface GenerateOutcome {
   status: GenerateStatus;
   editorialId?: number;
   content?: ExtractedEditorial;
+  transcripts?: EditorialTranscript[];
   error?: string;
 }
 
@@ -120,7 +121,7 @@ export async function generateEditorial(
     editorialId = inserted.id;
   }
 
-  return { status: "success", editorialId, content };
+  return { status: "success", editorialId, content, transcripts: storedTranscripts };
 }
 
 /* ------------------------------------------------------------------ */

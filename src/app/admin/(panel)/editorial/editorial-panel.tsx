@@ -73,7 +73,7 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
         setError(data.error ?? "Erro ao gerar conteúdo");
         return;
       }
-      setContent(data.content);
+      setContent({ ...data.content, transcripts: data.transcripts ?? [] });
       setStatus("idle");
     });
   }
