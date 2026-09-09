@@ -7,7 +7,6 @@
  */
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
-const CAPTIONS_BASE = "https://www.googleapis.com/youtube/v3/captions";
 const VIDEOS_BASE = "https://www.googleapis.com/youtube/v3/videos";
 
 export class TranscriptError extends Error {
@@ -34,15 +33,6 @@ export function extractVideoId(url: string): string | null {
   return null;
 }
 
-interface CaptionTrack {
-  id: string;
-  snippet?: {
-    language?: string;
-    trackKind?: string;
-    name?: string;
-  };
-}
-
 async function fetchJson<T>(url: string): Promise<T> {
   const res = await fetch(url);
   if (!res.ok) {
@@ -51,7 +41,32 @@ async function fetchJson<T>(url: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-/** Fetch the auto-generated or manual caption track for a video. */
+async function fetchTitle(videoId: string): Promise<string> {
+  const info = await fetchJson<{ items: { snippet?: { title?: string } }[] }>(
+    `${VIDEOS_BASE}?part=snippet&id=${videoId}&key=${YOUTUBE_API_KEY}`,
+  );
+  return info.items[0]?.snippet?.title ?? "";
+}
+
+async function fetchTimedText(videoId: string, lang?: string): Promise<string | null> {
+  const langParam = lang ? `&lang=${lang}` : "";
+  const res = await fetch(
+    `https://www.youtube.com/api/timedtext?v=${videoId}${langParam}&fmt=json3`,
+  );
+  if (!res.ok) return null;
+  try {
+    const tt = (await res.json()) as { events?: { segs?: { utf8?: string }[] }[] };
+    const text = (tt.events ?? [])
+      .flatMap((e) => e.segs?.map((s) => s.utf8 ?? "") ?? [])
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+    return text || null;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchTranscript(url: string): Promise<string> {
   if (!YOUTUBE_API_KEY) {
     throw new TranscriptError("YOUTUBE_API_KEY não configurada", "NO_KEY");
@@ -62,56 +77,12 @@ export async function fetchTranscript(url: string): Promise<string> {
     throw new TranscriptError("URL do YouTube inválida", "NO_VIDEO");
   }
 
-  // 1. Resolve video title + check captions exist
-  const videoInfo = await fetchJson<{
-    items: { snippet?: { title?: string } }[];
-  }>(`${VIDEOS_BASE}?part=snippet&id=${videoId}&key=${YOUTUBE_API_KEY}`);
+  const title = await fetchTitle(videoId).catch(() => "");
+  const text = (await fetchTimedText(videoId, "pt")) ?? (await fetchTimedText(videoId));
 
-  const title = videoInfo.items[0]?.snippet?.title ?? "";
-
-  // 2. List caption tracks
-  const captions = await fetchJson<{ items: CaptionTrack[] }>(
-    `${CAPTIONS_BASE}?part=snippet&videoId=${videoId}&key=${YOUTUBE_API_KEY}`,
-  );
-
-  const tracks = captions.items ?? [];
-  // Prefer Portuguese (pt) tracks, then any manual track, then auto-generated
-  const ptTrack =
-    tracks.find((t) => t.snippet?.language?.startsWith("pt")) ??
-    tracks.find((t) => t.snippet?.trackKind === "standard") ??
-    tracks.find((t) => t.snippet?.trackKind?.toLowerCase() === "asr") ??
-    tracks[0];
-
-  if (!ptTrack) {
+  if (!text) {
     throw new TranscriptError("Vídeo sem transcrição disponível", "NO_CAPTIONS");
   }
 
-  // 3. Download the caption content (requires OAuth for download, so this
-  // uses the timedtext endpoint which is public for public videos).
-  const timedTextUrl = `https://www.youtube.com/api/timedtext?v=${videoId}&lang=${ptTrack.snippet?.language ?? "pt"}&fmt=json3`;
-  const ttRes = await fetch(timedTextUrl);
-
-  if (!ttRes.ok) {
-    // Fallback: try the generic download endpoint (may need API key)
-    const dlRes = await fetchJson<{ items?: unknown[] }>(
-      `${CAPTIONS_BASE}/${ptTrack.id}?key=${YOUTUBE_API_KEY}`,
-    ).catch(() => null);
-    if (!dlRes) {
-      throw new TranscriptError("Não foi possível baixar a transcrição", "NO_CAPTIONS");
-    }
-  }
-
-  const tt = (await ttRes.json()) as { events?: { segs?: { utf8?: string }[] }[] };
-  const text = (tt.events ?? [])
-    .flatMap((e) => e.segs?.map((s) => s.utf8 ?? "") ?? [])
-    .join(" ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  if (!text) {
-    throw new TranscriptError("Transcrição vazia", "NO_CAPTIONS");
-  }
-
-  // Attach the title as a leading header comment for the LLM context
   return title ? `${title}\n\n${text}` : text;
 }
