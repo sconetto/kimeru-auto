@@ -3,10 +3,44 @@
 import { useState } from "react";
 import { createCarFromAi } from "./actions";
 
-interface ParsedSpec {
+const FUEL_TYPES = [
+  { value: "flex", label: "Flex" },
+  { value: "gasoline", label: "Gasolina" },
+  { value: "ethanol", label: "Etanol" },
+  { value: "diesel", label: "Diesel" },
+  { value: "hybrid", label: "Híbrido" },
+  { value: "hybrid_plug_in", label: "Híbrido Plug-in" },
+  { value: "electric", label: "Elétrico" },
+] as const;
+
+function parseNumeric(value: string): number | null {
+  const m = value
+    .replace(/\./g, "")
+    .replace(",", ".")
+    .match(/-?\d+(\.\d+)?/);
+  return m ? Number(m[0]) : null;
+}
+
+interface BrandOption {
+  id: number;
+  name: string;
+}
+interface CategoryOption {
   slug: string;
-  value: string;
-  numericValue: number | null;
+  name: string;
+}
+
+interface EditableCar {
+  brandId: number | "";
+  brandName: string;
+  model: string;
+  year: number;
+  fuelType: string;
+  priceFipe: string;
+  isZeroKm: boolean;
+  category: string;
+  sizeCategory: string;
+  specs: { slug: string; value: string }[];
 }
 
 interface ParsedData {
@@ -18,7 +52,7 @@ interface ParsedData {
   priceFipe: number | null;
   category: string | null;
   sizeCategory: string | null;
-  specs: ParsedSpec[];
+  specs: { slug: string; value: string }[];
 }
 
 interface ParseResponse {
@@ -28,19 +62,42 @@ interface ParseResponse {
   error?: string;
 }
 
-export function AiImportForm() {
+const inputClass =
+  "rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none";
+
+export function AiImportForm({
+  brands,
+  categories,
+}: {
+  brands: BrandOption[];
+  categories: CategoryOption[];
+}) {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resp, setResp] = useState<ParseResponse | null>(null);
   const [error, setError] = useState("");
-  const [creating, setCreating] = useState(false);
   const [result, setResult] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [car, setCar] = useState<EditableCar | null>(null);
+
+  function patchCar(patch: Partial<EditableCar>) {
+    setCar((c) => (c ? { ...c, ...patch } : c));
+  }
+
+  function patchSpec(index: number, value: string) {
+    setCar((c) =>
+      c ? { ...c, specs: c.specs.map((s, i) => (i === index ? { ...s, value } : s)) } : c,
+    );
+  }
+
+  function removeSpec(index: number) {
+    setCar((c) => (c ? { ...c, specs: c.specs.filter((_, i) => i !== index) } : c));
+  }
 
   async function parse() {
     setLoading(true);
     setError("");
-    setResp(null);
     setResult("");
+    setCar(null);
     try {
       const res = await fetch("/api/admin/ai/parse-car", {
         method: "POST",
@@ -50,9 +107,19 @@ export function AiImportForm() {
       const json = (await res.json()) as ParseResponse;
       if (!res.ok) {
         setError(json.error ?? "Falha ao analisar a fonte");
-        setResp(null);
-      } else {
-        setResp(json);
+      } else if (json.data) {
+        setCar({
+          brandId: json.brandMatch?.id ?? "",
+          brandName: json.data.brand,
+          model: json.data.model,
+          year: json.data.year ?? new Date().getFullYear(),
+          fuelType: json.data.fuelType || "flex",
+          priceFipe: json.data.priceFipe ? String(json.data.priceFipe) : "",
+          isZeroKm: json.data.isZeroKm,
+          category: json.data.category ?? "",
+          sizeCategory: json.data.sizeCategory ?? "",
+          specs: json.data.specs.map((s) => ({ slug: s.slug, value: s.value })),
+        });
       }
     } catch {
       setError("Falha na requisição");
@@ -62,20 +129,24 @@ export function AiImportForm() {
   }
 
   async function create() {
-    if (!resp?.data) return;
+    if (!car) return;
     setCreating(true);
     setResult("");
     const r = await createCarFromAi({
-      brandId: resp.brandMatch?.id ?? null,
-      brandName: resp.data.brand,
-      model: resp.data.model,
-      year: resp.data.year ?? new Date().getFullYear(),
-      fuelType: resp.data.fuelType,
-      priceFipe: resp.data.priceFipe,
-      isZeroKm: resp.data.isZeroKm,
-      category: resp.data.category,
-      sizeCategory: resp.data.sizeCategory,
-      specs: resp.data.specs,
+      brandId: car.brandId === "" ? null : Number(car.brandId),
+      brandName: car.brandName,
+      model: car.model,
+      year: car.year,
+      fuelType: car.fuelType,
+      priceFipe: car.priceFipe ? Number(car.priceFipe.replace(/\./g, "").replace(",", ".")) : null,
+      isZeroKm: car.isZeroKm,
+      category: car.category || null,
+      sizeCategory: car.sizeCategory || null,
+      specs: car.specs.map((s) => ({
+        slug: s.slug,
+        value: s.value,
+        numericValue: parseNumeric(s.value),
+      })),
     });
     setResult(r.ok ? `✓ Carro criado (modelo ID ${r.modelId})` : (r.error ?? "Falha ao criar"));
     setCreating(false);
@@ -89,7 +160,7 @@ export function AiImportForm() {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://exemplo.com/ficha-tecnica.pdf"
-          className="flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
+          className={`flex-1 ${inputClass}`}
           aria-label="URL da fonte"
         />
         <button
@@ -105,58 +176,136 @@ export function AiImportForm() {
       {error && <p className="text-sm text-red-400">{error}</p>}
       {result && <p className="text-sm text-emerald-400">{result}</p>}
 
-      {resp?.data && (
-        <div className="rounded-lg border border-slate-800 bg-slate-900 p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-medium text-white">Revisar dados extraídos</h2>
-            {resp.brandMatch ? (
-              <span className="text-xs text-slate-400">
-                Marca: <span className="text-blue-400">{resp.brandMatch.name}</span>
-              </span>
-            ) : (
-              <span className="text-xs text-amber-400">Marca será criada: {resp.data.brand}</span>
+      {car && (
+        <div className="space-y-4 rounded-lg border border-slate-800 bg-slate-900 p-5">
+          <h2 className="text-sm font-medium text-white">Revisar e editar dados</h2>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="text-xs text-slate-500">
+              Marca
+              <select
+                value={car.brandId}
+                onChange={(e) =>
+                  patchCar({ brandId: e.target.value === "" ? "" : Number(e.target.value) })
+                }
+                className={`mt-1 w-full ${inputClass}`}
+              >
+                <option value="">Criar nova marca…</option>
+                {brands.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {car.brandId === "" && (
+              <label className="text-xs text-slate-500">
+                Nova marca
+                <input
+                  value={car.brandName}
+                  onChange={(e) => patchCar({ brandName: e.target.value })}
+                  className={`mt-1 w-full ${inputClass}`}
+                />
+              </label>
             )}
+            <label className="text-xs text-slate-500">
+              Modelo
+              <input
+                value={car.model}
+                onChange={(e) => patchCar({ model: e.target.value })}
+                className={`mt-1 w-full ${inputClass}`}
+              />
+            </label>
+            <label className="text-xs text-slate-500">
+              Ano
+              <input
+                type="number"
+                value={car.year}
+                onChange={(e) => patchCar({ year: Number(e.target.value) })}
+                className={`mt-1 w-full ${inputClass}`}
+              />
+            </label>
+            <label className="text-xs text-slate-500">
+              Combustível
+              <select
+                value={car.fuelType}
+                onChange={(e) => patchCar({ fuelType: e.target.value })}
+                className={`mt-1 w-full ${inputClass}`}
+              >
+                {FUEL_TYPES.map((f) => (
+                  <option key={f.value} value={f.value}>
+                    {f.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-xs text-slate-500">
+              Preço FIPE (R$)
+              <input
+                value={car.priceFipe}
+                onChange={(e) => patchCar({ priceFipe: e.target.value })}
+                placeholder="123456"
+                className={`mt-1 w-full ${inputClass}`}
+              />
+            </label>
+            <label className="text-xs text-slate-500">
+              Categoria
+              <select
+                value={car.category}
+                onChange={(e) => patchCar({ category: e.target.value })}
+                className={`mt-1 w-full ${inputClass}`}
+              >
+                <option value="">—</option>
+                {categories.map((c) => (
+                  <option key={c.slug} value={c.slug}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-xs text-slate-500">
+              Porte
+              <input
+                value={car.sizeCategory}
+                onChange={(e) => patchCar({ sizeCategory: e.target.value })}
+                placeholder="compacto"
+                className={`mt-1 w-full ${inputClass}`}
+              />
+            </label>
           </div>
 
-          <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
-            <div>
-              <dt className="text-xs text-slate-500">Modelo</dt>
-              <dd className="text-white">{resp.data.model}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-slate-500">Ano</dt>
-              <dd className="text-white">{resp.data.year ?? "—"}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-slate-500">Combustível</dt>
-              <dd className="text-white">{resp.data.fuelType || "—"}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-slate-500">Preço FIPE</dt>
-              <dd className="text-white">
-                {resp.data.priceFipe ? `R$ ${resp.data.priceFipe.toLocaleString("pt-BR")}` : "—"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-xs text-slate-500">Categoria</dt>
-              <dd className="text-white">{resp.data.category ?? "—"}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-slate-500">Porte</dt>
-              <dd className="text-white">{resp.data.sizeCategory ?? "—"}</dd>
-            </div>
-          </dl>
+          <label className="flex items-center gap-2 text-sm text-slate-300">
+            <input
+              type="checkbox"
+              checked={car.isZeroKm}
+              onChange={(e) => patchCar({ isZeroKm: e.target.checked })}
+              className="accent-blue-600"
+            />
+            0km
+          </label>
 
-          {resp.data.specs.length > 0 && (
-            <div className="mt-4">
+          {car.specs.length > 0 && (
+            <div>
               <h3 className="mb-2 text-xs font-medium text-slate-500">
-                Especificações ({resp.data.specs.length})
+                Especificações ({car.specs.length})
               </h3>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm sm:grid-cols-3">
-                {resp.data.specs.map((s) => (
-                  <div key={s.slug} className="flex justify-between">
-                    <span className="text-slate-400">{s.slug}</span>
-                    <span className="text-white">{s.value}</span>
+              <div className="space-y-2">
+                {car.specs.map((s, i) => (
+                  <div key={s.slug} className="flex items-center gap-3">
+                    <span className="w-48 shrink-0 text-xs text-slate-400">{s.slug}</span>
+                    <input
+                      value={s.value}
+                      onChange={(e) => patchSpec(i, e.target.value)}
+                      className={`flex-1 ${inputClass}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeSpec(i)}
+                      title="Remover"
+                      className="rounded-md px-2 py-1 text-xs text-slate-500 hover:bg-slate-800 hover:text-red-400"
+                    >
+                      ✕
+                    </button>
                   </div>
                 ))}
               </div>
@@ -166,8 +315,8 @@ export function AiImportForm() {
           <button
             type="button"
             onClick={create}
-            disabled={creating}
-            className="mt-5 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
+            disabled={creating || !car.model}
+            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
           >
             {creating ? "Criando..." : "Criar carro"}
           </button>
