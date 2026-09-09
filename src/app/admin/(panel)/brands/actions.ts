@@ -5,17 +5,9 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { logAudit } from "@/lib/admin/audit";
 import { requireRole } from "@/lib/auth/require-role";
+import { slugify } from "@/lib/catalog/slug";
 import { db } from "@/lib/db";
 import { brands } from "@/lib/db/schema";
-
-function slugify(s: string): string {
-  return s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
 
 const brandSchema = z.object({
   name: z.string().min(1).max(100),
@@ -75,7 +67,7 @@ export async function deleteBrand(formData: FormData) {
   const adminId = await requireRole("admin");
   if (adminId === null) return;
   const id = Number(formData.get("id"));
-  await db.delete(brands).where(eq(brands.id, id));
+  await db.update(brands).set({ isActive: false }).where(eq(brands.id, id));
   await logAudit({ adminId, action: "delete", entityType: "brand", entityId: id });
   revalidatePath("/admin/brands");
   revalidatePath("/", "layout");

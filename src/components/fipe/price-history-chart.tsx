@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { formatBRL, formatPercent } from "@/lib/format";
 
 interface HistoryPoint {
@@ -18,8 +20,10 @@ interface Props {
  * Renders a line chart when 3+ points exist; otherwise a simple list.
  */
 export function PriceHistoryChart({ history, depreciation12m }: Props) {
+  const t = useTranslations("fipe");
+
   if (history.length < 2) {
-    return <p className="text-sm text-slate-500">Histórico de preços em construção.</p>;
+    return <p className="text-sm text-slate-500">{t("historyUnderConstruction")}</p>;
   }
 
   const width = 600;
@@ -46,7 +50,7 @@ export function PriceHistoryChart({ history, depreciation12m }: Props) {
         viewBox={`0 0 ${width} ${height}`}
         className="w-full"
         role="img"
-        aria-label="Histórico de preços FIPE"
+        aria-label={t("historyAria")}
       >
         {/* Y axis labels */}
         {[0, 0.5, 1].map((t) => {
@@ -105,7 +109,7 @@ export function PriceHistoryChart({ history, depreciation12m }: Props) {
 
       {depreciation12m !== null && (
         <div className="mt-2 inline-flex items-center gap-2 rounded-md bg-slate-100 px-3 py-1.5 text-sm dark:bg-slate-800">
-          <span className="text-slate-600 dark:text-slate-300">Depreciação 12 meses:</span>
+          <span className="text-slate-600 dark:text-slate-300">{t("depreciation12m")}</span>
           <span
             className={`font-semibold ${depreciation12m <= 0 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}`}
           >

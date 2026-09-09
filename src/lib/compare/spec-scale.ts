@@ -31,6 +31,7 @@ function normalize(text: string): string {
 }
 
 export const specScaleMap: Record<string, SpecScale> = {
+  // Transmission tiers: CVT (top) > conventional automatic (mid-high) > manual (neutral).
   "transmission-type": {
     rules: [
       { pattern: "cvt", score: 100 },
@@ -39,6 +40,7 @@ export const specScaleMap: Record<string, SpecScale> = {
     ],
     defaultScore: 50,
   },
+  // Rear brakes: disc (better) vs drum/tambor (basic).
   "brakes-rear": {
     rules: [
       { pattern: "disco", score: 70 },
@@ -46,6 +48,7 @@ export const specScaleMap: Record<string, SpecScale> = {
     ],
     defaultScore: 50,
   },
+  // Rear suspension: independent multi-link (top) vs torsion beam (neutral).
   "suspension-rear": {
     rules: [
       { pattern: "multi-link", score: 100 },
@@ -54,6 +57,7 @@ export const specScaleMap: Record<string, SpecScale> = {
     ],
     defaultScore: 50,
   },
+  // Steering: progressive electric (top) > electric > hydraulic (lowest).
   "steering-type": {
     rules: [
       { pattern: "eletrica progressiva", score: 100 },
@@ -62,6 +66,7 @@ export const specScaleMap: Record<string, SpecScale> = {
     ],
     defaultScore: 50,
   },
+  // Headlights: full LED/matrix (top) > projector > LED > halogen (lowest).
   headlights: {
     rules: [
       { pattern: "full led", score: 100 },
@@ -72,6 +77,7 @@ export const specScaleMap: Record<string, SpecScale> = {
     ],
     defaultScore: 50,
   },
+  // Wheels: larger alloy diameter scores higher; steel (aço) is lowest.
   wheels: {
     rules: [
       { pattern: "18", score: 100 },
@@ -82,6 +88,7 @@ export const specScaleMap: Record<string, SpecScale> = {
     ],
     defaultScore: 50,
   },
+  // Air conditioning: tri-zone (top) > dual-zone > automatic > manual (lowest).
   "air-conditioning": {
     rules: [
       { pattern: "tri-zone", score: 100 },
@@ -93,6 +100,7 @@ export const specScaleMap: Record<string, SpecScale> = {
     ],
     defaultScore: 50,
   },
+  // Infotainment: screen size in inches (larger scores higher).
   infotainment: {
     rules: [
       { pattern: "12", score: 100 },
@@ -103,6 +111,7 @@ export const specScaleMap: Record<string, SpecScale> = {
     ],
     defaultScore: 50,
   },
+  // Connectivity: wireless (top) > wired CarPlay/Android Auto (mid).
   connectivity: {
     rules: [
       { pattern: "sem fio", score: 100 },
@@ -111,6 +120,7 @@ export const specScaleMap: Record<string, SpecScale> = {
     ],
     defaultScore: 50,
   },
+  // Parking assist: 360 camera (top) > camera > sensors (basic).
   "parking-assist": {
     rules: [
       { pattern: "360", score: 100 },
@@ -119,6 +129,7 @@ export const specScaleMap: Record<string, SpecScale> = {
     ],
     defaultScore: 50,
   },
+  // Injection: direct (top) vs multi-point (basic).
   injection: {
     rules: [
       { pattern: "direta", score: 100 },
@@ -126,6 +137,7 @@ export const specScaleMap: Record<string, SpecScale> = {
     ],
     defaultScore: 50,
   },
+  // Fuel type: hybrid (top) vs flex (mid).
   "fuel-type": {
     rules: [
       { pattern: "hibrido", score: 100 },
@@ -133,6 +145,7 @@ export const specScaleMap: Record<string, SpecScale> = {
     ],
     defaultScore: 50,
   },
+  // Warranty: longer total warranty scores higher (5y top, 2y lowest).
   "warranty-total": {
     rules: [
       { pattern: "5 anos", score: 100 },

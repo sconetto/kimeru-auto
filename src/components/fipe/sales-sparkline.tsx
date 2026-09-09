@@ -1,13 +1,16 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 interface Props {
   data: { month: number; year: number; unitsSold: number }[];
 }
 
 /** Minimal SVG sparkline for monthly sales trend. */
 export function SalesSparkline({ data }: Props) {
+  const t = useTranslations("fipe");
   if (data.length < 2) {
-    return <p className="text-xs text-slate-500">Dados insuficientes para gráfico.</p>;
+    return <p className="text-xs text-slate-500">{t("sparklineInsufficient")}</p>;
   }
 
   const width = 240;
@@ -33,7 +36,7 @@ export function SalesSparkline({ data }: Props) {
       viewBox={`0 0 ${width} ${height}`}
       className="w-full"
       role="img"
-      aria-label="Tendência de vendas mensais"
+      aria-label={t("salesTrendAria")}
     >
       <path d={area} fill="#2563eb" opacity="0.1" />
       <path

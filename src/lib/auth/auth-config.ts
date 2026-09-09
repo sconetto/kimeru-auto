@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
+import { logAudit } from "@/lib/admin/audit";
 import { db } from "@/lib/db";
 import { adminUsers } from "@/lib/db/schema";
 import { cache } from "@/lib/fipe/cache";
@@ -71,10 +72,26 @@ export const authConfig = {
           .where(eq(adminUsers.email, accountId))
           .limit(1);
 
-        if (!user?.isActive) return null;
+        if (!user?.isActive) {
+          await logAudit({
+            adminId: user?.id ?? null,
+            action: "login",
+            entityType: "auth",
+            details: { success: false, email: accountId, reason: "inactive" },
+          });
+          return null;
+        }
 
         const valid = await compare(password, user.passwordHash);
-        if (!valid) return null;
+        if (!valid) {
+          await logAudit({
+            adminId: user.id,
+            action: "login",
+            entityType: "auth",
+            details: { success: false, email: accountId, reason: "invalid_password" },
+          });
+          return null;
+        }
 
         // Successful sign-in — clear both throttle buckets so a legitimate
         // user who mistyped a couple of times isn't locked out for the rest
@@ -83,6 +100,13 @@ export const authConfig = {
           cache.del(rateLimitKey(LOGIN_ACCOUNT_WINDOW_SECONDS, accountId)),
           cache.del(rateLimitKey(LOGIN_IP_WINDOW_SECONDS, ip)),
         ]);
+
+        await logAudit({
+          adminId: user.id,
+          action: "login",
+          entityType: "auth",
+          details: { success: true },
+        });
 
         return {
           id: String(user.id),
