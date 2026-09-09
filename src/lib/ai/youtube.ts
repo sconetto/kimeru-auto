@@ -39,13 +39,27 @@ function toText(segments: { text: string }[]): string {
     .trim();
 }
 
+const consentFetch: typeof fetch = (input, init) => {
+  const headers = new Headers(init?.headers);
+  if (!headers.has("Cookie")) {
+    headers.set("Cookie", "SOCS=CAI; CONSENT=YES+cb.20210328-17-p0.en+FX+419");
+  }
+  if (!headers.has("User-Agent")) {
+    headers.set(
+      "User-Agent",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    );
+  }
+  return fetch(input, { ...init, headers });
+};
+
 async function fetchBestText(videoId: string): Promise<string> {
   try {
-    const segments = await fetchYtTranscript(videoId, { lang: "pt" });
+    const segments = await fetchYtTranscript(videoId, { lang: "pt", fetch: consentFetch });
     return toText(segments);
   } catch (err) {
     if (err instanceof YoutubeTranscriptNotAvailableLanguageError) {
-      const segments = await fetchYtTranscript(videoId);
+      const segments = await fetchYtTranscript(videoId, { fetch: consentFetch });
       return toText(segments);
     }
     throw err;
