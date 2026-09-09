@@ -41,6 +41,7 @@ export function EditorialContent({
   scoreLabels,
 }: EditorialContentProps) {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const firstVideoId = sourceVideos.length > 0 ? youtubeId(sourceVideos[0].url) : null;
 
   function toggleTranscript(i: number) {
     setExpanded((prev) => {
@@ -92,6 +93,18 @@ export function EditorialContent({
 
       {sourceVideos.length > 0 && (
         <div className="border-t border-slate-100 pt-3 dark:border-slate-800">
+          {firstVideoId && (
+            <div className="mb-3 aspect-video overflow-hidden rounded-md border border-slate-200 dark:border-slate-800">
+              <iframe
+                src={`https://www.youtube.com/embed/${firstVideoId}`}
+                title={seeVideoLabel}
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="h-full w-full"
+              />
+            </div>
+          )}
           <p className="mb-2 flex items-center gap-1.5 text-xs text-slate-500">
             <Video className="h-3.5 w-3.5" /> {basedOnLabel}
           </p>

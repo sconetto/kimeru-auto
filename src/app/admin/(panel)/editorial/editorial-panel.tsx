@@ -24,6 +24,7 @@ interface GeneratedContent {
   rating: number;
   scoreBreakdown: EditorialScoreBreakdown | null;
   transcripts: EditorialTranscript[];
+  sourceVideos: { url: string; title?: string }[];
 }
 
 const SCORE_CATEGORIES: { key: keyof EditorialScoreBreakdown; label: string }[] = [
@@ -71,7 +72,11 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
         setError(data.error ?? "Erro ao gerar conteúdo");
         return;
       }
-      setContent({ ...data.content, transcripts: data.transcripts ?? [] });
+      setContent({
+        ...data.content,
+        transcripts: data.transcripts ?? [],
+        sourceVideos: data.sourceVideos ?? [],
+      });
       setStatus("idle");
     });
   }
