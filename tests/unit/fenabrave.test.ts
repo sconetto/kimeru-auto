@@ -2,6 +2,7 @@ import * as XLSX from "@e965/xlsx";
 import { describe, expect, it } from "vitest";
 import { bestMatch, scoreMatch, stripBrandPrefix } from "@/lib/fenabrave/matcher";
 import { parseFenabraveXlsx } from "@/lib/fenabrave/parser";
+import { parseFenabravePdfText } from "@/lib/fenabrave/pdf-parser";
 
 function buildWorkbook(rows: unknown[][]): ArrayBuffer {
   const ws = XLSX.utils.aoa_to_sheet(rows);
@@ -88,5 +89,70 @@ describe("bestMatch", () => {
   it("returns null for unmatched", () => {
     const match = bestMatch("LAMBORGHINI - HURACAN", candidates);
     expect(match).toBeNull();
+  });
+});
+
+/** Sample of the real FENABRAVE PDF text layer (Aug/2026 ranking). */
+const pdfSample = `
+Ed. 284
+Informativo - Emplacamentos
+São Paulo, Setembro de 2026
+Ranking dos emplacamentos em Agosto/2026
+www.fenabrave.org.br 6
+AUTOMÓVEIS
+1º VW/POLO 10.472
+2º VW/TERA 10.338
+3º FIAT/ARGO 8.811
+50º GAC/AION UT 979
+COMERCIAIS LEVES
+1º FIAT/STRADA 13.798
+2º FIAT/TORO 5.707
+50º FEVER/ORCA 18
+Ed. 284
+Informativo - Emplacamentos
+São Paulo, Setembro de 2026
+Ranking dos emplacamentos acumulados até Agosto/2026
+www.fenabrave.org.br 7
+AUTOMÓVEIS
+1º VW/POLO 100.000
+`;
+
+describe("parseFenabravePdfText", () => {
+  it("extracts the monthly ranking rows from the ranking section", () => {
+    const result = parseFenabravePdfText(pdfSample);
+    expect(result.rows).toHaveLength(7);
+    expect(result.rows[0]).toMatchObject({ position: 1, rawName: "VW/POLO", units: 10472 });
+    expect(result.rows[2]).toMatchObject({ position: 3, rawName: "FIAT/ARGO", units: 8811 });
+    // Last commercial-leves row (position 50) is included.
+    expect(result.rows[6]).toMatchObject({ position: 50, rawName: "FEVER/ORCA", units: 18 });
+  });
+
+  it("stops at the cumulative block, not merging it in", () => {
+    const result = parseFenabravePdfText(pdfSample);
+    // The cumulative block's 1º VW/POLO 100.000 must NOT appear.
+    expect(result.rows.some((r) => r.units === 100000)).toBe(false);
+  });
+
+  it("infers month/year/referenceLabel from the header", () => {
+    const result = parseFenabravePdfText(pdfSample);
+    expect(result.month).toBe(8);
+    expect(result.year).toBe(2026);
+    expect(result.referenceLabel).toBe("Agosto 2026");
+  });
+
+  it("handles commas and dot-decimal units", () => {
+    const sample =
+      "Ranking dos emplacamentos em Julho/2026\nAUTOMÓVEIS\n1º GM/ONIX 7.635\n1º FIAT/ARGO 1.299\n";
+    const result = parseFenabravePdfText(sample);
+    expect(result.rows[0].units).toBe(7635);
+    expect(result.rows[1].units).toBe(1299);
+    expect(result.month).toBe(7);
+    expect(result.year).toBe(2026);
+  });
+
+  it("returns empty rows when no ranking section present", () => {
+    const result = parseFenabravePdfText("no ranking here\nfooter only");
+    expect(result.rows).toHaveLength(0);
+    expect(result.month).toBe(0);
   });
 });

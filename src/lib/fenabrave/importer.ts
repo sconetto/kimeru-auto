@@ -12,41 +12,48 @@ export interface ImportOutcome {
   referenceLabel: string;
 }
 
-/**
- * Import a FENABRAVE XLSX into sales_rankings.
- * Maps each row to the best catalog model year; rows below the match
- * threshold are reported as unmatched so the admin can review.
- */
-export async function importFenabraveReport(buffer: ArrayBuffer): Promise<ImportOutcome> {
-  const { rows, referenceLabel, warnings } = parseFenabraveXlsx(buffer);
+/** ImportOutcome without the referenceLabel (for the row-level core). */
+export type CoreImportOutcome = Omit<ImportOutcome, "referenceLabel">;
 
-  // Parse reference month/year from label ("Julho 2026")
-  const monthMatch = /^([a-zà-ú]+)\s+(\d{4})$/i.exec(referenceLabel.trim());
-  let month: number;
-  let year: number;
-  if (monthMatch) {
-    const monthNames = [
-      "janeiro",
-      "fevereiro",
-      "março",
-      "abril",
-      "maio",
-      "junho",
-      "julho",
-      "agosto",
-      "setembro",
-      "outubro",
-      "novembro",
-      "dezembro",
-    ];
-    month = monthNames.findIndex((m) => m.startsWith(monthMatch[1].toLowerCase())) + 1;
-    year = Number.parseInt(monthMatch[2], 10);
-  } else {
-    const now = new Date();
-    month = now.getMonth() + 1;
-    year = now.getFullYear();
+const MONTH_NAMES = [
+  "janeiro",
+  "fevereiro",
+  "março",
+  "abril",
+  "maio",
+  "junho",
+  "julho",
+  "agosto",
+  "setembro",
+  "outubro",
+  "novembro",
+  "dezembro",
+];
+
+/** Parse a "Julho 2026" label into { month, year }, defaulting to now. */
+export function monthYearFromLabel(label: string): { month: number; year: number } {
+  const match = /^([a-zà-ú]+)\s+(\d{4})$/i.exec(label.trim());
+  if (match) {
+    const month = MONTH_NAMES.findIndex((m) => m.startsWith(match[1].toLowerCase())) + 1;
+    const year = Number.parseInt(match[2], 10);
+    if (month > 0) return { month, year };
   }
+  const now = new Date();
+  return { month: now.getMonth() + 1, year: now.getFullYear() };
+}
 
+/**
+ * Core import: map parsed rows to the best catalog model year and upsert into
+ * sales_rankings (keyed by model_year_id + month + year). Rows below the match
+ * threshold are reported as unmatched so the admin can review.
+ *
+ * Shared by both the XLSX admin upload and the automated PDF sync.
+ */
+export async function importFenabraveRows(
+  rows: ParsedSaleRow[],
+  month: number,
+  year: number,
+): Promise<CoreImportOutcome> {
   // Load all candidate model years for matching (recent years, any fuel/0km state)
   const candidates = await db
     .select({
@@ -88,7 +95,16 @@ export async function importFenabraveReport(buffer: ArrayBuffer): Promise<Import
     imported++;
   }
 
-  return { totalRows: rows.length, imported, unmatched, warnings, referenceLabel };
+  return { totalRows: rows.length, imported, unmatched, warnings: [] };
+}
+
+/** Import a FENABRAVE XLSX (admin upload path). */
+export async function importFenabraveReport(buffer: ArrayBuffer): Promise<ImportOutcome> {
+  const { rows, referenceLabel, warnings } = parseFenabraveXlsx(buffer);
+  const { month, year } = monthYearFromLabel(referenceLabel);
+
+  const outcome = await importFenabraveRows(rows, month, year);
+  return { ...outcome, warnings, referenceLabel };
 }
 
 export type { ParsedSaleRow };

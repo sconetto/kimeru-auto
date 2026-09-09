@@ -63,7 +63,12 @@
   },
   "overrides": [
     {
-      "includes": ["src/lib/db/seed.ts", "src/lib/fipe/sync.ts", "scripts/setup-local.mjs"],
+      "includes": [
+        "src/lib/db/seed.ts",
+        "src/lib/fipe/sync.ts",
+        "src/lib/fenabrave/sync.ts",
+        "scripts/setup-local.mjs"
+      ],
       "linter": {
         "rules": {
           "suspicious": {
