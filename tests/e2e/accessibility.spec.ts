@@ -12,6 +12,10 @@ const pages = [
   { name: "car detail", url: "/pt-BR/car/hb20" },
   { name: "comparison", url: "/pt-BR/compare?cars=hb20,onix" },
   { name: "financing", url: "/pt-BR/financing" },
+  { name: "about", url: "/pt-BR/about" },
+  { name: "best sellers", url: "/pt-BR/best-sellers" },
+  { name: "brands", url: "/pt-BR/brands" },
+  { name: "reviews", url: "/pt-BR/reviews" },
 ];
 
 for (const { name, url } of pages) {

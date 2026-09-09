@@ -28,14 +28,17 @@ test.describe("Admin CRUD", () => {
 
   test("deletes a brand", async ({ page }) => {
     await page.goto("/admin/brands");
-    // Create one first if not present
-    const row = page.locator("tr", { hasText: "E2E Teste Marca" });
-    if ((await row.count()) > 0) {
-      // Accept the confirm dialog
-      page.on("dialog", (d) => d.accept());
-      await row.getByRole("button", { name: "Excluir" }).click();
-      await expect(page.getByText("E2E Teste Marca")).toHaveCount(0, { timeout: 5000 });
-    }
+    // Self-contained: create a unique brand, assert it appears, then delete it
+    // and assert it is gone. No dependence on a prior test's leftover state.
+    const name = `E2E Deletar ${Date.now()}`;
+    await page.getByPlaceholder("Nome (ex: Fiat)").fill(name);
+    await page.getByRole("button", { name: "Criar" }).click();
+    await expect(page.getByText(name)).toBeVisible();
+
+    const row = page.locator("tr", { hasText: name });
+    page.on("dialog", (d) => d.accept());
+    await row.getByRole("button", { name: "Excluir" }).click();
+    await expect(page.getByText(name)).toHaveCount(0, { timeout: 5000 });
   });
 
   test("dashboard shows catalog stats", async ({ page }) => {

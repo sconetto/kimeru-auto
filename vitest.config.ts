@@ -15,6 +15,15 @@ export default defineConfig({
       reporter: ["text", "json", "html"],
       include: ["src/lib/**", "src/components/**"],
       exclude: ["src/components/ui/**"],
+      // Floor slightly below current measured coverage (~22% stmts / ~21%
+      // lines) so accidental test deletion is caught without blocking new
+      // code that lacks coverage yet.
+      thresholds: {
+        statements: 20,
+        branches: 17,
+        functions: 19,
+        lines: 18,
+      },
     },
     css: true,
   },

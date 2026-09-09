@@ -67,6 +67,11 @@ async function ensureHb20Published(page: Page) {
 }
 
 test.describe("Admin editorial workflow", () => {
+  // The four tests below all read-modify-write the SAME seeded HB20 editorial
+  // (publish/unpublish/delete/restore). Run them serially so they never race
+  // each other; public-journeys.spec.ts reads the same record.
+  test.describe.configure({ mode: "serial" });
+
   test.beforeEach(async ({ page }) => {
     await page.goto("/admin/login");
     await page.getByLabel("Email").fill(ADMIN_EMAIL);

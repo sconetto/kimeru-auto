@@ -15,10 +15,13 @@ export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  // Local runs cap workers + allow retries so Next.js dev-mode on-demand
-  // compilation doesn't cause flaky timeouts; CI uses 1 worker + 2 retries.
+  // A single worker everywhere: several admin specs read-modify-write shared
+  // seeded records (e.g. the HB20 editorial), and running them concurrently
+  // against one database causes cross-file races. Local runs keep retries so
+  // Next.js dev-mode on-demand compilation doesn't cause flaky timeouts; CI
+  // keeps 2 retries.
   retries: process.env.CI ? 2 : 1,
-  workers: process.env.CI ? 1 : 2,
+  workers: 1,
   reporter: process.env.CI ? [["html", { open: "never" }], ["list"]] : [["list"]],
   use: {
     baseURL: BASE_URL,
