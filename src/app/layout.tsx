@@ -1,20 +1,21 @@
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
-import { Mozilla_Headline, Mozilla_Text } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-// next/font can't resolve metric overrides for these Google Fonts, which
-// would otherwise emit "Failed to find font override values" on every build.
-const mozillaText = Mozilla_Text({
+// Self-hosted: these Mozilla brand fonts are absent from Next 16's Google
+// Fonts metrics map, so next/font/google warns even with adjustFontFallback
+// disabled. Local fonts compute their own metrics from the file.
+const mozillaText = localFont({
+  src: "../fonts/mozilla-text-latin-400.woff2",
   variable: "--font-mozilla-text",
-  subsets: ["latin"],
-  adjustFontFallback: false,
+  display: "swap",
 });
 
-const mozillaHeadline = Mozilla_Headline({
+const mozillaHeadline = localFont({
+  src: "../fonts/mozilla-headline-latin-400.woff2",
   variable: "--font-mozilla-headline",
-  subsets: ["latin"],
-  adjustFontFallback: false,
+  display: "swap",
 });
 
 export const metadata: Metadata = {
