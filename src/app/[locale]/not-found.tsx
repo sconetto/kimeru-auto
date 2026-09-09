@@ -1,9 +1,10 @@
-import { getLocale, getTranslations } from "next-intl/server";
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Link } from "@/lib/i18n/navigation";
 
-export default async function NotFound() {
-  const locale = await getLocale();
-  const t = await getTranslations({ locale, namespace: "common" });
+export default function NotFound() {
+  const t = useTranslations("common");
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
       <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{t("notFoundTitle")}</h1>
