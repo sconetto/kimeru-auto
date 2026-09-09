@@ -1,11 +1,9 @@
 "use client";
 
-import MDEditor from "@uiw/react-md-editor";
 import { Bot, CheckCircle2, ChevronDown, ChevronRight, Loader2, Sparkles } from "lucide-react";
 import { useState, useTransition } from "react";
+import { MarkdownEditor } from "@/components/admin/markdown-editor";
 import type { EditorialScoreBreakdown, EditorialTranscript } from "@/lib/db/schema";
-import "@uiw/react-md-editor/markdown-editor.css";
-import "@uiw/react-markdown-preview/markdown.css";
 
 interface CarOption {
   modelYearId: number;
@@ -215,20 +213,10 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
               <label htmlFor="ed-summary" className="mb-1 block text-xs text-slate-400">
                 Resumo (Markdown)
               </label>
-              <MDEditor
-                data-color-mode="dark"
+              <MarkdownEditor
+                id="ed-summary"
                 value={content.summary}
-                onChange={(value) => setContent({ ...content, summary: value ?? "" })}
-                textareaProps={{ id: "ed-summary" }}
-                preview="live"
-                height={300}
-                style={
-                  {
-                    "--color-canvas-default": "#020617",
-                    "--color-border-default": "#334155",
-                    "--color-fg-default": "#f8fafc",
-                  } as React.CSSProperties
-                }
+                onChange={(md) => setContent({ ...content, summary: md })}
               />
             </div>
 
