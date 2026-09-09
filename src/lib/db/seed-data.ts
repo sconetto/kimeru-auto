@@ -8,6 +8,21 @@ import type { NewModel, NewModelYear, NewSpecCategory } from "./schema";
 
 type FuelType = NonNullable<NewModelYear["fuelType"]>;
 
+const ICE_FUELS: FuelType[] = [
+  "gasoline",
+  "ethanol",
+  "flex",
+  "diesel",
+  "hybrid",
+  "hybrid_plug_in",
+  "flex_hybrid",
+];
+const BATTERY_FUELS: FuelType[] = ["hybrid", "hybrid_plug_in", "flex_hybrid", "electric"];
+const EV_RANGE_FUELS: FuelType[] = ["electric", "hybrid_plug_in"];
+const GASOLINE_FUELS: FuelType[] = ["gasoline", "flex", "hybrid", "hybrid_plug_in", "flex_hybrid"];
+const ETHANOL_FUELS: FuelType[] = ["ethanol", "flex", "flex_hybrid"];
+const EV_CONSUMPTION_FUELS: FuelType[] = ["electric", "hybrid_plug_in"];
+
 export interface SeedSpec {
   categorySlug: string;
   value: string;
@@ -66,7 +81,14 @@ export const seedSpecCategories: NewSpecCategory[] = [
     isNumeric: true,
   },
   // Engine
-  { name: "Motor", slug: "engine-type", displayOrder: 10, group: "engine", isNumeric: false },
+  {
+    name: "Motor",
+    slug: "engine-type",
+    displayOrder: 10,
+    group: "engine",
+    isNumeric: false,
+    applicableFuelTypes: ICE_FUELS,
+  },
   {
     name: "Cilindros",
     slug: "cylinders",
@@ -75,6 +97,7 @@ export const seedSpecCategories: NewSpecCategory[] = [
     group: "engine",
     higherIsBetter: true,
     isNumeric: true,
+    applicableFuelTypes: ICE_FUELS,
   },
   {
     name: "Válvulas",
@@ -84,6 +107,7 @@ export const seedSpecCategories: NewSpecCategory[] = [
     group: "engine",
     higherIsBetter: true,
     isNumeric: true,
+    applicableFuelTypes: ICE_FUELS,
   },
   {
     name: "Cilindrada",
@@ -93,6 +117,7 @@ export const seedSpecCategories: NewSpecCategory[] = [
     group: "engine",
     higherIsBetter: true,
     isNumeric: true,
+    applicableFuelTypes: ICE_FUELS,
   },
   {
     name: "Potência",
@@ -112,8 +137,22 @@ export const seedSpecCategories: NewSpecCategory[] = [
     higherIsBetter: true,
     isNumeric: true,
   },
-  { name: "Injeção", slug: "injection", displayOrder: 16, group: "engine", isNumeric: false },
-  { name: "Ignição", slug: "ignition", displayOrder: 17, group: "engine", isNumeric: false },
+  {
+    name: "Injeção",
+    slug: "injection",
+    displayOrder: 16,
+    group: "engine",
+    isNumeric: false,
+    applicableFuelTypes: ICE_FUELS,
+  },
+  {
+    name: "Ignição",
+    slug: "ignition",
+    displayOrder: 17,
+    group: "engine",
+    isNumeric: false,
+    applicableFuelTypes: ICE_FUELS,
+  },
   { name: "Combustível", slug: "fuel-type", displayOrder: 18, group: "engine", isNumeric: false },
   {
     name: "Velocidade máxima",
@@ -235,6 +274,7 @@ export const seedSpecCategories: NewSpecCategory[] = [
     group: "dimensions",
     higherIsBetter: true,
     isNumeric: true,
+    applicableFuelTypes: ICE_FUELS,
   },
   {
     name: "Bateria",
@@ -244,6 +284,17 @@ export const seedSpecCategories: NewSpecCategory[] = [
     group: "engine",
     higherIsBetter: true,
     isNumeric: true,
+    applicableFuelTypes: BATTERY_FUELS,
+  },
+  {
+    name: "Autonomia",
+    slug: "range",
+    unit: "km",
+    displayOrder: 67,
+    group: "engine",
+    higherIsBetter: true,
+    isNumeric: true,
+    applicableFuelTypes: EV_RANGE_FUELS,
   },
   // Consumption
   {
@@ -254,6 +305,7 @@ export const seedSpecCategories: NewSpecCategory[] = [
     group: "consumption",
     higherIsBetter: true,
     isNumeric: true,
+    applicableFuelTypes: GASOLINE_FUELS,
   },
   {
     name: "Consumo estrada (gasolina)",
@@ -263,6 +315,7 @@ export const seedSpecCategories: NewSpecCategory[] = [
     group: "consumption",
     higherIsBetter: true,
     isNumeric: true,
+    applicableFuelTypes: GASOLINE_FUELS,
   },
   {
     name: "Consumo cidade (etanol)",
@@ -272,6 +325,7 @@ export const seedSpecCategories: NewSpecCategory[] = [
     group: "consumption",
     higherIsBetter: true,
     isNumeric: true,
+    applicableFuelTypes: ETHANOL_FUELS,
   },
   {
     name: "Consumo estrada (etanol)",
@@ -281,6 +335,27 @@ export const seedSpecCategories: NewSpecCategory[] = [
     group: "consumption",
     higherIsBetter: true,
     isNumeric: true,
+    applicableFuelTypes: ETHANOL_FUELS,
+  },
+  {
+    name: "Consumo cidade (elétrico)",
+    slug: "consumption-city-electric",
+    unit: "kWh/100km",
+    displayOrder: 74,
+    group: "consumption",
+    higherIsBetter: false,
+    isNumeric: true,
+    applicableFuelTypes: EV_CONSUMPTION_FUELS,
+  },
+  {
+    name: "Consumo estrada (elétrico)",
+    slug: "consumption-highway-electric",
+    unit: "kWh/100km",
+    displayOrder: 75,
+    group: "consumption",
+    higherIsBetter: false,
+    isNumeric: true,
+    applicableFuelTypes: EV_CONSUMPTION_FUELS,
   },
   // Suspension
   {

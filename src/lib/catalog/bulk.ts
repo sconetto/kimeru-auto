@@ -1,4 +1,5 @@
 import { and, asc, eq } from "drizzle-orm";
+import { powertrainOf } from "@/lib/catalog/powertrain";
 import { db } from "@/lib/db";
 import {
   brands,
@@ -371,6 +372,7 @@ export async function importEntity(
         modelId: model.id,
         year,
         fuelType: fuel as typeof modelYears.$inferSelect.fuelType,
+        powertrain: powertrainOf(fuel as typeof modelYears.$inferSelect.fuelType),
         fipeCode: fipeIdx >= 0 && row[fipeIdx]?.trim() ? row[fipeIdx].trim() : null,
         isZeroKm,
         priceFipe: priceIdx >= 0 && row[priceIdx]?.trim() ? row[priceIdx].trim() : null,

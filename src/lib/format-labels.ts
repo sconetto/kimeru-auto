@@ -34,6 +34,13 @@ export const fuelLabels: Record<string, string> = {
   flex_hybrid: "Flex Híbrido",
 };
 
+/** Powertrain display labels (pt-BR). */
+export const powertrainLabels: Record<string, string> = {
+  combustion: "Combustão",
+  hybrid: "Híbrido",
+  electric: "Elétrico",
+};
+
 /** Spec group display labels (pt-BR). */
 export const specGroupLabels: Record<string, string> = {
   price: "Preço",

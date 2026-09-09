@@ -7,12 +7,21 @@ export function SpecFields({
   categories,
   values,
   onChange,
+  fuelType: fuel,
 }: {
   categories: SpecCategory[];
   values: Record<number, string>;
   onChange: (categoryId: number, value: string) => void;
+  fuelType?: string;
 }) {
-  const grouped = categories.reduce<Record<string, SpecCategory[]>>((acc, cat) => {
+  const applicable = fuel
+    ? categories.filter(
+        (cat) =>
+          cat.applicableFuelTypes == null || (cat.applicableFuelTypes as string[]).includes(fuel),
+      )
+    : categories;
+
+  const grouped = applicable.reduce<Record<string, SpecCategory[]>>((acc, cat) => {
     if (!acc[cat.group]) acc[cat.group] = [];
     acc[cat.group].push(cat);
     return acc;

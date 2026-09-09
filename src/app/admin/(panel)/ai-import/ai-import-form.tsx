@@ -318,7 +318,12 @@ export function AiImportForm({
 
           <div>
             <h3 className="mb-2 text-xs font-medium text-slate-500">Especificações</h3>
-            <SpecFields categories={specCategories} values={car.specs} onChange={patchSpec} />
+            <SpecFields
+              categories={specCategories}
+              values={car.specs}
+              onChange={patchSpec}
+              fuelType={car.fuelType}
+            />
           </div>
 
           <button

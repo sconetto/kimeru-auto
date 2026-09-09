@@ -1,5 +1,6 @@
 import { hash } from "bcryptjs";
 import { and, eq } from "drizzle-orm";
+import { powertrainOf } from "@/lib/catalog/powertrain";
 import { db } from "./index";
 import {
   adminUsers,
@@ -47,6 +48,11 @@ async function main() {
     if (existing.length === 0) {
       await db.insert(specCategories).values(cat);
       createdCategories++;
+    } else {
+      await db
+        .update(specCategories)
+        .set({ applicableFuelTypes: cat.applicableFuelTypes ?? null })
+        .where(eq(specCategories.id, existing[0].id));
     }
   }
   console.log(
@@ -178,6 +184,7 @@ async function main() {
             modelId,
             year: my.year,
             fuelType: my.fuelType,
+            powertrain: powertrainOf(my.fuelType),
             fipeCode: my.fipeCode,
             isZeroKm: my.isZeroKm,
             priceFipe: my.priceFipe,

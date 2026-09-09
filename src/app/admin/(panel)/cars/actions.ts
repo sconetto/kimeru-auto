@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { logAudit } from "@/lib/admin/audit";
 import { requireRole } from "@/lib/auth/require-role";
+import { powertrainOf } from "@/lib/catalog/powertrain";
 import { slugify } from "@/lib/catalog/slug";
 import { db } from "@/lib/db";
 import { fipeHistory, fuelType, models, modelYears, vehicleCategory } from "@/lib/db/schema";
@@ -76,6 +77,7 @@ export async function createModelYear(formData: FormData) {
       modelId: parsed.data.modelId,
       year: parsed.data.year,
       fuelType: parsed.data.fuelType,
+      powertrain: powertrainOf(parsed.data.fuelType),
       fipeCode: parsed.data.fipeCode || null,
       isZeroKm: parsed.data.isZeroKm,
     })
@@ -173,6 +175,7 @@ export async function updateModelYear(formData: FormData) {
     .set({
       year,
       fuelType: fuel,
+      powertrain: powertrainOf(fuel),
       fipeCode: fipeCode || null,
       isZeroKm,
       priceFipe: price ?? existing.priceFipe,

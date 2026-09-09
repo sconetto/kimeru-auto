@@ -7,11 +7,12 @@ import type { SpecCategory, SpecValue } from "@/lib/db/schema";
 
 interface Props {
   modelYearId: number;
+  fuelType: string;
   categories: SpecCategory[];
   existing: SpecValue[];
 }
 
-export function SpecValuesEditor({ modelYearId, categories, existing }: Props) {
+export function SpecValuesEditor({ modelYearId, fuelType, categories, existing }: Props) {
   const [isPending, startTransition] = useTransition();
   const [values, setValues] = useState<Record<number, string>>(() => {
     const init: Record<number, string> = {};
@@ -60,6 +61,7 @@ export function SpecValuesEditor({ modelYearId, categories, existing }: Props) {
         categories={categories}
         values={values}
         onChange={(categoryId, value) => setValues((prev) => ({ ...prev, [categoryId]: value }))}
+        fuelType={fuelType}
       />
       <div className="flex items-center gap-3">
         <button

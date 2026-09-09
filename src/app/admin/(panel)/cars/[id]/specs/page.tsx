@@ -41,7 +41,12 @@ export default async function SpecValuesPage({ params }: { params: Promise<{ id:
         </p>
       </div>
 
-      <SpecValuesEditor modelYearId={id} categories={categories} existing={existing} />
+      <SpecValuesEditor
+        modelYearId={id}
+        fuelType={my.fuelType}
+        categories={categories}
+        existing={existing}
+      />
     </div>
   );
 }

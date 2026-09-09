@@ -105,7 +105,12 @@ export function ModelYearCard({
       </form>
 
       <div className="border-t border-slate-800 pt-4">
-        <SpecValuesEditor modelYearId={year.id} categories={categories} existing={existing} />
+        <SpecValuesEditor
+          modelYearId={year.id}
+          fuelType={year.fuelType}
+          categories={categories}
+          existing={existing}
+        />
       </div>
     </div>
   );

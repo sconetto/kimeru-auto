@@ -71,6 +71,13 @@
       "when": 1788976985735,
       "tag": "0009_add-battery-spec-category",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788981213585,
+      "tag": "0010_flat_orphan",
+      "breakpoints": true
     }
   ]
 }

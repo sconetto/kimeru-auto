@@ -5,10 +5,17 @@ import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { BrandLogo } from "@/components/catalog/brand-logo";
 import { RadarChart } from "@/components/compare/radar-chart";
+import { powertrainOf } from "@/lib/catalog/powertrain";
 import type { CompareCar, ModelCard } from "@/lib/catalog/queries";
+import { isConsumptionSlug, toKmPerKwh } from "@/lib/compare/consumption";
 import { bestCarIndices, computeRadarScores } from "@/lib/compare/scoring";
 import { formatBRL } from "@/lib/format";
-import { categoryLabels, sizeCategoryLabels, specGroupLabels } from "@/lib/format-labels";
+import {
+  categoryLabels,
+  powertrainLabels,
+  sizeCategoryLabels,
+  specGroupLabels,
+} from "@/lib/format-labels";
 import { Link, useRouter } from "@/lib/i18n/navigation";
 
 // Matches the RadarChart color palette so legend dots align with the graph.
@@ -100,10 +107,11 @@ export function CompareClient({ initialCars }: Props) {
       for (const group of car.specs) {
         for (const spec of group.specs) {
           if (!categories.has(spec.slug)) {
+            const isConsumption = isConsumptionSlug(spec.slug);
             categories.set(spec.slug, {
               name: spec.name,
-              unit: spec.unit,
-              higherIsBetter: spec.higherIsBetter,
+              unit: isConsumption ? "km/kWh" : spec.unit,
+              higherIsBetter: isConsumption ? true : spec.higherIsBetter,
               isNumeric: spec.isNumeric,
               group: group.group,
             });
@@ -112,9 +120,33 @@ export function CompareClient({ initialCars }: Props) {
       }
     }
 
+    const numericValue = (car: CompareCar, slug: string): number => {
+      for (const g of car.specs) {
+        for (const s of g.specs) {
+          if (s.slug !== slug) continue;
+          if (s.numericValue != null) {
+            const n = Number(s.numericValue);
+            if (!Number.isNaN(n)) return n;
+          }
+          const v = s.displayValue ?? s.value;
+          if (v != null) {
+            const n = Number(String(v).replace(/[^\d.-]/g, ""));
+            if (!Number.isNaN(n)) return n;
+          }
+          return NaN;
+        }
+      }
+      return NaN;
+    };
+
     const groups = new Map<string, Row[]>();
     for (const [slug, meta] of categories) {
+      const isConsumption = isConsumptionSlug(slug);
       const values = cars.map((car) => {
+        if (isConsumption) {
+          const kmPerKwh = toKmPerKwh(slug, numericValue(car, slug));
+          return kmPerKwh != null ? kmPerKwh.toFixed(2) : null;
+        }
         const group = car.specs.find((g) => g.group === meta.group);
         const spec = group?.specs.find((s) => s.slug === slug);
         return spec?.displayValue ?? spec?.value ?? null;
@@ -124,14 +156,9 @@ export function CompareClient({ initialCars }: Props) {
       let isTie = false;
       if (meta.isNumeric) {
         const nums = cars.map((car) => {
-          const g = car.specs.find((grp) => grp.group === meta.group);
-          const spec = g?.specs.find((s) => s.slug === slug);
-          if (spec?.numericValue != null) {
-            const n = Number(spec.numericValue);
-            if (!Number.isNaN(n)) return n;
-          }
-          const v = spec?.displayValue ?? spec?.value;
-          return v != null ? Number(String(v).replace(/[^\d.-]/g, "")) : NaN;
+          const raw = numericValue(car, slug);
+          if (Number.isNaN(raw)) return NaN;
+          return isConsumption ? (toKmPerKwh(slug, raw) ?? NaN) : raw;
         });
         const valid = nums.filter((n) => !Number.isNaN(n));
         if (valid.length > 0) {
@@ -166,6 +193,12 @@ export function CompareClient({ initialCars }: Props) {
     const cats = cars.map((c) => c.category).filter(Boolean) as string[];
     const unique = [...new Set(cats)];
     return unique.length > 1 ? unique.map((c) => categoryLabels[c] ?? c) : null;
+  }, [cars]);
+
+  const mixedPowertrains = useMemo(() => {
+    const pts = cars.map((c) => powertrainOf(c.fuelType));
+    const unique = [...new Set(pts)];
+    return unique.length > 1 ? unique.map((p) => powertrainLabels[p] ?? p) : null;
   }, [cars]);
 
   const carWins: string[][] = useMemo(() => {
@@ -227,6 +260,15 @@ export function CompareClient({ initialCars }: Props) {
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
           <p className="text-sm text-amber-800 dark:text-amber-300">
             {t("mixedCategoriesWarning", { categories: mixedCategories.join(", ") })}
+          </p>
+        </div>
+      )}
+
+      {mixedPowertrains && (
+        <div className="mb-6 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-500/20 dark:bg-amber-500/5">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <p className="text-sm text-amber-800 dark:text-amber-300">
+            {t("mixedPowertrainsWarning", { powertrains: mixedPowertrains.join(", ") })}
           </p>
         </div>
       )}

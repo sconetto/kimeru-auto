@@ -209,8 +209,11 @@ export async function getModelsByBrand(brandSlug: string): Promise<ModelCard[]> 
   }));
 }
 
-/** Grouped specs for a model year. */
-async function getGroupedSpecs(modelYearId: number): Promise<SpecGrouped[]> {
+/** Grouped specs for a model year, filtered to the specs applicable to its fuel type. */
+async function getGroupedSpecs(
+  modelYearId: number,
+  fuel: (typeof fuelType.enumValues)[number],
+): Promise<SpecGrouped[]> {
   const rows = await db
     .select({
       group: specCategories.group,
@@ -224,6 +227,7 @@ async function getGroupedSpecs(modelYearId: number): Promise<SpecGrouped[]> {
       higherIsBetter: specCategories.higherIsBetter,
       isNumeric: specCategories.isNumeric,
       displayOrder: specCategories.displayOrder,
+      applicableFuelTypes: specCategories.applicableFuelTypes,
     })
     .from(specValues)
     .innerJoin(specCategories, eq(specCategories.id, specValues.specCategoryId))
@@ -232,6 +236,8 @@ async function getGroupedSpecs(modelYearId: number): Promise<SpecGrouped[]> {
 
   const grouped = new Map<(typeof specGroup.enumValues)[number], SpecGrouped>();
   for (const row of rows) {
+    const applicable = row.applicableFuelTypes;
+    if (applicable != null && !applicable.includes(fuel)) continue;
     const entry = grouped.get(row.group) ?? {
       group: row.group,
       label: row.group,
@@ -304,7 +310,7 @@ export async function getCarDetail(
   }
 
   const [specs, edRows, salesRows] = await Promise.all([
-    getGroupedSpecs(my.id),
+    getGroupedSpecs(my.id, my.fuelType),
     db
       .select()
       .from(editorial)
@@ -513,7 +519,7 @@ export async function getCompareCars(slugs: string[]): Promise<CompareCar[]> {
     if (!my) continue;
 
     const [specs, salesRows, editorialRow] = await Promise.all([
-      getGroupedSpecs(my.id),
+      getGroupedSpecs(my.id, my.fuelType),
       db
         .select({
           rankingPosition: salesRankings.rankingPosition,

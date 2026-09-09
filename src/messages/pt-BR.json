@@ -49,6 +49,7 @@
     "victory": "{count} {count, plural, one {vitória} other {vitórias}}",
     "wonIn": "Venceu em: {categories}",
     "mixedCategoriesWarning": "Você está comparando veículos de categorias diferentes ({categories}). Os resultados podem não refletir uma comparação justa entre segmentos distintos.",
+    "mixedPowertrainsWarning": "Você está comparando veículos com tipos de propulsão diferentes ({powertrains}). Consumo e especificações de motor são mapeados (km/kWh), mas são inerentemente diferentes.",
     "zeroKm": "0km",
     "used": "usado",
     "radarAria": "Gráfico radar de comparação de veículos",

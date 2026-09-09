@@ -1,4 +1,5 @@
 import type { CompareCar, SpecGrouped } from "@/lib/catalog/queries";
+import { CONSUMPTION_SLUGS, toKmPerKwh } from "@/lib/compare/consumption";
 import { getScaledScore } from "@/lib/compare/spec-scale";
 
 /**
@@ -25,6 +26,8 @@ export interface RadarDimension {
   booleans?: string[];
   /** Non-numeric slugs scored via the quality scale map. */
   scaled?: string[];
+  /** Convert numeric spec values to km/kWh before normalization (cross-powertrain consumption). */
+  conversion?: "km-per-kwh";
 }
 
 export const RADAR_DIMENSIONS: RadarDimension[] = [
@@ -37,12 +40,8 @@ export const RADAR_DIMENSIONS: RadarDimension[] = [
   {
     id: "consumption",
     label: "Consumo",
-    specs: [
-      "consumption-city-gasoline",
-      "consumption-highway-gasoline",
-      "consumption-city-ethanol",
-      "consumption-highway-ethanol",
-    ],
+    specs: CONSUMPTION_SLUGS,
+    conversion: "km-per-kwh",
   },
   {
     id: "space",
@@ -172,12 +171,17 @@ export function computeRadarScores(cars: CompareCar[]): RadarScores {
       // then normalize per-car against the global min/max.
       const numericParts: number[] = [];
       for (const slug of dim.specs) {
-        const values = cars.map((c) => numericSpecValue(c, slug));
+        const toNumber = (c: CompareCar): number | null => {
+          const raw = numericSpecValue(c, slug);
+          if (raw == null || Number.isNaN(raw)) return null;
+          return dim.conversion === "km-per-kwh" ? toKmPerKwh(slug, raw) : raw;
+        };
+        const values = cars.map(toNumber);
         const valid = values.filter((v): v is number => v != null && !Number.isNaN(v));
         if (valid.length === 0) continue;
         const min = Math.min(...valid);
         const max = Math.max(...valid);
-        const mine = numericSpecValue(car, slug);
+        const mine = toNumber(car);
         if (mine == null || Number.isNaN(mine)) continue;
         const invert = dim.lowerIsBetter?.includes(slug) ?? false;
         numericParts.push(normalize(mine, min, max, invert));

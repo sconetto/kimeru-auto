@@ -42,6 +42,8 @@ export const fuelType = pgEnum("fuel_type", [
   "flex_hybrid",
 ]);
 
+export const powertrain = pgEnum("powertrain", ["combustion", "hybrid", "electric"]);
+
 export const specGroup = pgEnum("spec_group", [
   "price",
   "engine",
@@ -134,6 +136,7 @@ export const modelYears = pgTable(
       .references(() => models.id, { onDelete: "cascade" }),
     year: integer("year").notNull(),
     fuelType: fuelType("fuel_type").notNull().default("flex"),
+    powertrain: powertrain("powertrain").notNull(),
     fipeCode: varchar("fipe_code", { length: 20 }),
     isZeroKm: boolean("is_zero_km").notNull().default(false),
     priceFipe: numeric("price_fipe", { precision: 12, scale: 2 }),
@@ -170,6 +173,8 @@ export const specCategories = pgTable(
     higherIsBetter: boolean("higher_is_better").notNull().default(true),
     // whether values are numeric (enables best-in-category logic)
     isNumeric: boolean("is_numeric").notNull().default(false),
+    // fuel types this spec applies to (null = applies to all)
+    applicableFuelTypes: fuelType("applicable_fuel_types").array(),
   },
   (table) => [uniqueIndex("spec_categories_slug_idx").on(table.slug)],
 );

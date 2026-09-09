@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { logAudit } from "@/lib/admin/audit";
 import { requireRole } from "@/lib/auth/require-role";
+import { powertrainOf } from "@/lib/catalog/powertrain";
 import { slugify } from "@/lib/catalog/slug";
 import { db } from "@/lib/db";
 import {
@@ -122,6 +123,7 @@ export async function createCarFromAi(payload: unknown): Promise<CreateCarResult
       modelId: insertedModel.id,
       year,
       fuelType: fuel,
+      powertrain: powertrainOf(fuel),
       priceFipe: priceFipe?.toString() ?? null,
       isZeroKm,
       fipeCode: fipeCode || null,
