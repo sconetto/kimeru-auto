@@ -77,6 +77,7 @@ export async function fetchTranscript(url: string): Promise<string> {
   } catch (err) {
     const name = err instanceof Error ? err.constructor.name : "unknown";
     const msg = err instanceof Error ? err.message : String(err);
+    // biome-ignore lint/suspicious/noConsole: error logging for transcript debugging
     console.error(`[youtube-transcript] ${name}: ${msg}`);
     if (err instanceof TranscriptError) throw err;
     if (
