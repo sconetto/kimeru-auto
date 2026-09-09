@@ -19,7 +19,7 @@ export function BrandLogo({
         alt={`Logo ${name}`}
         width={size}
         height={size}
-        className={`object-contain ${className}`}
+        className={`object-contain dark:brightness-0 dark:invert ${className}`}
         unoptimized
       />
     );
