@@ -1,9 +1,13 @@
 "use client";
 
+import { Info } from "lucide-react";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import type { Brand, VehicleCategory } from "@/lib/db/schema";
 import { createModel, createModelYear } from "./actions";
+
+const YEAR_TOOLTIP =
+  "Ano-modelo (não o ano de fabricação). No Brasil usa-se a notação fabricação/modelo (ex.: 2026/2027); o valor alinhado à FIPE é o ano-modelo.";
 
 export function NewModelForm({
   brands,
@@ -66,15 +70,21 @@ export function NewModelForm({
           <h2 className="mb-3 text-sm font-medium text-white">Nova versão (model year)</h2>
           <input type="hidden" name="modelId" value={modelId} />
           <div className="grid gap-3 sm:grid-cols-4">
-            <input
-              name="year"
-              type="number"
-              min={1980}
-              max={2100}
-              placeholder="Ano (ex: 2025)"
-              required
-              className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
-            />
+            <div className="flex items-center gap-1.5">
+              <input
+                name="year"
+                type="number"
+                min={1980}
+                max={2100}
+                placeholder="Ano-modelo (ex: 2025)"
+                required
+                title={YEAR_TOOLTIP}
+                className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
+              />
+              <span title={YEAR_TOOLTIP} className="flex">
+                <Info size={14} className="text-slate-500" />
+              </span>
+            </div>
             <select
               name="fuelType"
               required

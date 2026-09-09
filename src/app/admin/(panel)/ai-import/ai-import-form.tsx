@@ -1,7 +1,11 @@
 "use client";
 
+import { Info } from "lucide-react";
 import { useState } from "react";
 import { createCarFromAi } from "./actions";
+
+const YEAR_TOOLTIP =
+  "Ano-modelo (não o ano de fabricação). No Brasil usa-se a notação fabricação/modelo (ex.: 2026/2027); o valor alinhado à FIPE é o ano-modelo.";
 
 const FUEL_TYPES = [
   { value: "flex", label: "Flex" },
@@ -40,6 +44,7 @@ interface EditableCar {
   isZeroKm: boolean;
   category: string;
   sizeCategory: string;
+  fipeCode: string;
   specs: { slug: string; value: string }[];
 }
 
@@ -52,6 +57,7 @@ interface ParsedData {
   priceFipe: number | null;
   category: string | null;
   sizeCategory: string | null;
+  fipeCode: string | null;
   specs: { slug: string; value: string }[];
 }
 
@@ -118,6 +124,7 @@ export function AiImportForm({
           isZeroKm: json.data.isZeroKm,
           category: json.data.category ?? "",
           sizeCategory: json.data.sizeCategory ?? "",
+          fipeCode: json.data.fipeCode ?? "",
           specs: json.data.specs.map((s) => ({ slug: s.slug, value: s.value })),
         });
       }
@@ -142,6 +149,7 @@ export function AiImportForm({
       isZeroKm: car.isZeroKm,
       category: car.category || null,
       sizeCategory: car.sizeCategory || null,
+      fipeCode: car.fipeCode || null,
       specs: car.specs.map((s) => ({
         slug: s.slug,
         value: s.value,
@@ -217,11 +225,17 @@ export function AiImportForm({
               />
             </label>
             <label className="text-xs text-slate-500">
-              Ano
+              <span className="flex items-center gap-1">
+                Ano
+                <span title={YEAR_TOOLTIP} className="flex">
+                  <Info size={14} className="text-slate-500" />
+                </span>
+              </span>
               <input
                 type="number"
                 value={car.year}
                 onChange={(e) => patchCar({ year: Number(e.target.value) })}
+                title={YEAR_TOOLTIP}
                 className={`mt-1 w-full ${inputClass}`}
               />
             </label>
@@ -269,6 +283,15 @@ export function AiImportForm({
                 value={car.sizeCategory}
                 onChange={(e) => patchCar({ sizeCategory: e.target.value })}
                 placeholder="compacto"
+                className={`mt-1 w-full ${inputClass}`}
+              />
+            </label>
+            <label className="text-xs text-slate-500">
+              Código FIPE
+              <input
+                value={car.fipeCode}
+                onChange={(e) => patchCar({ fipeCode: e.target.value })}
+                placeholder="005340-2"
                 className={`mt-1 w-full ${inputClass}`}
               />
             </label>

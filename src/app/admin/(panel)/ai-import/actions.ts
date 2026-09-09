@@ -27,6 +27,7 @@ const createCarSchema = z.object({
   isZeroKm: z.boolean(),
   category: z.enum(vehicleCategory.enumValues).nullable(),
   sizeCategory: z.string().max(50).nullable(),
+  fipeCode: z.string().max(20).nullable(),
   specs: z
     .array(
       z.object({
@@ -62,6 +63,7 @@ export async function createCarFromAi(payload: unknown): Promise<CreateCarResult
     isZeroKm,
     category,
     sizeCategory,
+    fipeCode,
     specs,
   } = parsed.data;
 
@@ -112,6 +114,7 @@ export async function createCarFromAi(payload: unknown): Promise<CreateCarResult
       fuelType: fuel,
       priceFipe: priceFipe?.toString() ?? null,
       isZeroKm,
+      fipeCode: fipeCode || null,
     })
     .returning();
 

@@ -64,6 +64,13 @@
       "when": 1788965496053,
       "tag": "0008_denza-logo",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788976985735,
+      "tag": "0009_add-battery-spec-category",
+      "breakpoints": true
     }
   ]
 }

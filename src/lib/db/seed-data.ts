@@ -236,6 +236,15 @@ export const seedSpecCategories: NewSpecCategory[] = [
     higherIsBetter: true,
     isNumeric: true,
   },
+  {
+    name: "Bateria",
+    slug: "battery",
+    unit: "kWh",
+    displayOrder: 66,
+    group: "engine",
+    higherIsBetter: true,
+    isNumeric: true,
+  },
   // Consumption
   {
     name: "Consumo cidade (gasolina)",

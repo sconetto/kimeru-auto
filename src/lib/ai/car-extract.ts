@@ -26,6 +26,7 @@ export interface ExtractedCarData {
   priceFipe: number | null;
   category: string | null;
   sizeCategory: string | null;
+  fipeCode: string | null;
   specs: ParsedCarSpec[];
 }
 
@@ -96,9 +97,11 @@ Regras:
 - Marcas conhecidas (use o nome mais próximo do texto): ${brands}
 - Especificações válidas (use EXATAMENTE um destes slugs): ${specs}
 - Para cada especificação, extraia "value" (texto como aparece) e "numericValue" (número, ou null)
+- Para carros elétricos (fuelType "electric"), use o slug "battery" (capacidade em kWh) em vez de "fuel-tank"
 - priceFipe em reais (número inteiro, ou null)
+- fipeCode é o código FIPE do veículo (string, ou null)
 - Responda exclusivamente com JSON válido no formato:
-{"brand":"Volkswagen","model":"T-Cross","year":2025,"fuelType":"flex","isZeroKm":true,"priceFipe":123456,"category":"suv","sizeCategory":"compacto","specs":[{"slug":"power","value":"128 cv","numericValue":128},{"slug":"engine-type","value":"1.0 TSI turbo","numericValue":null}]}`;
+{"brand":"Volkswagen","model":"T-Cross","year":2025,"fuelType":"flex","isZeroKm":true,"priceFipe":123456,"fipeCode":"005340-2","category":"suv","sizeCategory":"compacto","specs":[{"slug":"power","value":"128 cv","numericValue":128},{"slug":"engine-type","value":"1.0 TSI turbo","numericValue":null}]}`;
 }
 
 /** Parse a numeric value from a spec string like "128 cv" / "1.0" / "2.500". */
@@ -144,6 +147,7 @@ export async function extractCarData(
       priceFipe: typeof parsed.priceFipe === "number" ? parsed.priceFipe : null,
       category: typeof parsed.category === "string" ? parsed.category : null,
       sizeCategory: typeof parsed.sizeCategory === "string" ? parsed.sizeCategory : null,
+      fipeCode: typeof parsed.fipeCode === "string" ? parsed.fipeCode.trim() : null,
       specs,
     };
 
