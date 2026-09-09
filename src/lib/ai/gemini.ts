@@ -1,21 +1,20 @@
 import { LlmError } from "./llm";
 
 /**
- * Gemini video-to-markdown extraction.
+ * Gemini video → markdown extraction.
  *
- * For video sources, Gemini watches the video directly (it fetches public
- * YouTube URLs using Google's own infrastructure, avoiding the datacenter-IP
- * blocks that hit the transcript endpoints) and returns a markdown spec sheet
- * that the DeepSeek extractor then parses into car data.
+ * Gemini watches a public YouTube URL directly (fetched via Google's own
+ * infrastructure, avoiding the datacenter-IP blocks on the transcript
+ * endpoints) and returns a markdown summary of the reviewer's take.
  */
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
 
-const VIDEO_PROMPT =
-  "Assista a este vídeo de review de carro e produza uma ficha técnica completa em Markdown, em português brasileiro, com todos os dados do veículo que conseguir identificar: marca, modelo, ano, combustível, preço, categoria, porte, motor, potência, torque, cilindrada, câmbio, tração, peso, dimensões, porta-malas, tanque ou bateria, autonomia (se elétrico), consumo (cidade/estrada), suspensão, freios, garantia e itens de série (segurança, conforto, tecnologia). Use títulos e listas em Markdown. Seja objetivo e baseado apenas no que foi dito ou mostrado no vídeo.";
+const REVIEW_PROMPT =
+  "Assista a este vídeo de review de carro e produza um resumo detalhado em Markdown, em português brasileiro, do que o avaliador disse: pontos fortes, pontos fracos, desempenho, conforto, tecnologia, design, consumo, segurança e veredito final. Use títulos e listas em Markdown. Seja objetivo e baseado apenas no que foi dito no vídeo.";
 
-export async function videoToMarkdown(youtubeUrl: string): Promise<string> {
+async function describeVideo(youtubeUrl: string, prompt: string): Promise<string> {
   if (!GEMINI_API_KEY) {
     throw new LlmError("GEMINI_API_KEY não configurada", "NO_KEY");
   }
@@ -37,7 +36,7 @@ export async function videoToMarkdown(youtubeUrl: string): Promise<string> {
             {
               role: "user",
               parts: [
-                { text: VIDEO_PROMPT },
+                { text: prompt },
                 { fileData: { fileUri: youtubeUrl, mimeType: "video/mp4" } },
               ],
             },
@@ -76,4 +75,8 @@ export async function videoToMarkdown(youtubeUrl: string): Promise<string> {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+export function videoToReviewMarkdown(youtubeUrl: string): Promise<string> {
+  return describeVideo(youtubeUrl, REVIEW_PROMPT);
 }

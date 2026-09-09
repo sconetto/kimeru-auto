@@ -6,7 +6,7 @@
  */
 
 import { extractText, getDocumentProxy } from "unpdf";
-import { videoToMarkdown } from "./gemini";
+import { fetchTranscript } from "./youtube";
 
 export type SourceKind = "pdf" | "website" | "video";
 
@@ -86,7 +86,7 @@ export async function extractSourceText(url: string): Promise<string> {
     case "pdf":
       return extractPdfText(url);
     case "video":
-      return videoToMarkdown(url);
+      return fetchTranscript(url);
     case "website":
       return extractWebpageText(url);
     default:

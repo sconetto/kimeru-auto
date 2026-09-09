@@ -9,10 +9,10 @@ import {
   vehicleCategory,
 } from "@/lib/db/schema";
 import { type ExtractedCarData, extractCarData } from "./car-extract";
+import { videoToReviewMarkdown } from "./gemini";
 import { type ExtractedEditorial, extractEditorial, LlmError } from "./llm";
 import { matchBrandName } from "./match";
 import { extractSourceText, SourceError } from "./source";
-import { fetchTranscript, TranscriptError } from "./youtube";
 
 /**
  * AI content pipeline orchestrator.
@@ -48,14 +48,13 @@ export async function generateEditorial(
   const errors: string[] = [];
   for (const url of videoUrls) {
     try {
-      const text = await fetchTranscript(url);
+      const text = await videoToReviewMarkdown(url);
       if (text) {
         transcripts.push(text);
         storedTranscripts.push({ videoUrl: url, text });
       }
     } catch (err) {
-      if (err instanceof TranscriptError) errors.push(err.message);
-      else errors.push((err as Error).message);
+      errors.push((err as Error).message);
     }
   }
 
