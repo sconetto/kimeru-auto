@@ -620,7 +620,8 @@ export async function getPublishedReviews(): Promise<ReviewListItem[]> {
     .innerJoin(models, eq(models.id, modelYears.modelId))
     .innerJoin(brands, eq(brands.id, models.brandId))
     .where(eq(editorial.published, true))
-    .orderBy(desc(editorial.updatedAt));
+    .orderBy(desc(editorial.updatedAt))
+    .limit(200);
 
   // Dedupe by model year: keep the first (pt-BR preferred, since it sorts
   // by updatedAt desc; when both locales exist, prefer the pt-BR row).

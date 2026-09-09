@@ -149,6 +149,7 @@ export const modelYears = pgTable(
       table.isZeroKm,
     ),
     index("model_years_fipe_code_idx").on(table.fipeCode),
+    index("model_years_model_price_updated_idx").on(table.modelId, table.priceUpdatedAt),
   ],
 );
 
@@ -232,7 +233,11 @@ export const adminAuditLog = pgTable(
     details: jsonb("details").$type<Record<string, unknown>>(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index("admin_audit_log_admin_idx").on(table.adminId)],
+  (table) => [
+    index("admin_audit_log_admin_idx").on(table.adminId),
+    index("admin_audit_log_created_at_idx").on(table.createdAt),
+    index("admin_audit_log_entity_created_idx").on(table.entityType, table.createdAt),
+  ],
 );
 
 /* ------------------------------------------------------------------ */
@@ -263,7 +268,10 @@ export const editorial = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [uniqueIndex("editorial_model_year_locale_idx").on(table.modelYearId, table.locale)],
+  (table) => [
+    uniqueIndex("editorial_model_year_locale_idx").on(table.modelYearId, table.locale),
+    index("editorial_published_updated_idx").on(table.published, table.updatedAt),
+  ],
 );
 
 /* ------------------------------------------------------------------ */
@@ -321,6 +329,7 @@ export const vehicleImages = pgTable(
   },
   (table) => [
     index("vehicle_images_model_idx").on(table.modelId),
+    index("vehicle_images_model_position_idx").on(table.modelId, table.position),
     uniqueIndex("vehicle_images_cover_unique")
       .on(table.modelId)
       .where(sql`${table.isCover} = true`),

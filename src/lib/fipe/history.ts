@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { fipeHistory, modelYears } from "@/lib/db/schema";
 
@@ -6,40 +6,28 @@ import { fipeHistory, modelYears } from "@/lib/db/schema";
  * FIPE price history tracking.
  *
  * On every price refresh, snapshot into fipe_history keyed by
- * (model_year_id, reference_month). If the price for the same
- * reference month already exists, update the recorded_at timestamp
- * instead of creating duplicates.
+ * (model_year_id, reference_month). Upserts so concurrent refreshes for the
+ * same reference month update the price + timestamp instead of racing or
+ * creating duplicates.
  */
 
-/** Record a price snapshot for a model year. Returns true if inserted. */
+/** Record a price snapshot for a model year (idempotent upsert). */
 export async function recordPriceSnapshot(
   modelYearId: number,
   price: string | number,
   referenceMonth: string,
-): Promise<boolean> {
-  const existing = await db
-    .select()
-    .from(fipeHistory)
-    .where(
-      and(eq(fipeHistory.modelYearId, modelYearId), eq(fipeHistory.referenceMonth, referenceMonth)),
-    )
-    .limit(1);
-
-  if (existing.length > 0) {
-    // Price unchanged this reference month — touch timestamp only.
-    await db
-      .update(fipeHistory)
-      .set({ recordedAt: new Date() })
-      .where(eq(fipeHistory.id, existing[0].id));
-    return false;
-  }
-
-  await db.insert(fipeHistory).values({
-    modelYearId,
-    referenceMonth,
-    price: String(price),
-  });
-  return true;
+): Promise<void> {
+  await db
+    .insert(fipeHistory)
+    .values({
+      modelYearId,
+      referenceMonth,
+      price: String(price),
+    })
+    .onConflictDoUpdate({
+      target: [fipeHistory.modelYearId, fipeHistory.referenceMonth],
+      set: { price: String(price), recordedAt: new Date() },
+    });
 }
 
 /** Refresh a model year's stored FIPE price + snapshot history. */

@@ -1,4 +1,4 @@
-import { and, eq, gt } from "drizzle-orm";
+import { eq, gt } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { brands, models, modelYears, salesRankings } from "@/lib/db/schema";
 import { bestMatch } from "./matcher";
@@ -71,33 +71,20 @@ export async function importFenabraveReport(buffer: ArrayBuffer): Promise<Import
     }
 
     // Upsert (model_year_id, month, year)
-    const existing = await db
-      .select()
-      .from(salesRankings)
-      .where(
-        and(
-          eq(salesRankings.modelYearId, match.modelYearId),
-          eq(salesRankings.month, month),
-          eq(salesRankings.year, year),
-        ),
-      )
-      .limit(1);
-
-    if (existing.length > 0) {
-      await db
-        .update(salesRankings)
-        .set({ unitsSold: row.units, rankingPosition: row.position, source: "FENABRAVE" })
-        .where(eq(salesRankings.id, existing[0].id));
-    } else {
-      await db.insert(salesRankings).values({
+    await db
+      .insert(salesRankings)
+      .values({
         modelYearId: match.modelYearId,
         month,
         year,
         unitsSold: row.units,
         rankingPosition: row.position,
         source: "FENABRAVE",
+      })
+      .onConflictDoUpdate({
+        target: [salesRankings.modelYearId, salesRankings.month, salesRankings.year],
+        set: { unitsSold: row.units, rankingPosition: row.position, source: "FENABRAVE" },
       });
-    }
     imported++;
   }
 
