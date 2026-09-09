@@ -1,7 +1,17 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { type EditorialTranscript, editorial } from "@/lib/db/schema";
+import {
+  brands,
+  type EditorialTranscript,
+  editorial,
+  fuelType,
+  specCategories,
+  vehicleCategory,
+} from "@/lib/db/schema";
+import { type ExtractedCarData, extractCarData } from "./car-extract";
 import { type ExtractedEditorial, extractEditorial, LlmError } from "./llm";
+import { matchBrandName } from "./match";
+import { extractSourceText, SourceError } from "./source";
 import { fetchTranscript, TranscriptError } from "./youtube";
 
 /**
@@ -112,4 +122,64 @@ export async function generateEditorial(
   }
 
   return { status: "success", editorialId, content };
+}
+
+/* ------------------------------------------------------------------ */
+/* Car-data ingestion                                                  */
+/* ------------------------------------------------------------------ */
+
+export type ParseStatus = "success" | "source_error" | "llm_error";
+
+export interface ParseOutcome {
+  status: ParseStatus;
+  data?: ExtractedCarData;
+  brandMatch?: { id: number; name: string; score: number } | null;
+  /** spec category slug → id, for the create flow to map spec values. */
+  specMap?: Record<string, number>;
+  error?: string;
+}
+
+/**
+ * Parse a source URL (PDF / website / video) into structured car data.
+ *
+ * The text is fetched here, then handed to DeepSeek together with the live
+ * brand list, spec-category slugs, fuel types, and vehicle categories so the
+ * model's output is constrained to the catalog's vocabulary.
+ */
+export async function parseCarSource(url: string): Promise<ParseOutcome> {
+  // 1. Extract source text
+  let text: string;
+  try {
+    text = await extractSourceText(url);
+  } catch (err) {
+    if (err instanceof SourceError) return { status: "source_error", error: err.message };
+    return { status: "source_error", error: (err as Error).message };
+  }
+
+  // 2. Query the catalog vocabulary
+  const [specRows, brandRows] = await Promise.all([
+    db.select({ id: specCategories.id, slug: specCategories.slug }).from(specCategories),
+    db.select({ id: brands.id, name: brands.name, slug: brands.slug }).from(brands),
+  ]);
+  const specMap: Record<string, number> = {};
+  for (const s of specRows) specMap[s.slug] = s.id;
+
+  // 3. Extract car data with DeepSeek
+  let data: ExtractedCarData;
+  try {
+    data = await extractCarData(text, {
+      specSlugs: specRows.map((s) => s.slug),
+      brandNames: brandRows.map((b) => b.name),
+      fuelTypes: [...fuelType.enumValues],
+      categories: [...vehicleCategory.enumValues],
+    });
+  } catch (err) {
+    if (err instanceof LlmError) return { status: "llm_error", error: err.message };
+    return { status: "llm_error", error: (err as Error).message };
+  }
+
+  // 4. Soft-match the parsed brand
+  const brandMatch = matchBrandName(data.brand, brandRows);
+
+  return { status: "success", data, brandMatch, specMap };
 }

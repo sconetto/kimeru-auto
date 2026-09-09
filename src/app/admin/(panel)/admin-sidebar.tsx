@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   ListTree,
   LogOut,
+  Sparkles,
   Upload,
   Users,
 } from "lucide-react";
@@ -21,6 +22,7 @@ const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/brands", label: "Marcas", icon: FolderTree },
   { href: "/admin/cars", label: "Veículos", icon: Car },
+  { href: "/admin/ai-import", label: "Importar com IA", icon: Sparkles },
   { href: "/admin/specs", label: "Categorias de espec.", icon: Gauge },
   { href: "/admin/editorial", label: "Conteúdo editorial", icon: BookOpen },
   { href: "/admin/imports", label: "Importar dados", icon: Upload },
