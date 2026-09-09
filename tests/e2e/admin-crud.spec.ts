@@ -19,11 +19,14 @@ test.describe("Admin CRUD", () => {
 
   test("creates a brand via the form", async ({ page }) => {
     await page.goto("/admin/brands");
-    await page.getByPlaceholder("Nome (ex: Fiat)").fill("E2E Teste Marca");
+    // Unique name so repeated runs (and the chromium + mobile projects)
+    // never collide on the brands slug unique constraint.
+    const name = `E2E Criar ${Date.now()}`;
+    await page.getByPlaceholder("Nome (ex: Fiat)").fill(name);
     await page.getByRole("button", { name: "Criar" }).click();
 
     // Brand appears in the table (server action revalidates)
-    await expect(page.getByText("E2E Teste Marca")).toBeVisible();
+    await expect(page.getByText(name)).toBeVisible();
   });
 
   test("deletes a brand", async ({ page }) => {
