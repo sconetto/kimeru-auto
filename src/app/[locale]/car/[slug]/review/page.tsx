@@ -64,11 +64,9 @@ export default async function CarReviewPage({
         rating={ed.rating}
         summary={ed.summary}
         scoreBreakdown={ed.scoreBreakdown}
-        transcripts={ed.transcripts}
         sourceVideos={ed.sourceVideos}
         basedOnLabel={t("basedOn")}
         seeVideoLabel={t("seeVideo")}
-        transcriptsLabel={t("transcripts")}
         reviewLabel={t("reviewLabel")}
         scoreLabels={{
           design: t("scoreDesign"),

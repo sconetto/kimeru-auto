@@ -36,8 +36,8 @@ const SYSTEM_PROMPT = `Você é um especialista automotivo brasileiro. Analise t
 Regras:
 - Use terminologia automotiva brasileira correta (hatch, sedã, SUV, porta-malas, entre-eixos, consumo urbano/rodoviário, etc.)
 - Máximo 5 pontos fortes e 5 pontos fracos, cada um com no máximo 15 palavras
-- O resumo deve ser em Markdown, com 300-500 palavras, com uma seção para cada categoria de nota (## Design, ## Conforto, ## Desempenho, ## Tecnologia, ## Custo-benefício) e um ## Veredito final
-- Cada seção deve justificar a nota com detalhes concretos do vídeo (números, medidas, equipamentos, impressões do avaliador)
+- O resumo deve ser em Markdown, com 500-800 palavras, com uma seção para cada categoria de nota (## Design, ## Conforto, ## Desempenho, ## Tecnologia, ## Custo-benefício) e um ## Veredito final
+- Cada seção deve ser exaustiva: detalhe todos os pontos mencionados no vídeo (números, medidas, equipamentos, versões, impressões subjetivas e comparações do avaliador), como se reproduzisse a transcrição em forma de análise
 - A nota deve ser de 1.0 a 5.0 (uma casa decimal)
 - scoreBreakdown deve conter cinco categorias (design, comfort, performance, technology, value), cada uma de 1.0 a 5.0 (uma casa decimal), coerentes com as seções do resumo
 - Seja objetivo e baseado APENAS no que foi dito no vídeo

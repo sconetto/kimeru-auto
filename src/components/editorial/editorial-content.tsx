@@ -1,21 +1,18 @@
 "use client";
 
-import { ChevronDown, ChevronRight, ExternalLink, Video } from "lucide-react";
+import { ExternalLink, Video } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
 import ReactMarkdown from "react-markdown";
-import type { EditorialScoreBreakdown, EditorialTranscript } from "@/lib/db/schema";
+import type { EditorialScoreBreakdown } from "@/lib/db/schema";
 import { youtubeId } from "@/lib/editorial/teaser";
 
 interface EditorialContentProps {
   rating: string | null;
   summary: string | null;
   scoreBreakdown: EditorialScoreBreakdown | null;
-  transcripts: EditorialTranscript[];
   sourceVideos: { url: string; title?: string }[];
   basedOnLabel: string;
   seeVideoLabel: string;
-  transcriptsLabel: string;
   reviewLabel: string;
   scoreLabels: Record<keyof EditorialScoreBreakdown, string>;
 }
@@ -32,25 +29,13 @@ export function EditorialContent({
   rating,
   summary,
   scoreBreakdown,
-  transcripts,
   sourceVideos,
   basedOnLabel,
   seeVideoLabel,
-  transcriptsLabel,
   reviewLabel,
   scoreLabels,
 }: EditorialContentProps) {
-  const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const firstVideoId = sourceVideos.length > 0 ? youtubeId(sourceVideos[0].url) : null;
-
-  function toggleTranscript(i: number) {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(i)) next.delete(i);
-      else next.add(i);
-      return next;
-    });
-  }
 
   return (
     <div className="space-y-4">
@@ -139,43 +124,6 @@ export function EditorialContent({
                     <ExternalLink className="h-3 w-3 shrink-0" />
                   </span>
                 </a>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {transcripts.length > 0 && (
-        <div className="border-t border-slate-100 pt-3 dark:border-slate-800">
-          <p className="mb-2 text-xs text-slate-500">{transcriptsLabel}</p>
-          <div className="space-y-1.5">
-            {transcripts.map((t, i) => {
-              const open = expanded.has(i);
-              return (
-                <div
-                  key={t.videoUrl}
-                  className="rounded-md border border-slate-200 dark:border-slate-700"
-                >
-                  <button
-                    type="button"
-                    onClick={() => toggleTranscript(i)}
-                    className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-medium text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
-                  >
-                    {open ? (
-                      <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                    ) : (
-                      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                    )}
-                    <span className="truncate">
-                      {t.title ? `Review ${i + 1} — ${t.title}` : `Review ${i + 1}`}
-                    </span>
-                  </button>
-                  {open && (
-                    <p className="max-h-80 overflow-y-auto whitespace-pre-wrap border-t border-slate-100 px-3 py-2.5 text-xs leading-relaxed text-slate-500 dark:border-slate-800 dark:text-slate-400">
-                      {t.text}
-                    </p>
-                  )}
-                </div>
               );
             })}
           </div>

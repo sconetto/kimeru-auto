@@ -12,7 +12,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-3.6-flash";
 
 const REVIEW_PROMPT =
-  "Assista a este vídeo de review de carro e produza uma análise detalhada em Markdown, em português brasileiro, organizada nas seções: ## Design, ## Conforto, ## Desempenho, ## Tecnologia, ## Consumo, ## Segurança e ## Veredito final. Em cada seção, registre os detalhes concretos que o avaliador mencionou (números, medidas, equipamentos, impressões subjetivas), incluindo pontos fortes e fracos. Seja objetivo e baseado apenas no que foi dito no vídeo.";
+  "Assista a este vídeo de review de carro e produza uma análise exaustiva em Markdown, em português brasileiro, organizada nas seções: ## Design, ## Conforto, ## Desempenho, ## Tecnologia, ## Consumo, ## Segurança e ## Veredito final. Em cada seção, registre todos os detalhes concretos que o avaliador mencionou (números, medidas, equipamentos, versões, impressões subjetivas e comparações), incluindo pontos fortes e fracos. Seja objetivo e baseado apenas no que foi dito no vídeo.";
 
 async function describeVideo(youtubeUrl: string, prompt: string): Promise<string> {
   if (!GEMINI_API_KEY) {
