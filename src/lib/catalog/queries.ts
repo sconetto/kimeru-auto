@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, getTableColumns, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import type {
   EditorialScoreBreakdown,
@@ -13,6 +13,7 @@ import {
   editorial,
   fipeHistory,
   models,
+  modelVersions,
   modelYears,
   salesRankings,
   specCategories,
@@ -178,8 +179,13 @@ export async function getModelsByBrand(brandSlug: string): Promise<ModelCard[]> 
     .innerJoin(brands, eq(brands.id, models.brandId))
     .leftJoin(
       modelYears,
-      sql`${modelYears.modelId} = ${models.id} AND ${modelYears.priceUpdatedAt} = (
-        SELECT MAX(m2.price_updated_at) FROM model_years m2 WHERE m2.model_id = ${models.id}
+      sql`${modelYears.id} = (
+        SELECT my2.id
+        FROM model_versions mv2
+        JOIN model_years my2 ON my2.model_version_id = mv2.id
+        WHERE mv2.model_id = ${models.id} AND mv2.is_active = true
+        ORDER BY my2.is_zero_km DESC, my2.price_fipe ASC NULLS LAST, my2.year DESC
+        LIMIT 1
       )`,
     )
     .leftJoin(
@@ -286,11 +292,12 @@ export async function getCarDetail(
 
   if (!model) return null;
 
-  // Latest model year (0km preferred)
+  // Latest model year across the family's active versions (0km preferred)
   const [my] = await db
-    .select()
+    .select(getTableColumns(modelYears))
     .from(modelYears)
-    .where(eq(modelYears.modelId, model.id))
+    .innerJoin(modelVersions, eq(modelVersions.id, modelYears.modelVersionId))
+    .where(and(eq(modelVersions.modelId, model.id), eq(modelVersions.isActive, true)))
     .orderBy(desc(modelYears.isZeroKm), desc(modelYears.year))
     .limit(1);
 
@@ -432,8 +439,13 @@ export async function getAllActiveModels(): Promise<ModelCard[]> {
     .innerJoin(brands, eq(brands.id, models.brandId))
     .leftJoin(
       modelYears,
-      sql`${modelYears.modelId} = ${models.id} AND ${modelYears.priceUpdatedAt} = (
-        SELECT MAX(m2.price_updated_at) FROM model_years m2 WHERE m2.model_id = ${models.id}
+      sql`${modelYears.id} = (
+        SELECT my2.id
+        FROM model_versions mv2
+        JOIN model_years my2 ON my2.model_version_id = mv2.id
+        WHERE mv2.model_id = ${models.id} AND mv2.is_active = true
+        ORDER BY my2.is_zero_km DESC, my2.price_fipe ASC NULLS LAST, my2.year DESC
+        LIMIT 1
       )`,
     )
     .leftJoin(
@@ -518,9 +530,10 @@ export async function getCompareCars(slugs: string[]): Promise<CompareCar[]> {
     if (!model) continue;
 
     const [my] = await db
-      .select()
+      .select(getTableColumns(modelYears))
       .from(modelYears)
-      .where(eq(modelYears.modelId, model.id))
+      .innerJoin(modelVersions, eq(modelVersions.id, modelYears.modelVersionId))
+      .where(and(eq(modelVersions.modelId, model.id), eq(modelVersions.isActive, true)))
       .orderBy(desc(modelYears.isZeroKm), desc(modelYears.year))
       .limit(1);
 
@@ -664,7 +677,8 @@ export async function getPublishedReviews(): Promise<ReviewListItem[]> {
     })
     .from(editorial)
     .innerJoin(modelYears, eq(modelYears.id, editorial.modelYearId))
-    .innerJoin(models, eq(models.id, modelYears.modelId))
+    .innerJoin(modelVersions, eq(modelVersions.id, modelYears.modelVersionId))
+    .innerJoin(models, eq(models.id, modelVersions.modelId))
     .innerJoin(brands, eq(brands.id, models.brandId))
     .where(eq(editorial.published, true))
     .orderBy(desc(editorial.updatedAt))

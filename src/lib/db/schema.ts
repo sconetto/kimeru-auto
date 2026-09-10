@@ -124,39 +124,6 @@ export const models = pgTable(
 );
 
 /* ------------------------------------------------------------------ */
-/* Model Years                                                         */
-/* ------------------------------------------------------------------ */
-
-export const modelYears = pgTable(
-  "model_years",
-  {
-    id: serial("id").primaryKey(),
-    modelId: integer("model_id")
-      .notNull()
-      .references(() => models.id, { onDelete: "cascade" }),
-    year: integer("year").notNull(),
-    fuelType: fuelType("fuel_type").notNull().default("flex"),
-    powertrain: powertrain("powertrain").notNull(),
-    fipeCode: varchar("fipe_code", { length: 20 }),
-    isZeroKm: boolean("is_zero_km").notNull().default(false),
-    priceFipe: numeric("price_fipe", { precision: 12, scale: 2 }),
-    priceUpdatedAt: timestamp("price_updated_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (table) => [
-    uniqueIndex("model_years_model_year_fuel_idx").on(
-      table.modelId,
-      table.year,
-      table.fuelType,
-      table.isZeroKm,
-    ),
-    index("model_years_fipe_code_idx").on(table.fipeCode),
-    index("model_years_model_price_updated_idx").on(table.modelId, table.priceUpdatedAt),
-  ],
-);
-
-/* ------------------------------------------------------------------ */
 /* Model Versions (trim level — a model family has N versions)         */
 /* ------------------------------------------------------------------ */
 
@@ -177,6 +144,39 @@ export const modelVersions = pgTable(
   (table) => [
     uniqueIndex("model_versions_model_slug_idx").on(table.modelId, table.slug),
     index("model_versions_model_idx").on(table.modelId),
+  ],
+);
+
+/* ------------------------------------------------------------------ */
+/* Model Years (per-version year/fuel/0km pricing)                     */
+/* ------------------------------------------------------------------ */
+
+export const modelYears = pgTable(
+  "model_years",
+  {
+    id: serial("id").primaryKey(),
+    modelVersionId: integer("model_version_id")
+      .notNull()
+      .references(() => modelVersions.id, { onDelete: "cascade" }),
+    year: integer("year").notNull(),
+    fuelType: fuelType("fuel_type").notNull().default("flex"),
+    powertrain: powertrain("powertrain").notNull(),
+    fipeCode: varchar("fipe_code", { length: 20 }),
+    isZeroKm: boolean("is_zero_km").notNull().default(false),
+    priceFipe: numeric("price_fipe", { precision: 12, scale: 2 }),
+    priceUpdatedAt: timestamp("price_updated_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("model_years_version_year_fuel_idx").on(
+      table.modelVersionId,
+      table.year,
+      table.fuelType,
+      table.isZeroKm,
+    ),
+    index("model_years_fipe_code_idx").on(table.fipeCode),
+    index("model_years_version_price_updated_idx").on(table.modelVersionId, table.priceUpdatedAt),
   ],
 );
 
@@ -441,7 +441,6 @@ export const brandsRelations = relations(brands, ({ many }) => ({
 
 export const modelsRelations = relations(models, ({ one, many }) => ({
   brand: one(brands, { fields: [models.brandId], references: [brands.id] }),
-  modelYears: many(modelYears),
   modelVersions: many(modelVersions),
   salesRankings: many(salesRankings),
   vehicleImages: many(vehicleImages),
@@ -456,7 +455,10 @@ export const mediaAssetsRelations = relations(mediaAssets, ({ one }) => ({
 }));
 
 export const modelYearsRelations = relations(modelYears, ({ one, many }) => ({
-  model: one(models, { fields: [modelYears.modelId], references: [models.id] }),
+  modelVersion: one(modelVersions, {
+    fields: [modelYears.modelVersionId],
+    references: [modelVersions.id],
+  }),
   specValues: many(specValues),
   editorial: many(editorial),
   fipeHistory: many(fipeHistory),
@@ -495,8 +497,9 @@ export const salesRankingsRelations = relations(salesRankings, ({ one }) => ({
   }),
 }));
 
-export const modelVersionsRelations = relations(modelVersions, ({ one }) => ({
+export const modelVersionsRelations = relations(modelVersions, ({ one, many }) => ({
   model: one(models, { fields: [modelVersions.modelId], references: [models.id] }),
+  modelYears: many(modelYears),
 }));
 
 export const fipeHistoryRelations = relations(fipeHistory, ({ one }) => ({

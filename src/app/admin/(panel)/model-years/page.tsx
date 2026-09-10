@@ -4,7 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ImportExportControls } from "@/components/admin/import-export-controls";
 import { db } from "@/lib/db";
-import { models, modelYears } from "@/lib/db/schema";
+import { models, modelVersions, modelYears } from "@/lib/db/schema";
 import { fuelLabels } from "@/lib/format-labels";
 import { DeleteModelYearButton } from "./delete-model-year-button";
 
@@ -23,9 +23,21 @@ export default async function AdminModelYearsPage({
   if (!model) redirect("/admin/cars");
 
   const years = await db
-    .select()
+    .select({
+      id: modelYears.id,
+      year: modelYears.year,
+      fuelType: modelYears.fuelType,
+      powertrain: modelYears.powertrain,
+      fipeCode: modelYears.fipeCode,
+      isZeroKm: modelYears.isZeroKm,
+      priceFipe: modelYears.priceFipe,
+      priceUpdatedAt: modelYears.priceUpdatedAt,
+      createdAt: modelYears.createdAt,
+      updatedAt: modelYears.updatedAt,
+    })
     .from(modelYears)
-    .where(eq(modelYears.modelId, id))
+    .innerJoin(modelVersions, eq(modelVersions.id, modelYears.modelVersionId))
+    .where(eq(modelVersions.modelId, id))
     .orderBy(desc(modelYears.year));
 
   return (

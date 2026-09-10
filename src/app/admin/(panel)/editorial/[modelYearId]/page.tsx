@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { brands, editorial, models, modelYears } from "@/lib/db/schema";
+import { brands, editorial, models, modelVersions, modelYears } from "@/lib/db/schema";
 import { EditorialEditForm } from "../editorial-edit-form";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +25,8 @@ export default async function AdminEditEditorialPage({
       brandName: brands.name,
     })
     .from(modelYears)
-    .innerJoin(models, eq(models.id, modelYears.modelId))
+    .innerJoin(modelVersions, eq(modelVersions.id, modelYears.modelVersionId))
+    .innerJoin(models, eq(models.id, modelVersions.modelId))
     .innerJoin(brands, eq(brands.id, models.brandId))
     .where(eq(modelYears.id, myId))
     .limit(1);

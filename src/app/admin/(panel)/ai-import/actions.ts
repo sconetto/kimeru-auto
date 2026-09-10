@@ -7,6 +7,7 @@ import { logAudit } from "@/lib/admin/audit";
 import { requireRole } from "@/lib/auth/require-role";
 import { powertrainOf } from "@/lib/catalog/powertrain";
 import { slugify } from "@/lib/catalog/slug";
+import { resolveOrCreateVersion } from "@/lib/catalog/versions";
 import { db } from "@/lib/db";
 import {
   brands,
@@ -116,11 +117,11 @@ export async function createCarFromAi(payload: unknown): Promise<CreateCarResult
     })
     .returning();
 
-  // 3. Create the model year
+  // 3. Create the model year (attached to a default version)
   const [insertedYear] = await db
     .insert(modelYears)
     .values({
-      modelId: insertedModel.id,
+      modelVersionId: await resolveOrCreateVersion(insertedModel.id),
       year,
       fuelType: fuel,
       powertrain: powertrainOf(fuel),

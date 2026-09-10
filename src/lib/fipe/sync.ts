@@ -1,6 +1,6 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, getTableColumns } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { brands, models, modelYears } from "@/lib/db/schema";
+import { brands, models, modelVersions, modelYears } from "@/lib/db/schema";
 import { type FipeVehicleType, fipeClient } from "./client";
 import { updateModelYearPrice } from "./history";
 import { warmFipePrice } from "./service";
@@ -90,9 +90,10 @@ export async function syncFipeReferenceData(): Promise<SyncResult> {
       if (candidates.length === 0) return modelStats;
 
       const localYears = await db
-        .select()
+        .select(getTableColumns(modelYears))
         .from(modelYears)
-        .where(eq(modelYears.modelId, localModel.id));
+        .innerJoin(modelVersions, eq(modelVersions.id, modelYears.modelVersionId))
+        .where(eq(modelVersions.modelId, localModel.id));
 
       // For each local year, find the FIPE candidate whose years contain it.
       const yearResults = await mapWithConcurrency(localYears, async (localYear) => {

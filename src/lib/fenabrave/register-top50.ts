@@ -1,8 +1,7 @@
 import { eq } from "drizzle-orm";
-import { powertrainOf } from "@/lib/catalog/powertrain";
 import { db } from "@/lib/db";
 import type { fuelType, vehicleCategory } from "@/lib/db/schema";
-import { brands, models, modelYears } from "@/lib/db/schema";
+import { brands, models } from "@/lib/db/schema";
 
 type FuelType = (typeof fuelType.enumValues)[number];
 type Category = (typeof vehicleCategory.enumValues)[number];
@@ -132,7 +131,6 @@ async function main() {
   }
 
   let createdModels = 0;
-  let createdYears = 0;
   let missingBrands = 0;
 
   for (const entry of TOP50) {
@@ -153,42 +151,18 @@ async function main() {
       .where(eq(models.slug, entry.slug))
       .limit(1);
 
-    let modelId: number;
-    if (existingModel) {
-      modelId = existingModel.id;
-    } else {
-      const [inserted] = await db
-        .insert(models)
-        .values({
-          brandId: brand.id,
-          name: entry.name,
-          slug: entry.slug,
-          category: entry.category,
-        })
-        .returning({ id: models.id });
-      modelId = inserted.id;
-      createdModels++;
-    }
+    if (existingModel) continue;
 
-    const [existingYear] = await db
-      .select({ id: modelYears.id })
-      .from(modelYears)
-      .where(eq(modelYears.modelId, modelId))
-      .limit(1);
-
-    if (!existingYear) {
-      await db.insert(modelYears).values({
-        modelId,
-        year: 2026,
-        fuelType: entry.fuelType,
-        powertrain: powertrainOf(entry.fuelType),
-        isZeroKm: true,
-      });
-      createdYears++;
-    }
+    await db.insert(models).values({
+      brandId: brand.id,
+      name: entry.name,
+      slug: entry.slug,
+      category: entry.category,
+    });
+    createdModels++;
   }
 
-  console.log(`✓ Models created: ${createdModels} · Model years created: ${createdYears}`);
+  console.log(`✓ Models (families) created: ${createdModels}`);
   if (missingBrands > 0) console.log(`⚠ Missing brands: ${missingBrands}`);
   console.log("✅ Top-50 FENABRAVE registration complete");
 }

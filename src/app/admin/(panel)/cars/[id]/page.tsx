@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import {
   brands,
   models,
+  modelVersions,
   modelYears,
   specCategories,
   specValues,
@@ -27,9 +28,22 @@ export default async function EditModelPage({ params }: { params: Promise<{ id: 
     db.select().from(vehicleCategories).orderBy(asc(vehicleCategories.displayOrder)),
     db.select().from(specCategories).orderBy(specCategories.group, specCategories.displayOrder),
     db
-      .select()
+      .select({
+        id: modelYears.id,
+        modelVersionId: modelYears.modelVersionId,
+        year: modelYears.year,
+        fuelType: modelYears.fuelType,
+        powertrain: modelYears.powertrain,
+        fipeCode: modelYears.fipeCode,
+        isZeroKm: modelYears.isZeroKm,
+        priceFipe: modelYears.priceFipe,
+        priceUpdatedAt: modelYears.priceUpdatedAt,
+        createdAt: modelYears.createdAt,
+        updatedAt: modelYears.updatedAt,
+      })
       .from(modelYears)
-      .where(eq(modelYears.modelId, modelId))
+      .innerJoin(modelVersions, eq(modelVersions.id, modelYears.modelVersionId))
+      .where(eq(modelVersions.modelId, modelId))
       .orderBy(desc(modelYears.year)),
   ]);
 

@@ -1,6 +1,7 @@
 import { hash } from "bcryptjs";
-import { and, eq } from "drizzle-orm";
+import { and, eq, getTableColumns } from "drizzle-orm";
 import { powertrainOf } from "@/lib/catalog/powertrain";
+import { resolveOrCreateVersion } from "@/lib/catalog/versions";
 import { db } from "./index";
 import {
   adminUsers,
@@ -8,6 +9,7 @@ import {
   editorial,
   fipeHistory,
   models,
+  modelVersions,
   modelYears,
   salesRankings,
   specCategories,
@@ -162,13 +164,15 @@ async function main() {
       modelId = existingModel[0].id;
     }
 
+    const versionId = await resolveOrCreateVersion(modelId);
+
     for (const my of model.modelYears) {
       const existingYear = await db
         .select()
         .from(modelYears)
         .where(
           and(
-            eq(modelYears.modelId, modelId),
+            eq(modelYears.modelVersionId, versionId),
             eq(modelYears.year, my.year),
             eq(modelYears.fuelType, my.fuelType),
             eq(modelYears.isZeroKm, my.isZeroKm),
@@ -181,7 +185,7 @@ async function main() {
         const [inserted] = await db
           .insert(modelYears)
           .values({
-            modelId,
+            modelVersionId: versionId,
             year: my.year,
             fuelType: my.fuelType,
             powertrain: powertrainOf(my.fuelType),
@@ -312,9 +316,10 @@ async function main() {
   const hb20 = await db.select().from(models).where(eq(models.slug, "hb20")).limit(1);
   if (hb20.length > 0) {
     const my = await db
-      .select()
+      .select(getTableColumns(modelYears))
       .from(modelYears)
-      .where(eq(modelYears.modelId, hb20[0].id))
+      .innerJoin(modelVersions, eq(modelVersions.id, modelYears.modelVersionId))
+      .where(eq(modelVersions.modelId, hb20[0].id))
       .limit(1);
     if (my.length > 0) {
       const existing = await db

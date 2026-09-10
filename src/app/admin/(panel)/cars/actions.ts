@@ -7,6 +7,7 @@ import { logAudit } from "@/lib/admin/audit";
 import { requireRole } from "@/lib/auth/require-role";
 import { powertrainOf } from "@/lib/catalog/powertrain";
 import { slugify } from "@/lib/catalog/slug";
+import { resolveOrCreateVersion } from "@/lib/catalog/versions";
 import { db } from "@/lib/db";
 import { fipeHistory, fuelType, models, modelYears, vehicleCategory } from "@/lib/db/schema";
 
@@ -74,7 +75,7 @@ export async function createModelYear(formData: FormData) {
   const [inserted] = await db
     .insert(modelYears)
     .values({
-      modelId: parsed.data.modelId,
+      modelVersionId: await resolveOrCreateVersion(parsed.data.modelId),
       year: parsed.data.year,
       fuelType: parsed.data.fuelType,
       powertrain: powertrainOf(parsed.data.fuelType),

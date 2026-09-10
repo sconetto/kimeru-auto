@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { models, modelYears, specCategories, specValues } from "@/lib/db/schema";
+import { models, modelVersions, modelYears, specCategories, specValues } from "@/lib/db/schema";
 import { SpecValuesEditor } from "./spec-values-editor";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +18,8 @@ export default async function SpecValuesPage({ params }: { params: Promise<{ id:
       modelName: models.name,
     })
     .from(modelYears)
-    .innerJoin(models, eq(models.id, modelYears.modelId))
+    .innerJoin(modelVersions, eq(modelVersions.id, modelYears.modelVersionId))
+    .innerJoin(models, eq(models.id, modelVersions.modelId))
     .where(eq(modelYears.id, id))
     .limit(1);
 

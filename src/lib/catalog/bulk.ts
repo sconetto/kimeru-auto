@@ -1,10 +1,12 @@
 import { and, asc, eq } from "drizzle-orm";
 import { powertrainOf } from "@/lib/catalog/powertrain";
+import { resolveOrCreateVersion } from "@/lib/catalog/versions";
 import { db } from "@/lib/db";
 import {
   brands,
   fuelType,
   models,
+  modelVersions,
   modelYears,
   specCategories,
   specGroups,
@@ -140,7 +142,8 @@ export async function exportEntity(entity: string): Promise<ExportSpec | null> {
           priceFipe: modelYears.priceFipe,
         })
         .from(modelYears)
-        .innerJoin(models, eq(models.id, modelYears.modelId))
+        .innerJoin(modelVersions, eq(modelVersions.id, modelYears.modelVersionId))
+        .innerJoin(models, eq(models.id, modelVersions.modelId))
         .orderBy(asc(models.slug), asc(modelYears.year));
       return {
         headers: ["model_slug", "year", "fuel_type", "fipe_code", "is_zero_km", "price_fipe"],
@@ -356,12 +359,13 @@ export async function importEntity(
         continue;
       }
       const isZeroKm = zeroIdx >= 0 ? csvBool(row[zeroIdx]) : false;
+      const modelVersionId = await resolveOrCreateVersion(model.id);
       const existing = await db
         .select()
         .from(modelYears)
         .where(
           and(
-            eq(modelYears.modelId, model.id),
+            eq(modelYears.modelVersionId, modelVersionId),
             eq(modelYears.year, year),
             eq(modelYears.fuelType, fuel as typeof modelYears.$inferSelect.fuelType),
             eq(modelYears.isZeroKm, isZeroKm),
@@ -369,7 +373,7 @@ export async function importEntity(
         )
         .limit(1);
       const values = {
-        modelId: model.id,
+        modelVersionId,
         year,
         fuelType: fuel as typeof modelYears.$inferSelect.fuelType,
         powertrain: powertrainOf(fuel as typeof modelYears.$inferSelect.fuelType),

@@ -7,6 +7,7 @@ import {
   editorial,
   editorialLocale,
   models,
+  modelVersions,
   modelYears,
 } from "@/lib/db/schema";
 import { EditorialPanel } from "./editorial-panel";
@@ -35,7 +36,8 @@ export default async function AdminEditorialPage({
       year: modelYears.year,
     })
     .from(modelYears)
-    .innerJoin(models, eq(models.id, modelYears.modelId))
+    .innerJoin(modelVersions, eq(modelVersions.id, modelYears.modelVersionId))
+    .innerJoin(models, eq(models.id, modelVersions.modelId))
     .innerJoin(brands, eq(brands.id, models.brandId))
     .orderBy(asc(brands.name), asc(models.name), desc(modelYears.year));
 
@@ -69,7 +71,8 @@ export default async function AdminEditorialPage({
     })
     .from(editorial)
     .innerJoin(modelYears, eq(modelYears.id, editorial.modelYearId))
-    .innerJoin(models, eq(models.id, modelYears.modelId))
+    .innerJoin(modelVersions, eq(modelVersions.id, modelYears.modelVersionId))
+    .innerJoin(models, eq(models.id, modelVersions.modelId))
     .innerJoin(brands, eq(brands.id, models.brandId))
     .leftJoin(adminUsers, eq(adminUsers.id, editorial.reviewedBy))
     .where(filters.length > 0 ? and(...filters) : undefined)
