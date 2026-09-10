@@ -15,6 +15,7 @@ interface EditorialContentProps {
   seeVideoLabel: string;
   reviewLabel: string;
   scoreLabels: Record<keyof EditorialScoreBreakdown, string>;
+  reviewedOn?: string | null;
 }
 
 const SCORE_ORDER: { key: keyof EditorialScoreBreakdown; color: string }[] = [
@@ -34,6 +35,7 @@ export function EditorialContent({
   seeVideoLabel,
   reviewLabel,
   scoreLabels,
+  reviewedOn,
 }: EditorialContentProps) {
   const firstVideoId = sourceVideos.length > 0 ? youtubeId(sourceVideos[0].url) : null;
 
@@ -47,6 +49,7 @@ export function EditorialContent({
           </span>
         )}
       </div>
+      {reviewedOn && <p className="text-xs text-slate-400">{reviewedOn}</p>}
 
       {scoreBreakdown && (
         <div className="space-y-2">

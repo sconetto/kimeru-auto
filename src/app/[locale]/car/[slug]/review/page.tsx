@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { EditorialContent } from "@/components/editorial/editorial-content";
 import { getCarDetail } from "@/lib/catalog/queries";
+import { formatDate } from "@/lib/format";
 import { Link } from "@/lib/i18n/navigation";
 
 export const revalidate = 3600;
@@ -58,6 +59,11 @@ export default async function CarReviewPage({
           {ed.sourceVideos.length > 0 ? ed.sourceVideos.length : 0}{" "}
           {ed.sourceVideos.length === 1 ? t("videoSingular") : t("videoPlural")}
         </p>
+        {ed.updatedAt && (
+          <p className="mt-1 text-xs text-slate-400">
+            {t("reviewOn", { date: formatDate(ed.updatedAt, locale) })}
+          </p>
+        )}
       </header>
 
       <EditorialContent
@@ -68,6 +74,7 @@ export default async function CarReviewPage({
         basedOnLabel={t("basedOn")}
         seeVideoLabel={t("seeVideo")}
         reviewLabel={t("reviewLabel")}
+        reviewedOn={ed.updatedAt ? t("reviewOn", { date: formatDate(ed.updatedAt, locale) }) : null}
         scoreLabels={{
           design: t("scoreDesign"),
           comfort: t("scoreComfort"),
