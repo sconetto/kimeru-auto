@@ -67,6 +67,7 @@
         "src/lib/db/seed.ts",
         "src/lib/fipe/sync.ts",
         "src/lib/fenabrave/sync.ts",
+        "src/lib/fenabrave/register-top50.ts",
         "scripts/setup-local.mjs"
       ],
       "linter": {

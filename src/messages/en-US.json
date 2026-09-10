@@ -139,7 +139,8 @@
     "vehicle": "Vehicle",
     "category": "Category",
     "registrations": "Registrations",
-    "source": "Source: FENABRAVE (Brazilian Federation of Motor Vehicle Distribution)."
+    "source": "Source: FENABRAVE (Brazilian Federation of Motor Vehicle Distribution).",
+    "aggregatesNote": "Each position sums all trim versions of the model registered that month."
   },
   "car": {
     "metaTitle": "{brand} {model} {year} | Price, Specs and Sales",

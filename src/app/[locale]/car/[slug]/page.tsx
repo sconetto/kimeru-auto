@@ -53,7 +53,7 @@ export default async function CarDetailPage({
   const { locale, slug } = await params;
   const car = await getCarDetail(slug, locale as "pt-BR" | "en-US");
   if (!car) notFound();
-  const salesTrend = car.sales ? await getSalesTrend(car.sales.modelYearId).catch(() => []) : [];
+  const salesTrend = car.sales ? await getSalesTrend(car.sales.modelId).catch(() => []) : [];
 
   const tCommon = await getTranslations({ locale, namespace: "common" });
   const tCar = await getTranslations({ locale, namespace: "car" });

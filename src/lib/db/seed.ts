@@ -262,18 +262,12 @@ async function main() {
   for (const s of sampleSales) {
     const model = await db.select().from(models).where(eq(models.slug, s.modelSlug)).limit(1);
     if (model.length === 0) continue;
-    const my = await db
-      .select()
-      .from(modelYears)
-      .where(and(eq(modelYears.modelId, model[0].id), eq(modelYears.isZeroKm, true)))
-      .limit(1);
-    if (my.length === 0) continue;
     const existing = await db
       .select()
       .from(salesRankings)
       .where(
         and(
-          eq(salesRankings.modelYearId, my[0].id),
+          eq(salesRankings.modelId, model[0].id),
           eq(salesRankings.month, month),
           eq(salesRankings.year, year),
         ),
@@ -281,7 +275,7 @@ async function main() {
       .limit(1);
     if (existing.length === 0) {
       await db.insert(salesRankings).values({
-        modelYearId: my[0].id,
+        modelId: model[0].id,
         month,
         year,
         unitsSold: s.units,

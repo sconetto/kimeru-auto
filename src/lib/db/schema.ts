@@ -157,6 +157,30 @@ export const modelYears = pgTable(
 );
 
 /* ------------------------------------------------------------------ */
+/* Model Versions (trim level — a model family has N versions)         */
+/* ------------------------------------------------------------------ */
+
+export const modelVersions = pgTable(
+  "model_versions",
+  {
+    id: serial("id").primaryKey(),
+    modelId: integer("model_id")
+      .notNull()
+      .references(() => models.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 200 }).notNull(),
+    slug: varchar("slug", { length: 220 }).notNull(),
+    imageUrl: text("image_url"),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("model_versions_model_slug_idx").on(table.modelId, table.slug),
+    index("model_versions_model_idx").on(table.modelId),
+  ],
+);
+
+/* ------------------------------------------------------------------ */
 /* Spec Categories                                                     */
 /* ------------------------------------------------------------------ */
 
@@ -367,9 +391,9 @@ export const salesRankings = pgTable(
   "sales_rankings",
   {
     id: serial("id").primaryKey(),
-    modelYearId: integer("model_year_id")
+    modelId: integer("model_id")
       .notNull()
-      .references(() => modelYears.id, { onDelete: "cascade" }),
+      .references(() => models.id, { onDelete: "restrict" }),
     month: integer("month").notNull(),
     year: integer("year").notNull(),
     unitsSold: integer("units_sold").notNull().default(0),
@@ -378,11 +402,7 @@ export const salesRankings = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    uniqueIndex("sales_rankings_model_year_month_idx").on(
-      table.modelYearId,
-      table.month,
-      table.year,
-    ),
+    uniqueIndex("sales_rankings_model_month_year_idx").on(table.modelId, table.month, table.year),
     index("sales_rankings_month_year_idx").on(table.month, table.year),
   ],
 );
@@ -422,6 +442,8 @@ export const brandsRelations = relations(brands, ({ many }) => ({
 export const modelsRelations = relations(models, ({ one, many }) => ({
   brand: one(brands, { fields: [models.brandId], references: [brands.id] }),
   modelYears: many(modelYears),
+  modelVersions: many(modelVersions),
+  salesRankings: many(salesRankings),
   vehicleImages: many(vehicleImages),
 }));
 
@@ -437,7 +459,6 @@ export const modelYearsRelations = relations(modelYears, ({ one, many }) => ({
   model: one(models, { fields: [modelYears.modelId], references: [models.id] }),
   specValues: many(specValues),
   editorial: many(editorial),
-  salesRankings: many(salesRankings),
   fipeHistory: many(fipeHistory),
 }));
 
@@ -468,10 +489,14 @@ export const editorialRelations = relations(editorial, ({ one }) => ({
 }));
 
 export const salesRankingsRelations = relations(salesRankings, ({ one }) => ({
-  modelYear: one(modelYears, {
-    fields: [salesRankings.modelYearId],
-    references: [modelYears.id],
+  model: one(models, {
+    fields: [salesRankings.modelId],
+    references: [models.id],
   }),
+}));
+
+export const modelVersionsRelations = relations(modelVersions, ({ one }) => ({
+  model: one(models, { fields: [modelVersions.modelId], references: [models.id] }),
 }));
 
 export const fipeHistoryRelations = relations(fipeHistory, ({ one }) => ({
@@ -491,6 +516,8 @@ export type Model = typeof models.$inferSelect;
 export type NewModel = typeof models.$inferInsert;
 export type ModelYear = typeof modelYears.$inferSelect;
 export type NewModelYear = typeof modelYears.$inferInsert;
+export type ModelVersion = typeof modelVersions.$inferSelect;
+export type NewModelVersion = typeof modelVersions.$inferInsert;
 export type SpecCategory = typeof specCategories.$inferSelect;
 export type NewSpecCategory = typeof specCategories.$inferInsert;
 export type SpecValue = typeof specValues.$inferSelect;

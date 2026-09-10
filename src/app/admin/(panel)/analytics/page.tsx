@@ -1,7 +1,7 @@
 import { desc, eq, sum } from "drizzle-orm";
 import { Truck } from "lucide-react";
 import { db } from "@/lib/db";
-import { brands, models, modelYears, salesRankings } from "@/lib/db/schema";
+import { brands, models, salesRankings } from "@/lib/db/schema";
 
 export const dynamic = "force-dynamic";
 
@@ -30,13 +30,11 @@ export default async function AnalyticsPage() {
     .select({
       brandName: brands.name,
       modelName: models.name,
-      modelYear: modelYears.year,
       unitsSold: salesRankings.unitsSold,
       position: salesRankings.rankingPosition,
     })
     .from(salesRankings)
-    .innerJoin(modelYears, eq(salesRankings.modelYearId, modelYears.id))
-    .innerJoin(models, eq(modelYears.modelId, models.id))
+    .innerJoin(models, eq(salesRankings.modelId, models.id))
     .innerJoin(brands, eq(models.brandId, brands.id))
     .where(eq(salesRankings.month, currentMonth))
     .orderBy(desc(salesRankings.unitsSold));
@@ -48,8 +46,7 @@ export default async function AnalyticsPage() {
       total: sum(salesRankings.unitsSold).mapWith(Number),
     })
     .from(salesRankings)
-    .innerJoin(modelYears, eq(salesRankings.modelYearId, modelYears.id))
-    .innerJoin(models, eq(modelYears.modelId, models.id))
+    .innerJoin(models, eq(salesRankings.modelId, models.id))
     .innerJoin(brands, eq(models.brandId, brands.id))
     .groupBy(brands.name)
     .orderBy(desc(sum(salesRankings.unitsSold)));
@@ -134,7 +131,6 @@ export default async function AnalyticsPage() {
                     <th className="w-12 px-4 py-3 text-center">#</th>
                     <th className="px-4 py-3">Modelo</th>
                     <th className="px-4 py-3">Marca</th>
-                    <th className="px-4 py-3">Ano</th>
                     <th className="px-4 py-3 text-right">Emplacamentos</th>
                   </tr>
                 </thead>
@@ -161,7 +157,6 @@ export default async function AnalyticsPage() {
                       </td>
                       <td className="px-4 py-3 font-medium text-slate-200">{row.modelName}</td>
                       <td className="px-4 py-3 text-slate-400">{row.brandName}</td>
-                      <td className="px-4 py-3 text-slate-400">{row.modelYear}</td>
                       <td className="px-4 py-3 text-right font-mono tabular-nums text-slate-200">
                         {row.unitsSold?.toLocaleString("pt-BR")}
                       </td>

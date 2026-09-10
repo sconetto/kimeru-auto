@@ -8,7 +8,7 @@
  */
 
 export interface MatchCandidate {
-  modelYearId: number;
+  modelId: number;
   modelName: string;
   brandName: string;
   score: number;
@@ -26,36 +26,58 @@ function tokens(s: string): string[] {
   return normalize(s).split(/\s+/).filter(Boolean);
 }
 
-/** Strip brand prefix ("VW -" / "GM -" / "FIAT ") and numeric version markers. */
+/**
+ * Trim/version markers that may trail a model name but don't distinguish one
+ * model family from another ("1.0 TSI", "TURBO", "ENDURANCE").
+ */
+const VERSION_NOISE = new Set([
+  "tsi",
+  "tfsi",
+  "turbo",
+  "flex",
+  "sport",
+  "endurance",
+  "freedom",
+  "at",
+  "mt",
+  "cvt",
+  "aut",
+]);
+
+/** Strip the brand prefix ("VW -" dash form, or "BRAND/MODEL" slash form). */
 export function stripBrandPrefix(rawName: string): string {
+  const slash = rawName.indexOf("/");
+  if (slash !== -1) return rawName.slice(slash + 1).trim();
   return rawName.replace(/^[a-z0-9.]+\s*[-–—]\s*/i, "").trim();
 }
 
 /**
  * Score how well a catalog model name matches a raw FENABRAVE name.
- * Returns 0..1 (1 = exact token set match).
+ * Returns 0..1 (1 = every catalog token is present). A raw name with an
+ * unexplained non-numeric word (e.g. "SW4", "CROSS") scores 0 — those words
+ * indicate a different model family. Pure numbers and trim markers are ignored
+ * so "T-CROSS 1.0 TSI" still matches "T-Cross" while "HILUX SW4" does not
+ * match "Hilux".
  */
 export function scoreMatch(catalogName: string, rawName: string): number {
   const catTokens = tokens(catalogName);
-  const rawTokens = tokens(stripBrandPrefix(rawName)).filter(
-    (t) => !/^(1|1\.0|1\.3|1\.5|1\.6|2\.0)$/.test(t),
-  );
+  const rawTokens = tokens(stripBrandPrefix(rawName));
 
   if (catTokens.length === 0 || rawTokens.length === 0) return 0;
 
-  // Distinct catalog tokens present in the raw name
-  const matched = catTokens.filter((t) => rawTokens.includes(t)).length;
-  const rawOverlap = matched / rawTokens.length;
-  const catCoverage = matched / catTokens.length;
+  const unexplained = rawTokens.filter(
+    (t) => !catTokens.includes(t) && !VERSION_NOISE.has(t) && !/^\d+$/.test(t),
+  );
+  if (unexplained.length > 0) return 0;
 
-  // Weight catalog coverage more heavily (catalog names are canonical)
-  return catCoverage * 0.7 + rawOverlap * 0.3;
+  const matched = catTokens.filter((t) => rawTokens.includes(t)).length;
+  return matched / catTokens.length;
 }
 
 /** Pick the best match above a threshold. */
 export function bestMatch(
   catalogName: string,
-  candidates: { modelYearId: number; modelName: string; brandName: string }[],
+  candidates: { modelId: number; modelName: string; brandName: string }[],
 ): MatchCandidate | null {
   let best: MatchCandidate | null = null;
   for (const c of candidates) {

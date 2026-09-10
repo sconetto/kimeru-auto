@@ -20,6 +20,7 @@
     "db:studio": "drizzle-kit studio",
     "fipe:sync": "dotenv -e .env.local -- tsx src/lib/fipe/sync.ts",
     "fenabrave:sync": "dotenv -e .env.local -- tsx src/lib/fenabrave/sync.ts",
+    "fenabrave:register": "dotenv -e .env.local -- tsx src/lib/fenabrave/register-top50.ts",
     "setup:local": "node scripts/setup-local.mjs",
     "db:migrate:prod": "drizzle-kit migrate"
   },

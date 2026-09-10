@@ -71,18 +71,28 @@ describe("scoreMatch", () => {
   it("scores low for unrelated names", () => {
     expect(scoreMatch("Polo", "FIAT - STRADA ENDURANCE 1.3")).toBeLessThan(0.3);
   });
+
+  it("rejects names with distinguishing leftover tokens", () => {
+    expect(scoreMatch("Hilux", "TOYOTA/HILUX SW4")).toBe(0);
+    expect(scoreMatch("Corolla", "TOYOTA/COROLLA CROSS")).toBe(0);
+  });
+
+  it("matches slash-format brand/model names", () => {
+    expect(scoreMatch("Hilux", "TOYOTA/HILUX")).toBeGreaterThan(0.9);
+    expect(scoreMatch("Omoda 5", "OMODA JAECOO/OMODA 5")).toBeGreaterThan(0.9);
+  });
 });
 
 describe("bestMatch", () => {
   const candidates = [
-    { modelYearId: 1, modelName: "T-Cross", brandName: "Volkswagen" },
-    { modelYearId: 2, modelName: "Onix", brandName: "Chevrolet" },
-    { modelYearId: 3, modelName: "Polo", brandName: "Volkswagen" },
+    { modelId: 1, modelName: "T-Cross", brandName: "Volkswagen" },
+    { modelId: 2, modelName: "Onix", brandName: "Chevrolet" },
+    { modelId: 3, modelName: "Polo", brandName: "Volkswagen" },
   ];
 
   it("finds the best candidate above threshold", () => {
     const match = bestMatch("VW - T-CROSS 1.0 TSI", candidates);
-    expect(match?.modelYearId).toBe(1);
+    expect(match?.modelId).toBe(1);
     expect(match?.score).toBeGreaterThanOrEqual(0.55);
   });
 

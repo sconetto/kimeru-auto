@@ -139,7 +139,8 @@
     "vehicle": "Veículo",
     "category": "Categoria",
     "registrations": "Emplacamentos",
-    "source": "Fonte: FENABRAVE (Federação Nacional da Distribuição de Veículos Automotores)."
+    "source": "Fonte: FENABRAVE (Federação Nacional da Distribuição de Veículos Automotores).",
+    "aggregatesNote": "Cada posição representa a soma de todas as versões (acabamentos) do modelo registradas no mês."
   },
   "car": {
     "metaTitle": "{brand} {model} {year} | Preço, Ficha técnica e Vendas",

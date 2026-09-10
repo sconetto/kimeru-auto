@@ -98,7 +98,7 @@ export interface CarDetail {
     updatedAt: Date | null;
   } | null;
   sales: {
-    modelYearId: number;
+    modelId: number;
     rankingPosition: number | null;
     unitsSold: number | null;
     month: number | null;
@@ -184,8 +184,8 @@ export async function getModelsByBrand(brandSlug: string): Promise<ModelCard[]> 
     )
     .leftJoin(
       salesRankings,
-      sql`${salesRankings.modelYearId} = ${modelYears.id} AND ${salesRankings.year} = (
-        SELECT MAX(s2.year) FROM sales_rankings s2 WHERE s2.model_year_id = ${modelYears.id}
+      sql`${salesRankings.modelId} = ${models.id} AND ${salesRankings.year} = (
+        SELECT MAX(s2.year) FROM sales_rankings s2 WHERE s2.model_id = ${models.id}
       )`,
     )
     .where(and(eq(brands.slug, brandSlug), eq(models.isActive, true)))
@@ -327,14 +327,14 @@ export async function getCarDetail(
       .limit(1),
     db
       .select({
-        modelYearId: salesRankings.modelYearId,
+        modelId: salesRankings.modelId,
         rankingPosition: salesRankings.rankingPosition,
         unitsSold: salesRankings.unitsSold,
         month: salesRankings.month,
         year: salesRankings.year,
       })
       .from(salesRankings)
-      .where(eq(salesRankings.modelYearId, my.id))
+      .where(eq(salesRankings.modelId, model.id))
       .orderBy(desc(salesRankings.year), desc(salesRankings.month))
       .limit(1),
   ]);
@@ -438,8 +438,8 @@ export async function getAllActiveModels(): Promise<ModelCard[]> {
     )
     .leftJoin(
       salesRankings,
-      sql`${salesRankings.modelYearId} = ${modelYears.id} AND ${salesRankings.year} = (
-        SELECT MAX(s2.year) FROM sales_rankings s2 WHERE s2.model_year_id = ${modelYears.id}
+      sql`${salesRankings.modelId} = ${models.id} AND ${salesRankings.year} = (
+        SELECT MAX(s2.year) FROM sales_rankings s2 WHERE s2.model_id = ${models.id}
       )`,
     )
     .where(eq(models.isActive, true))
@@ -536,7 +536,7 @@ export async function getCompareCars(slugs: string[]): Promise<CompareCar[]> {
           year: salesRankings.year,
         })
         .from(salesRankings)
-        .where(eq(salesRankings.modelYearId, my.id))
+        .where(eq(salesRankings.modelId, model.id))
         .orderBy(desc(salesRankings.year), desc(salesRankings.month))
         .limit(1),
       db
@@ -574,7 +574,7 @@ export async function getCompareCars(slugs: string[]): Promise<CompareCar[]> {
 /* ------------------------------------------------------------------ */
 
 export interface SalesRankingRow {
-  modelYearId: number;
+  modelId: number;
   modelSlug: string;
   modelName: string;
   brandName: string;
@@ -597,7 +597,7 @@ export async function getSalesRankings(): Promise<SalesRankingRow[]> {
 
   const rows = await db
     .select({
-      modelYearId: salesRankings.modelYearId,
+      modelId: salesRankings.modelId,
       modelSlug: models.slug,
       modelName: models.name,
       brandName: brands.name,
@@ -608,8 +608,7 @@ export async function getSalesRankings(): Promise<SalesRankingRow[]> {
       year: salesRankings.year,
     })
     .from(salesRankings)
-    .innerJoin(modelYears, eq(modelYears.id, salesRankings.modelYearId))
-    .innerJoin(models, eq(models.id, modelYears.modelId))
+    .innerJoin(models, eq(models.id, salesRankings.modelId))
     .innerJoin(brands, eq(brands.id, models.brandId))
     .where(and(eq(salesRankings.year, latest.year), eq(salesRankings.month, latest.month)))
     .orderBy(asc(salesRankings.rankingPosition))
@@ -622,9 +621,9 @@ export async function getSalesRankings(): Promise<SalesRankingRow[]> {
   }));
 }
 
-/** Monthly sales series for a model year (sparkline data). */
+/** Monthly sales series for a model family (sparkline data). */
 export async function getSalesTrend(
-  modelYearId: number,
+  modelId: number,
 ): Promise<{ month: number; year: number; unitsSold: number }[]> {
   const rows = await db
     .select({
@@ -633,7 +632,7 @@ export async function getSalesTrend(
       unitsSold: salesRankings.unitsSold,
     })
     .from(salesRankings)
-    .where(eq(salesRankings.modelYearId, modelYearId))
+    .where(eq(salesRankings.modelId, modelId))
     .orderBy(asc(salesRankings.year), asc(salesRankings.month))
     .limit(12);
   return rows.map((r) => ({ ...r, unitsSold: Number(r.unitsSold) }));

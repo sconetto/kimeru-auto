@@ -49,7 +49,7 @@ export default async function MaisVendidosPage({
           <tbody>
             {rankings.map((row, i) => (
               <tr
-                key={row.modelYearId}
+                key={row.modelId}
                 className={`border-b border-slate-100 last:border-0 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50 ${
                   i < 3 ? "bg-amber-50/50 dark:bg-amber-500/5" : ""
                 }`}
@@ -95,6 +95,7 @@ export default async function MaisVendidosPage({
       </div>
 
       <p className="mt-4 text-xs text-slate-400">{t("source")}</p>
+      <p className="mt-1 text-xs text-slate-400">{t("aggregatesNote")}</p>
     </div>
   );
 }

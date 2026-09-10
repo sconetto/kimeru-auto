@@ -1,6 +1,6 @@
-import { eq, gt } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { brands, models, modelYears, salesRankings } from "@/lib/db/schema";
+import { brands, models, salesRankings } from "@/lib/db/schema";
 import { bestMatch } from "./matcher";
 import { type ParsedSaleRow, parseFenabraveXlsx } from "./parser";
 
@@ -43,59 +43,76 @@ export function monthYearFromLabel(label: string): { month: number; year: number
 }
 
 /**
- * Core import: map parsed rows to the best catalog model year and upsert into
- * sales_rankings (keyed by model_year_id + month + year). Rows below the match
- * threshold are reported as unmatched so the admin can review.
+ * Core import: map parsed FENABRAVE rows to catalog model families and upsert
+ * into sales_rankings (keyed by model_id + month + year).
  *
- * Shared by both the XLSX admin upload and the automated PDF sync.
+ * FENABRAVE reports each model family once per segment (automóveis vs
+ * comerciais leves). A family can appear in both segments (e.g. RENAULT/KWID),
+ * so rows are grouped by matched model, units summed, and the combined list is
+ * re-ranked by units descending before writing.
  */
 export async function importFenabraveRows(
   rows: ParsedSaleRow[],
   month: number,
   year: number,
 ): Promise<CoreImportOutcome> {
-  // Load all candidate model years for matching (recent years, any fuel/0km state)
+  // Candidate model families (active models, any brand)
   const candidates = await db
     .select({
-      modelYearId: modelYears.id,
+      modelId: models.id,
       modelName: models.name,
       brandName: brands.name,
-      modelYear: modelYears.year,
     })
-    .from(modelYears)
-    .innerJoin(models, eq(models.id, modelYears.modelId))
+    .from(models)
     .innerJoin(brands, eq(brands.id, models.brandId))
-    .where(gt(modelYears.year, year - 6));
+    .where(eq(models.isActive, true));
 
   const unmatched: { rawName: string; position: number }[] = [];
-  let imported = 0;
+  const warnings: string[] = [];
 
+  // Group rows by matched model family, summing units across segments.
+  const byModel = new Map<number, { units: number; rawNames: string[] }>();
   for (const row of rows) {
     const match = bestMatch(row.rawName, candidates);
     if (!match) {
       unmatched.push({ rawName: row.rawName, position: row.position });
       continue;
     }
+    const existing = byModel.get(match.modelId);
+    if (existing) {
+      existing.units += row.units;
+      existing.rawNames.push(row.rawName);
+    } else {
+      byModel.set(match.modelId, { units: row.units, rawNames: [row.rawName] });
+    }
+  }
 
-    // Upsert (model_year_id, month, year)
+  // Combined ranking: sort by units desc, assign position 1..N.
+  const ranked = [...byModel.entries()].sort((a, b) => b[1].units - a[1].units);
+  let imported = 0;
+  for (let i = 0; i < ranked.length; i++) {
+    const [modelId, { units, rawNames }] = ranked[i];
     await db
       .insert(salesRankings)
       .values({
-        modelYearId: match.modelYearId,
+        modelId,
         month,
         year,
-        unitsSold: row.units,
-        rankingPosition: row.position,
+        unitsSold: units,
+        rankingPosition: i + 1,
         source: "FENABRAVE",
       })
       .onConflictDoUpdate({
-        target: [salesRankings.modelYearId, salesRankings.month, salesRankings.year],
-        set: { unitsSold: row.units, rankingPosition: row.position, source: "FENABRAVE" },
+        target: [salesRankings.modelId, salesRankings.month, salesRankings.year],
+        set: { unitsSold: units, rankingPosition: i + 1, source: "FENABRAVE" },
       });
     imported++;
+    if (rawNames.length > 1) {
+      warnings.push(`Somado entre segmentos: ${rawNames.join(" + ")}`);
+    }
   }
 
-  return { totalRows: rows.length, imported, unmatched, warnings: [] };
+  return { totalRows: rows.length, imported, unmatched, warnings };
 }
 
 /** Import a FENABRAVE XLSX (admin upload path). */
@@ -104,7 +121,7 @@ export async function importFenabraveReport(buffer: ArrayBuffer): Promise<Import
   const { month, year } = monthYearFromLabel(referenceLabel);
 
   const outcome = await importFenabraveRows(rows, month, year);
-  return { ...outcome, warnings, referenceLabel };
+  return { ...outcome, warnings: [...warnings, ...outcome.warnings], referenceLabel };
 }
 
 export type { ParsedSaleRow };
