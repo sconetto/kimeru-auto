@@ -35,6 +35,8 @@ function makeCar(
     fuelType: "flex",
     isZeroKm: true,
     priceFipe,
+    priceUpdatedAt: null,
+    createdAt: null,
     category: "hatch",
     sizeCategory: "compacto",
     specs: [...groups.entries()].map(([g, v]) => ({
@@ -44,6 +46,7 @@ function makeCar(
     })),
     sales: null,
     editorialRating: null,
+    editorialUpdatedAt: null,
   };
 }
 

@@ -9,7 +9,7 @@ import { PriceHistoryChart } from "@/components/fipe/price-history-chart";
 import { SalesSparkline } from "@/components/fipe/sales-sparkline";
 import { getCarDetail, getSalesTrend } from "@/lib/catalog/queries";
 import { editorialTeaser } from "@/lib/editorial/teaser";
-import { formatBRL, formatPercent } from "@/lib/format";
+import { formatBRL, formatDate, formatMonthYear, formatPercent } from "@/lib/format";
 import { fuelLabels } from "@/lib/format-labels";
 import { Link } from "@/lib/i18n/navigation";
 
@@ -161,6 +161,12 @@ export default async function CarDetailPage({
             <p className="mt-1 text-3xl font-bold text-slate-900 dark:text-white">
               {formatBRL(car.priceFipe)}
             </p>
+            <p className="mt-1 text-xs text-slate-400">
+              {tCar("addedOn", { date: formatDate(car.createdAt, locale) })}
+              {car.isZeroKm && car.priceFipe
+                ? ` · ${tCar("priceRef", { month: formatMonthYear(car.priceUpdatedAt ?? car.createdAt, locale) })}`
+                : ""}
+            </p>
             {car.depreciation12m !== null && (
               <p className="mt-2 text-sm">
                 <span className="text-slate-500">{tCar("depreciation12m")}: </span>
@@ -193,6 +199,11 @@ export default async function CarDetailPage({
                   value: tCar("scoreValue"),
                 }}
               />
+              {car.editorial.updatedAt && (
+                <p className="mt-2 text-xs text-slate-400">
+                  {tCar("reviewOn", { date: formatDate(car.editorial.updatedAt, locale) })}
+                </p>
+              )}
             </section>
           )}
 

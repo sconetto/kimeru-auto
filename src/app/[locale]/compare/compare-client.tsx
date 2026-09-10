@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Calculator, Link2, Plus, Star, Trophy, X } from "lucide-react";
+import { AlertTriangle, Calculator, Info, Link2, Plus, Star, Trophy, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { BrandLogo } from "@/components/catalog/brand-logo";
@@ -9,7 +9,7 @@ import { powertrainOf } from "@/lib/catalog/powertrain";
 import type { CompareCar, ModelCard } from "@/lib/catalog/queries";
 import { isConsumptionSlug, toKmPerKwh } from "@/lib/compare/consumption";
 import { bestCarIndices, computeRadarScores } from "@/lib/compare/scoring";
-import { formatBRL, formatSpecValue } from "@/lib/format";
+import { formatBRL, formatDate, formatMonthYear, formatSpecValue } from "@/lib/format";
 import {
   categoryLabels,
   powertrainLabels,
@@ -30,11 +30,14 @@ const MAX_CARS = 3;
 interface RowValue {
   value: string | null;
   numericValue: string | number | null;
+  originalValue?: string | null;
+  originalUnit?: string | null;
 }
 
 export function CompareClient({ initialCars }: Props) {
   const t = useTranslations("compare");
   const tCommon = useTranslations("common");
+  const locale = useLocale();
   const router = useRouter();
   const [cars, setCars] = useState<CompareCar[]>(initialCars);
   const [error, setError] = useState<string | null>(null);
@@ -94,6 +97,7 @@ export function CompareClient({ initialCars }: Props) {
       unit: string | null;
       higherIsBetter: boolean;
       isNumeric: boolean;
+      isConsumption: boolean;
       values: RowValue[];
       bestIndexes: number[];
       isTie: boolean;
@@ -151,10 +155,13 @@ export function CompareClient({ initialCars }: Props) {
       const values = cars.map((car) => {
         if (isConsumption) {
           const kmPerKwh = toKmPerKwh(slug, numericValue(car, slug));
+          const spec = car.specs.flatMap((g) => g.specs).find((s) => s.slug === slug);
           return {
             value: null,
             numericValue:
               kmPerKwh != null && Number.isFinite(kmPerKwh) ? Number(kmPerKwh.toFixed(2)) : null,
+            originalValue: spec?.displayValue ?? spec?.value ?? null,
+            originalUnit: spec?.unit ?? null,
           };
         }
         const group = car.specs.find((g) => g.group === meta.group);
@@ -187,6 +194,7 @@ export function CompareClient({ initialCars }: Props) {
         unit: meta.unit,
         higherIsBetter: meta.higherIsBetter,
         isNumeric: meta.isNumeric,
+        isConsumption,
         values,
         bestIndexes,
         isTie,
@@ -341,12 +349,19 @@ export function CompareClient({ initialCars }: Props) {
               {t("simulateFinancing")}
             </Link>
             {car.editorialRating && (
-              <Link
-                href={`/car/${car.slug}/review`}
-                className="mt-2 flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
-              >
-                <Star className="h-3.5 w-3.5" />★ {car.editorialRating} · {t("readReview")}
-              </Link>
+              <div>
+                <Link
+                  href={`/car/${car.slug}/review`}
+                  className="mt-2 flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                >
+                  <Star className="h-3.5 w-3.5" />★ {car.editorialRating} · {t("readReview")}
+                </Link>
+                {car.editorialUpdatedAt && (
+                  <p className="mt-0.5 text-xs text-slate-400">
+                    {t("reviewOn", { date: formatDate(car.editorialUpdatedAt, locale) })}
+                  </p>
+                )}
+              </div>
             )}
           </div>
         ))}
@@ -444,6 +459,12 @@ export function CompareClient({ initialCars }: Props) {
                   <p className="mt-0.5 text-xs font-normal text-slate-500">
                     {formatBRL(car.priceFipe)}
                   </p>
+                  <p className="text-xs text-slate-400">
+                    {t("addedOn", { date: formatDate(car.createdAt, locale) })}
+                    {car.isZeroKm && car.priceFipe
+                      ? ` · ${t("fipeOf", { month: formatMonthYear(car.priceUpdatedAt ?? car.createdAt, locale) })}`
+                      : ""}
+                  </p>
                 </th>
               ))}
             </tr>
@@ -509,7 +530,17 @@ function GroupRows({ group, cars }: { group: { group: string; rows: Row[] }; car
       </tr>
       {group.rows.map((row) => (
         <tr key={row.name} className="border-b border-slate-100 dark:border-slate-800">
-          <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300">{row.name}</td>
+          <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300">
+            {row.name}
+            {row.isConsumption && (
+              <span
+                title="Consumo convertido para km/kWh para comparação entre combustíveis e elétricos. Gasolina ≈ 8,9 kWh/L; etanol ≈ 6,4 kWh/L."
+                className="ml-1 inline-flex cursor-help align-middle text-slate-400"
+              >
+                <Info className="h-3.5 w-3.5" />
+              </span>
+            )}
+          </td>
           {row.values.map((v, i) => {
             const isSharedBest = row.bestIndexes.length > 1 && row.bestIndexes.includes(i);
             const isSoleBest = row.bestIndexes.length === 1 && row.bestIndexes.includes(i);
@@ -533,6 +564,12 @@ function GroupRows({ group, cars }: { group: { group: string; rows: Row[] }; car
                   },
                   { locale, unavailableText: tCommon("unavailable") },
                 )}
+                {row.isConsumption && v.originalValue != null && (
+                  <span className="ml-1 text-xs font-normal text-slate-400">
+                    ({v.originalValue}
+                    {v.originalUnit ? ` ${v.originalUnit}` : ""})
+                  </span>
+                )}
                 {isSharedBest && (
                   <span className="ml-1 text-xs font-bold text-amber-500 dark:text-amber-400">
                     =
@@ -553,6 +590,7 @@ interface Row {
   unit: string | null;
   higherIsBetter: boolean;
   isNumeric: boolean;
+  isConsumption: boolean;
   values: RowValue[];
   bestIndexes: number[];
   isTie: boolean;

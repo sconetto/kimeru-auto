@@ -61,7 +61,11 @@ export function formatSpecValue(spec: SpecValueInput, opts: FormatSpecValueOptio
   if (spec.isNumeric && spec.numericValue != null && spec.numericValue !== "") {
     const num = Number(spec.numericValue);
     if (!Number.isNaN(num)) {
-      const formatted = num.toLocaleString(locale, { maximumFractionDigits: 2 });
+      const isCurrency = /^R\$/.test(unit ?? "");
+      const formatted = num.toLocaleString(locale, {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: isCurrency ? 2 : 0,
+      });
       return unit ? joinUnit(formatted, unit) : formatted;
     }
   }
@@ -76,4 +80,14 @@ function joinUnit(value: string, unit: string): string {
   if (/^R\$/.test(u)) return `R$ ${value}`;
   if (u === "%") return `${value}%`;
   return `${value} ${u}`;
+}
+
+export function formatMonthYear(date: Date | string | null | undefined, locale = "pt-BR"): string {
+  if (!date) return "";
+  return new Date(date).toLocaleDateString(locale, { month: "2-digit", year: "numeric" });
+}
+
+export function formatDate(date: Date | string | null | undefined, locale = "pt-BR"): string {
+  if (!date) return "";
+  return new Date(date).toLocaleDateString(locale);
 }

@@ -83,6 +83,7 @@ export interface CarDetail {
   isZeroKm: boolean;
   priceFipe: string | null;
   priceUpdatedAt: Date | null;
+  createdAt: Date | null;
   fipeCode: string | null;
   imageUrl: string | null;
   specs: SpecGrouped[];
@@ -94,6 +95,7 @@ export interface CarDetail {
     scoreBreakdown: EditorialScoreBreakdown | null;
     transcripts: EditorialTranscript[];
     sourceVideos: { url: string; title?: string }[];
+    updatedAt: Date | null;
   } | null;
   sales: {
     modelYearId: number;
@@ -300,6 +302,7 @@ export async function getCarDetail(
       isZeroKm: false,
       priceFipe: null,
       priceUpdatedAt: null,
+      createdAt: null,
       fipeCode: null,
       specs: [] as SpecGrouped[],
       editorial: null,
@@ -379,6 +382,7 @@ export async function getCarDetail(
     isZeroKm: my.isZeroKm,
     priceFipe: my.priceFipe,
     priceUpdatedAt: my.priceUpdatedAt,
+    createdAt: my.createdAt,
     fipeCode: my.fipeCode,
     specs,
     editorial: editorialResult
@@ -390,6 +394,7 @@ export async function getCarDetail(
           scoreBreakdown: editorialResult.scoreBreakdown,
           transcripts: editorialResult.transcripts,
           sourceVideos: editorialResult.sourceVideos,
+          updatedAt: editorialResult.updatedAt,
         }
       : null,
     sales: sales ?? null,
@@ -473,6 +478,8 @@ export interface CompareCar {
   fuelType: (typeof fuelType.enumValues)[number];
   isZeroKm: boolean;
   priceFipe: string | null;
+  priceUpdatedAt: Date | null;
+  createdAt: Date | null;
   category: string | null;
   sizeCategory: string | null;
   specs: SpecGrouped[];
@@ -483,6 +490,7 @@ export interface CompareCar {
     year: number | null;
   } | null;
   editorialRating: string | null;
+  editorialUpdatedAt: Date | null;
 }
 
 /** Fetch full comparison data for a list of model slugs (max 3). */
@@ -532,7 +540,7 @@ export async function getCompareCars(slugs: string[]): Promise<CompareCar[]> {
         .orderBy(desc(salesRankings.year), desc(salesRankings.month))
         .limit(1),
       db
-        .select({ rating: editorial.rating })
+        .select({ rating: editorial.rating, updatedAt: editorial.updatedAt })
         .from(editorial)
         .where(and(eq(editorial.modelYearId, my.id), eq(editorial.published, true)))
         .limit(1),
@@ -547,11 +555,14 @@ export async function getCompareCars(slugs: string[]): Promise<CompareCar[]> {
       fuelType: my.fuelType,
       isZeroKm: my.isZeroKm,
       priceFipe: my.priceFipe,
+      priceUpdatedAt: my.priceUpdatedAt,
+      createdAt: my.createdAt,
       category: model.category,
       sizeCategory: model.sizeCategory,
       specs,
       sales: salesRows[0] ?? null,
       editorialRating: editorialRow[0]?.rating ?? null,
+      editorialUpdatedAt: editorialRow[0]?.updatedAt ?? null,
     });
   }
 

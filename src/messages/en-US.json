@@ -55,7 +55,10 @@
     "radarAria": "Vehicle comparison radar chart",
     "rankingPosition": "#{rank} in ranking",
     "units": "units",
-    "readReview": "Read review"
+    "readReview": "Read review",
+    "addedOn": "Added on {date}",
+    "fipeOf": "FIPE price of {month}",
+    "reviewOn": "Reviewed on {date}"
   },
   "financing": {
     "title": "Financing Simulator",
@@ -142,6 +145,9 @@
     "metaDescription": "Full technical specifications of the {brand} {model} {year}: engine, consumption, dimensions, safety, FIPE price {price} and sales data.",
     "priceFipe": "FIPE price",
     "priceZeroKm": "0km price (FIPE table)",
+    "priceRef": "FIPE price of {month}",
+    "addedOn": "Added on {date}",
+    "reviewOn": "Reviewed on {date}",
     "depreciation12m": "12-month depreciation",
     "specs": "Technical specifications",
     "editorial": "Kimeru Review",

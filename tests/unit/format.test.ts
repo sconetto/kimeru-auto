@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatSpecValue } from "@/lib/format";
+import { formatDate, formatMonthYear, formatSpecValue } from "@/lib/format";
 
 describe("formatSpecValue", () => {
   it("formats an integer numeric value with unit", () => {
@@ -52,7 +52,7 @@ describe("formatSpecValue", () => {
     ).toBe("12,34 km/kWh");
   });
 
-  it("prefixes currency units (R$ before the value)", () => {
+  it("prefixes currency units (R$ before the value) with two decimals", () => {
     expect(
       formatSpecValue({
         value: "129993.00",
@@ -60,7 +60,7 @@ describe("formatSpecValue", () => {
         unit: "R$",
         isNumeric: true,
       }),
-    ).toBe("R$ 129.993");
+    ).toBe("R$ 129.993,00");
   });
 
   it("suffixes percent units without a space", () => {
@@ -78,5 +78,13 @@ describe("formatSpecValue", () => {
         isNumeric: true,
       }),
     ).toBe("Airbag frontal duplo");
+  });
+
+  it("formats a month/year reference date", () => {
+    expect(formatMonthYear(new Date(2026, 7, 12))).toBe("08/2026");
+  });
+
+  it("formats an added-on full date", () => {
+    expect(formatDate(new Date(2026, 7, 12))).toBe("12/08/2026");
   });
 });

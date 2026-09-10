@@ -131,7 +131,7 @@ export const seedSpecCategories: NewSpecCategory[] = [
   {
     name: "Torque",
     slug: "torque",
-    unit: "kgfm",
+    unit: "kgf·m",
     displayOrder: 15,
     group: "engine",
     higherIsBetter: true,

@@ -55,7 +55,10 @@
     "radarAria": "Gráfico radar de comparação de veículos",
     "rankingPosition": "#{rank} no ranking",
     "units": "unidades",
-    "readReview": "Ler review"
+    "readReview": "Ler review",
+    "addedOn": "Adicionado em {date}",
+    "fipeOf": "Preço FIPE de {month}",
+    "reviewOn": "Review em {date}"
   },
   "financing": {
     "title": "Simulador de Financiamento",
@@ -142,6 +145,9 @@
     "metaDescription": "Ficha técnica completa do {brand} {model} {year}: motor, consumo, dimensões, segurança, preço FIPE {price} e dados de vendas.",
     "priceFipe": "Preço FIPE",
     "priceZeroKm": "Preço 0km (Tabela FIPE)",
+    "priceRef": "Preço FIPE de {month}",
+    "addedOn": "Adicionado em {date}",
+    "reviewOn": "Review em {date}",
     "depreciation12m": "Depreciação 12m",
     "specs": "Especificações técnicas",
     "editorial": "Avaliação Kimeru",
