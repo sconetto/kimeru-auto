@@ -1,37 +1,54 @@
-import { asc, count, eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { ImportExportControls } from "@/components/admin/import-export-controls";
 import { db } from "@/lib/db";
-import { brands, models, modelVersions, modelYears, vehicleCategories } from "@/lib/db/schema";
+import { brands, models, modelVersions, vehicleCategories } from "@/lib/db/schema";
 import { categoryLabels } from "@/lib/format-labels";
-import { ModelRow } from "./model-row";
+import { CarsTable } from "./cars-table";
 import { NewModelForm } from "./new-model-form";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminCarsPage() {
-  const allBrands = await db.select().from(brands).orderBy(asc(brands.name));
-  const categories = await db
-    .select()
-    .from(vehicleCategories)
-    .orderBy(asc(vehicleCategories.displayOrder));
+  const [allBrands, categories, modelRows, versionRows] = await Promise.all([
+    db.select().from(brands).orderBy(asc(brands.name)),
+    db.select().from(vehicleCategories).orderBy(asc(vehicleCategories.displayOrder)),
+    db
+      .select({
+        id: models.id,
+        name: models.name,
+        slug: models.slug,
+        category: models.category,
+        isActive: models.isActive,
+        brandId: models.brandId,
+        brandName: brands.name,
+      })
+      .from(models)
+      .innerJoin(brands, eq(brands.id, models.brandId))
+      .orderBy(asc(brands.name), asc(models.name)),
+    db
+      .select({
+        id: modelVersions.id,
+        modelId: modelVersions.modelId,
+        name: modelVersions.name,
+        slug: modelVersions.slug,
+      })
+      .from(modelVersions)
+      .orderBy(asc(modelVersions.name)),
+  ]);
 
-  const rows = await db
-    .select({
-      id: models.id,
-      name: models.name,
-      slug: models.slug,
-      category: models.category,
-      isActive: models.isActive,
-      brandId: models.brandId,
-      brandName: brands.name,
-      yearCount: count(modelYears.id),
-    })
-    .from(models)
-    .innerJoin(brands, eq(brands.id, models.brandId))
-    .leftJoin(modelVersions, eq(modelVersions.modelId, models.id))
-    .leftJoin(modelYears, eq(modelYears.modelVersionId, modelVersions.id))
-    .groupBy(models.id, brands.name)
-    .orderBy(asc(brands.name), asc(models.name));
+  const versionsByModel = new Map<number, { id: number; name: string; slug: string }[]>();
+  for (const v of versionRows) {
+    const list = versionsByModel.get(v.modelId) ?? [];
+    list.push({ id: v.id, name: v.name, slug: v.slug });
+    versionsByModel.set(v.modelId, list);
+  }
+
+  const modelsList = modelRows.map((m) => ({
+    ...m,
+    yearCount: 0,
+    categoryLabel: m.category ? (categoryLabels[m.category] ?? m.category) : "Não informado",
+    versions: versionsByModel.get(m.id) ?? [],
+  }));
 
   return (
     <div className="space-y-8">
@@ -45,35 +62,7 @@ export default async function AdminCarsPage() {
 
       <NewModelForm brands={allBrands} categories={categories} />
 
-      <div className="overflow-hidden rounded-lg border border-slate-800">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-800 bg-slate-900 text-left text-xs uppercase tracking-wide text-slate-400">
-              <th className="px-4 py-3">Modelo</th>
-              <th className="px-4 py-3">Marca</th>
-              <th className="px-4 py-3">Categoria</th>
-              <th className="px-4 py-3">Versões</th>
-              <th className="px-4 py-3 text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <ModelRow
-                key={row.id}
-                model={{
-                  ...row,
-                  categoryLabel: row.category
-                    ? (categoryLabels[row.category] ?? row.category)
-                    : "Não informado",
-                }}
-              />
-            ))}
-          </tbody>
-        </table>
-        {rows.length === 0 && (
-          <p className="p-8 text-center text-slate-500">Nenhum modelo cadastrado.</p>
-        )}
-      </div>
+      <CarsTable models={modelsList} />
     </div>
   );
 }
