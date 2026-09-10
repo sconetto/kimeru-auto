@@ -1,8 +1,13 @@
 import { expect, test } from "@playwright/test";
+import { compareModelYearIds } from "./helpers/compare-options";
 
 test.describe("Compare radar overview", () => {
-  test("radar section renders with winner badge when comparing 2+ cars", async ({ page }) => {
-    await page.goto("/pt-BR/compare?cars=hb20,onix");
+  test("radar section renders with winner badge when comparing 2+ cars", async ({
+    page,
+    request,
+  }) => {
+    const [hb20, onix] = await compareModelYearIds(request, ["hb20", "onix"]);
+    await page.goto(`/pt-BR/compare?cars=${hb20},${onix}`);
     await expect(page.getByRole("heading", { name: /Visão geral/ })).toBeVisible();
     await expect(page.getByText(/(Melhor no geral:|Empate técnico:|Empate geral)/)).toBeVisible();
     await expect(
@@ -14,15 +19,17 @@ test.describe("Compare radar overview", () => {
     await expect(page.getByText("Onix", { exact: true }).first()).toBeVisible();
   });
 
-  test("shows which car leads each category", async ({ page }) => {
-    await page.goto("/pt-BR/compare?cars=strada,hb20,onix");
+  test("shows which car leads each category", async ({ page, request }) => {
+    const [strada, hb20, onix] = await compareModelYearIds(request, ["strada", "hb20", "onix"]);
+    await page.goto(`/pt-BR/compare?cars=${strada},${hb20},${onix}`);
     await expect(page.getByText("Quem lidera cada categoria")).toBeVisible();
     // Cars that lead at least one category appear with "lidera em:"
     await expect(page.getByText(/lidera em:/).first()).toBeVisible();
   });
 
-  test("radar hidden with a single car", async ({ page }) => {
-    await page.goto("/pt-BR/compare?cars=hb20");
+  test("radar hidden with a single car", async ({ page, request }) => {
+    const [hb20] = await compareModelYearIds(request, ["hb20"]);
+    await page.goto(`/pt-BR/compare?cars=${hb20}`);
     await expect(page.getByRole("heading", { name: /Visão geral/ })).toHaveCount(0);
   });
 });

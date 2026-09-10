@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { compareModelYearIds } from "./helpers/compare-options";
 
 /**
  * Critical user journey: browse → compare → finance.
@@ -57,8 +58,9 @@ test.describe("Public user journeys", () => {
     expect(resp?.status()).toBe(404);
   });
 
-  test("comparison page with two cars via URL", async ({ page }) => {
-    await page.goto("/pt-BR/compare?cars=hb20,onix");
+  test("comparison page with two cars via URL", async ({ page, request }) => {
+    const [hb20, onix] = await compareModelYearIds(request, ["hb20", "onix"]);
+    await page.goto(`/pt-BR/compare?cars=${hb20},${onix}`);
     await expect(page.getByRole("heading", { name: "Comparar Carros" })).toBeVisible();
     // Both cars in the table header
     await expect(page.getByText(/HB20/i).first()).toBeVisible();
@@ -86,8 +88,9 @@ test.describe("Public user journeys", () => {
     await expect(page.getByText("Compare cars and decide with confidence")).toBeVisible();
   });
 
-  test("locale routing: EN-US compare page shows English UI", async ({ page }) => {
-    await page.goto("/en-US/compare?cars=hb20,onix");
+  test("locale routing: EN-US compare page shows English UI", async ({ page, request }) => {
+    const [hb20, onix] = await compareModelYearIds(request, ["hb20", "onix"]);
+    await page.goto(`/en-US/compare?cars=${hb20},${onix}`);
     await expect(page.getByRole("heading", { name: "Compare Cars" })).toBeVisible();
     await expect(page.getByText("Share")).toBeVisible();
   });
