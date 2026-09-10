@@ -516,6 +516,7 @@ export function CompareClient({ initialCars }: Props) {
 function GroupRows({ group, cars }: { group: { group: string; rows: Row[] }; cars: CompareCar[] }) {
   const label = specGroupLabels[group.group] ?? group.group;
   const locale = useLocale();
+  const t = useTranslations("compare");
   const tCommon = useTranslations("common");
 
   return (
@@ -533,11 +534,11 @@ function GroupRows({ group, cars }: { group: { group: string; rows: Row[] }; car
           <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300">
             {row.name}
             {row.isConsumption && (
-              <span
-                title="Consumo convertido para km/kWh para comparação entre combustíveis e elétricos. Gasolina ≈ 8,9 kWh/L; etanol ≈ 6,4 kWh/L."
-                className="ml-1 inline-flex cursor-help align-middle text-slate-400"
-              >
+              <span className="group/info relative ml-1 inline-flex cursor-help align-middle text-slate-400">
                 <Info className="h-3.5 w-3.5" />
+                <span className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 hidden w-64 -translate-x-1/2 rounded-md bg-slate-900 px-3 py-2 text-left text-xs font-normal normal-case leading-snug text-slate-100 shadow-lg group-hover/info:block dark:bg-slate-700">
+                  {t("consumptionConversion")}
+                </span>
               </span>
             )}
           </td>

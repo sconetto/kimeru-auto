@@ -50,6 +50,7 @@
     "wonIn": "Won in: {categories}",
     "mixedCategoriesWarning": "You are comparing vehicles from different categories ({categories}). Results may not reflect a fair comparison between distinct segments.",
     "mixedPowertrainsWarning": "You are comparing vehicles with different powertrains ({powertrains}). Consumption and engine specs are mapped (km/kWh) but are inherently different.",
+    "consumptionConversion": "Consumption converted to km/kWh to compare combustion and electric vehicles. Gasoline ≈ 8.9 kWh/L; ethanol ≈ 6.4 kWh/L.",
     "zeroKm": "0km",
     "used": "used",
     "radarAria": "Vehicle comparison radar chart",
