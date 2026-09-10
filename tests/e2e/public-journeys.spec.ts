@@ -39,9 +39,9 @@ test.describe("Public user journeys", () => {
     await expect(page.getByRole("heading", { name: "Desempenho" })).toBeVisible();
     // Score breakdown labels
     await expect(page.getByText("Custo-benefício", { exact: true })).toBeVisible();
-    // Source video cards and transcripts
+    // Source videos render; raw transcripts are intentionally hidden from users
     await expect(page.getByText("Baseado em análises de:", { exact: true })).toBeVisible();
-    await expect(page.getByText("Transcrições dos vídeos", { exact: true })).toBeVisible();
+    await expect(page.getByText("Transcrições dos vídeos", { exact: true })).toHaveCount(0);
   });
 
   test("review index lists published reviews", async ({ page }) => {
