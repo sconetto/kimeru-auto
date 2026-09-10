@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom";
 import type { ModelYear, SpecCategory, SpecValue } from "@/lib/db/schema";
 import { fuelType } from "@/lib/db/schema";
 import { fuelLabels } from "@/lib/format-labels";
-import { deleteModelYear, updateModelYear } from "../actions";
+import { deleteModelYear, renameModelVersion, updateModelYear } from "../actions";
 import { SpecValuesEditor } from "./specs/spec-values-editor";
 
 const inputClass =
@@ -16,16 +16,30 @@ export function ModelYearCard({
   categories,
   existing,
 }: {
-  year: ModelYear;
+  year: ModelYear & { modelVersionId: number; versionName: string };
   categories: SpecCategory[];
   existing: SpecValue[];
 }) {
+  const displayName = year.versionName !== "Padrão" ? year.versionName : "";
   return (
     <div className="space-y-4 rounded-lg border border-slate-800 bg-slate-900 p-5">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-white">
-          Versão {year.year} · {fuelLabels[year.fuelType] ?? year.fuelType}
-        </h3>
+        <div className="min-w-0 flex-1">
+          <form action={renameModelVersion} className="flex items-center gap-2">
+            <input type="hidden" name="id" value={year.modelVersionId} />
+            <input
+              name="name"
+              defaultValue={displayName}
+              placeholder="Nome da versão"
+              className={`w-64 ${inputClass}`}
+            />
+            <RenameSubmitButton />
+          </form>
+          <p className="mt-1 text-xs text-slate-500">
+            {year.year} · {fuelLabels[year.fuelType] ?? year.fuelType}
+            {year.isZeroKm ? " · 0km" : ""}
+          </p>
+        </div>
         <form
           action={deleteModelYear}
           onSubmit={(e) => {
@@ -125,6 +139,20 @@ function YearSubmitButton() {
       className="rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-500 disabled:opacity-50"
     >
       {pending ? "..." : "Salvar versão"}
+    </button>
+  );
+}
+
+function RenameSubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      title="Renomear versão"
+      className="rounded-md bg-slate-800 px-2.5 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-slate-700 disabled:opacity-50"
+    >
+      {pending ? "..." : "Renomear"}
     </button>
   );
 }

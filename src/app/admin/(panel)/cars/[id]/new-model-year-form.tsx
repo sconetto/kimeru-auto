@@ -14,9 +14,18 @@ export function NewModelYearForm({ modelId }: { modelId: number }) {
       action={createModelYear}
       className="space-y-4 rounded-lg border border-slate-800 bg-slate-900 p-5"
     >
-      <h3 className="text-sm font-semibold text-white">Nova versão (model year)</h3>
+      <h3 className="text-sm font-semibold text-white">Nova versão</h3>
       <input type="hidden" name="modelId" value={modelId} />
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+        <label className="text-xs text-slate-500">
+          Nome da versão
+          <input
+            name="name"
+            required
+            placeholder="ex: Comfort 43 kWh"
+            className={`mt-1 w-full ${inputClass}`}
+          />
+        </label>
         <label className="text-xs text-slate-500">
           Ano
           <input

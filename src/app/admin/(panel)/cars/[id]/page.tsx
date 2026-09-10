@@ -31,6 +31,7 @@ export default async function EditModelPage({ params }: { params: Promise<{ id: 
       .select({
         id: modelYears.id,
         modelVersionId: modelYears.modelVersionId,
+        versionName: modelVersions.name,
         year: modelYears.year,
         fuelType: modelYears.fuelType,
         powertrain: modelYears.powertrain,
@@ -44,7 +45,7 @@ export default async function EditModelPage({ params }: { params: Promise<{ id: 
       .from(modelYears)
       .innerJoin(modelVersions, eq(modelVersions.id, modelYears.modelVersionId))
       .where(eq(modelVersions.modelId, modelId))
-      .orderBy(desc(modelYears.year)),
+      .orderBy(asc(modelVersions.id), desc(modelYears.year)),
   ]);
 
   const yearIds = years.map((y) => y.id);
