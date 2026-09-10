@@ -631,6 +631,13 @@ export const seedBrands: SeedBrand[] = [
   { name: "BYD", slug: "byd", originCountry: "China", fipeCode: "238", logoUrl: "/logos/byd.png" },
   { name: "GWM", slug: "gwm", originCountry: "China", fipeCode: "240", logoUrl: "/logos/gwm.png" },
   {
+    name: "Geely",
+    slug: "geely",
+    originCountry: "China",
+    fipeCode: "199",
+    logoUrl: "/logos/geely.png",
+  },
+  {
     name: "Caoa Chery",
     slug: "caoa-chery",
     originCountry: "China",

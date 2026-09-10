@@ -14,7 +14,13 @@ interface Top50Entry {
   fuelType: FuelType;
 }
 
-const GEELY = { name: "Geely", slug: "geely", originCountry: "China" };
+const GEELY = {
+  name: "Geely",
+  slug: "geely",
+  originCountry: "China",
+  fipeCode: "199",
+  logoUrl: "/logos/geely.png",
+};
 
 const TOP50: Top50Entry[] = [
   { brandSlug: "fiat", name: "Strada", slug: "strada", category: "pickup", fuelType: "flex" },
