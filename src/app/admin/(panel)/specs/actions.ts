@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { logAudit } from "@/lib/admin/audit";
 import { requireRole } from "@/lib/auth/require-role";
+import { revalidateCatalog } from "@/lib/catalog/revalidate";
 import { slugify } from "@/lib/catalog/slug";
 import { db } from "@/lib/db";
 import { fuelType, specCategories, specGroup } from "@/lib/db/schema";
@@ -60,6 +61,7 @@ export async function createSpecCategory(formData: FormData) {
   });
   revalidatePath("/admin/specs");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 export async function deleteSpecCategory(formData: FormData) {
@@ -70,6 +72,7 @@ export async function deleteSpecCategory(formData: FormData) {
   await logAudit({ adminId, action: "delete", entityType: "spec_category", entityId: id });
   revalidatePath("/admin/specs");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 const updateSpecCategorySchema = z.object({
@@ -129,4 +132,5 @@ export async function updateSpecCategory(formData: FormData) {
   });
   revalidatePath("/admin/specs");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }

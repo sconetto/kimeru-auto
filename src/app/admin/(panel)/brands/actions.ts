@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { logAudit } from "@/lib/admin/audit";
 import { requireRole } from "@/lib/auth/require-role";
+import { revalidateCatalog } from "@/lib/catalog/revalidate";
 import { slugify } from "@/lib/catalog/slug";
 import { db } from "@/lib/db";
 import { brands } from "@/lib/db/schema";
@@ -48,6 +49,7 @@ export async function createBrand(formData: FormData) {
   });
   revalidatePath("/admin/brands");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 export async function toggleBrand(formData: FormData) {
@@ -61,6 +63,7 @@ export async function toggleBrand(formData: FormData) {
   await logAudit({ adminId, action: "toggle_active", entityType: "brand", entityId: id });
   revalidatePath("/admin/brands");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 export async function deleteBrand(formData: FormData) {
@@ -71,6 +74,7 @@ export async function deleteBrand(formData: FormData) {
   await logAudit({ adminId, action: "delete", entityType: "brand", entityId: id });
   revalidatePath("/admin/brands");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 const updateBrandSchema = z.object({
@@ -123,4 +127,5 @@ export async function updateBrand(formData: FormData) {
   });
   revalidatePath("/admin/brands");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }

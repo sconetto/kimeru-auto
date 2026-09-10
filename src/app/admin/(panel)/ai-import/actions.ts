@@ -6,6 +6,7 @@ import { z } from "zod";
 import { logAudit } from "@/lib/admin/audit";
 import { requireRole } from "@/lib/auth/require-role";
 import { powertrainOf } from "@/lib/catalog/powertrain";
+import { revalidateCatalog } from "@/lib/catalog/revalidate";
 import { slugify } from "@/lib/catalog/slug";
 import { resolveOrCreateVersion } from "@/lib/catalog/versions";
 import { db } from "@/lib/db";
@@ -157,6 +158,7 @@ export async function createCarFromAi(payload: unknown): Promise<CreateCarResult
   });
   revalidatePath("/admin/cars");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 
   return { ok: true, modelId: insertedModel.id };
 }

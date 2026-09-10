@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { logAudit } from "@/lib/admin/audit";
 import { requireRole } from "@/lib/auth/require-role";
+import { revalidateCatalog } from "@/lib/catalog/revalidate";
 import { db } from "@/lib/db";
 import { editorial, editorialLocale } from "@/lib/db/schema";
 
@@ -93,6 +94,7 @@ export async function saveEditorial(formData: FormData) {
   });
   revalidatePath("/admin/editorial");
   revalidatePath("/", "layout");
+  revalidateCatalog();
   redirect("/admin/editorial");
 }
 
@@ -115,6 +117,7 @@ export async function unpublishEditorial(formData: FormData) {
   });
   revalidatePath("/admin/editorial");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 /** Permanently delete editorial content (admin only). */
@@ -127,4 +130,5 @@ export async function deleteEditorial(formData: FormData) {
   await logAudit({ adminId, action: "delete", entityType: "editorial", entityId: id });
   revalidatePath("/admin/editorial");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }

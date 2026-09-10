@@ -1,4 +1,5 @@
 import { and, asc, count, desc, eq, getTableColumns, sql } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import type {
   EditorialScoreBreakdown,
@@ -114,7 +115,7 @@ export interface CarDetail {
 /* ------------------------------------------------------------------ */
 
 /** All active brands with their model counts. */
-export async function getBrandsWithCounts(): Promise<BrandWithCount[]> {
+async function getBrandsWithCountsImpl(): Promise<BrandWithCount[]> {
   const rows = await db
     .select({
       id: brands.id,
@@ -133,8 +134,14 @@ export async function getBrandsWithCounts(): Promise<BrandWithCount[]> {
   return rows.map((r) => ({ ...r, modelCount: Number(r.modelCount) }));
 }
 
+/** Cached brands-with-counts (Data Cache, 1h). Tagged for admin invalidation. */
+export const getBrandsWithCounts = unstable_cache(getBrandsWithCountsImpl, ["brands-with-counts"], {
+  revalidate: 3600,
+  tags: ["catalog"],
+});
+
 /** A single brand by slug, regardless of whether it has models yet. */
-export async function getBrandBySlug(slug: string): Promise<BrandWithCount | null> {
+async function getBrandBySlugImpl(slug: string): Promise<BrandWithCount | null> {
   const rows = await db
     .select({
       id: brands.id,
@@ -154,8 +161,14 @@ export async function getBrandBySlug(slug: string): Promise<BrandWithCount | nul
   return row ? { ...row, modelCount: Number(row.modelCount) } : null;
 }
 
+/** Cached brand-by-slug (Data Cache, 1h). Tagged for admin invalidation. */
+export const getBrandBySlug = unstable_cache(getBrandBySlugImpl, ["brand-by-slug"], {
+  revalidate: 3600,
+  tags: ["catalog"],
+});
+
 /** Models for a brand, grouped by category, with latest price + sales. */
-export async function getModelsByBrand(brandSlug: string): Promise<ModelCard[]> {
+async function getModelsByBrandImpl(brandSlug: string): Promise<ModelCard[]> {
   const rows = await db
     .select({
       id: models.id,
@@ -217,6 +230,12 @@ export async function getModelsByBrand(brandSlug: string): Promise<ModelCard[]> 
   }));
 }
 
+/** Cached models-by-brand (Data Cache, 1h). Tagged for admin invalidation. */
+export const getModelsByBrand = unstable_cache(getModelsByBrandImpl, ["models-by-brand"], {
+  revalidate: 3600,
+  tags: ["catalog"],
+});
+
 /** Grouped specs for a model year, filtered to the specs applicable to its fuel type. */
 async function getGroupedSpecs(
   modelYearId: number,
@@ -268,7 +287,7 @@ async function getGroupedSpecs(
 }
 
 /** Full detail for a car detail page. locale-aware editorial with pt-BR fallback. */
-export async function getCarDetail(
+async function getCarDetailImpl(
   modelSlug: string,
   locale: (typeof editorialLocale.enumValues)[number] = "pt-BR",
 ): Promise<CarDetail | null> {
@@ -414,8 +433,14 @@ export async function getCarDetail(
   };
 }
 
+/** Cached car detail (Data Cache, 1h). Tagged so admin edits invalidate it. */
+export const getCarDetail = unstable_cache(getCarDetailImpl, ["car-detail"], {
+  revalidate: 3600,
+  tags: ["catalog"],
+});
+
 /** All active models across brands (for search + category pages). */
-export async function getAllActiveModels(): Promise<ModelCard[]> {
+async function getAllActiveModelsImpl(): Promise<ModelCard[]> {
   const rows = await db
     .select({
       id: models.id,
@@ -476,6 +501,12 @@ export async function getAllActiveModels(): Promise<ModelCard[]> {
     salesYear: r.salesYear,
   }));
 }
+
+/** Cached active models (Data Cache, 1h). Tagged for admin invalidation. */
+export const getAllActiveModels = unstable_cache(getAllActiveModelsImpl, ["active-models"], {
+  revalidate: 3600,
+  tags: ["catalog"],
+});
 
 /* ------------------------------------------------------------------ */
 /* Comparison data                                                     */
@@ -620,7 +651,7 @@ export interface CompareOptionBrand {
  * Only model-years that have at least one spec value are included, so every
  * offered car is actually comparable.
  */
-export async function getCompareOptions(): Promise<CompareOptionBrand[]> {
+async function getCompareOptionsImpl(): Promise<CompareOptionBrand[]> {
   const rows = await db
     .select({
       brandId: brands.id,
@@ -672,6 +703,12 @@ export async function getCompareOptions(): Promise<CompareOptionBrand[]> {
   return [...brandsMap.values()];
 }
 
+/** Cached compare-options tree (Data Cache, 1h). Tagged for admin invalidation. */
+export const getCompareOptions = unstable_cache(getCompareOptionsImpl, ["compare-options"], {
+  revalidate: 3600,
+  tags: ["catalog"],
+});
+
 export interface SalesRankingRow {
   modelId: number;
   modelSlug: string;
@@ -685,7 +722,7 @@ export interface SalesRankingRow {
 }
 
 /** Top-selling models for the latest month with data. */
-export async function getSalesRankings(): Promise<SalesRankingRow[]> {
+async function getSalesRankingsImpl(): Promise<SalesRankingRow[]> {
   const [latest] = await db
     .select({ year: salesRankings.year, month: salesRankings.month })
     .from(salesRankings)
@@ -719,6 +756,12 @@ export async function getSalesRankings(): Promise<SalesRankingRow[]> {
     rankingPosition: Number(r.rankingPosition ?? 999),
   }));
 }
+
+/** Cached top-50 sales rankings (Data Cache, 1h). Tagged for sync invalidation. */
+export const getSalesRankings = unstable_cache(getSalesRankingsImpl, ["sales-rankings"], {
+  revalidate: 3600,
+  tags: ["sales"],
+});
 
 /** Monthly sales series for a model family (sparkline data). */
 export async function getSalesTrend(

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { logAudit } from "@/lib/admin/audit";
 import { requireRole } from "@/lib/auth/require-role";
+import { revalidateCatalog } from "@/lib/catalog/revalidate";
 import { slugify } from "@/lib/catalog/slug";
 import { db } from "@/lib/db";
 import { specGroups, vehicleCategories } from "@/lib/db/schema";
@@ -68,6 +69,7 @@ export async function createVehicleCategory(formData: FormData) {
   });
   revalidatePath("/admin/types");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 export async function updateVehicleCategory(formData: FormData) {
@@ -107,6 +109,7 @@ export async function updateVehicleCategory(formData: FormData) {
   });
   revalidatePath("/admin/types");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 export async function deleteVehicleCategory(formData: FormData) {
@@ -118,6 +121,7 @@ export async function deleteVehicleCategory(formData: FormData) {
   await logAudit({ adminId, action: "delete", entityType: "vehicle_category", entityId: id });
   revalidatePath("/admin/types");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 export async function createSpecGroup(formData: FormData) {
@@ -152,6 +156,7 @@ export async function createSpecGroup(formData: FormData) {
   });
   revalidatePath("/admin/types");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 export async function updateSpecGroup(formData: FormData) {
@@ -185,6 +190,7 @@ export async function updateSpecGroup(formData: FormData) {
   });
   revalidatePath("/admin/types");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 export async function deleteSpecGroup(formData: FormData) {
@@ -196,6 +202,7 @@ export async function deleteSpecGroup(formData: FormData) {
   await logAudit({ adminId, action: "delete", entityType: "spec_group", entityId: id });
   revalidatePath("/admin/types");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 /** Move a vehicle category or spec group up/down by swapping display order. */
@@ -238,6 +245,7 @@ export async function reorderType(formData: FormData) {
   });
   revalidatePath("/admin/types");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 export async function listTypes() {

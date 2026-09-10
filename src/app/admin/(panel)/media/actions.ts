@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { logAudit } from "@/lib/admin/audit";
 import { requireRole } from "@/lib/auth/require-role";
+import { revalidateCatalog } from "@/lib/catalog/revalidate";
 import { db } from "@/lib/db";
 import { mediaAssets } from "@/lib/db/schema";
 import { deleteImage } from "@/lib/media/storage";
@@ -28,4 +29,5 @@ export async function deleteMediaAsset(formData: FormData) {
   });
   revalidatePath("/admin/media");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }

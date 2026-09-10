@@ -6,6 +6,7 @@ import { z } from "zod";
 import { logAudit } from "@/lib/admin/audit";
 import { requireRole } from "@/lib/auth/require-role";
 import { powertrainOf } from "@/lib/catalog/powertrain";
+import { revalidateCatalog } from "@/lib/catalog/revalidate";
 import { slugify } from "@/lib/catalog/slug";
 import { resolveOrCreateVersion } from "@/lib/catalog/versions";
 import { db } from "@/lib/db";
@@ -66,6 +67,7 @@ export async function createModel(formData: FormData) {
   });
   revalidatePath("/admin/cars");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 export async function createModelYear(formData: FormData) {
@@ -96,6 +98,7 @@ export async function createModelYear(formData: FormData) {
   await logAudit({ adminId, action: "create", entityType: "model_year", entityId: inserted.id });
   revalidatePath("/admin/cars");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 const updateModelSchema = z.object({
@@ -151,6 +154,7 @@ export async function updateModel(formData: FormData) {
   });
   revalidatePath("/admin/cars");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 const updateModelYearSchema = z.object({
@@ -210,6 +214,7 @@ export async function updateModelYear(formData: FormData) {
   revalidatePath("/admin/cars");
   revalidatePath("/admin/model-years");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 export async function deleteModel(formData: FormData) {
@@ -220,6 +225,7 @@ export async function deleteModel(formData: FormData) {
   await logAudit({ adminId, action: "delete", entityType: "model", entityId: id });
   revalidatePath("/admin/cars");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 export async function deleteModelYear(formData: FormData) {
@@ -230,6 +236,7 @@ export async function deleteModelYear(formData: FormData) {
   await logAudit({ adminId, action: "delete", entityType: "model_year", entityId: id });
   revalidatePath("/admin/cars");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }
 
 export async function renameModelVersion(formData: FormData) {
@@ -251,4 +258,5 @@ export async function renameModelVersion(formData: FormData) {
   });
   revalidatePath("/admin/cars");
   revalidatePath("/", "layout");
+  revalidateCatalog();
 }

@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { brands, models, modelVersions, modelYears } from "@/lib/db/schema";
 import { type FipeVehicleType, fipeClient } from "./client";
 import { updateModelYearPrice } from "./history";
-import { warmFipePrice } from "./service";
+import { isDbPriceFresh, warmFipePrice } from "./service";
 
 /**
  * Monthly FIPE sync job.
@@ -11,11 +11,13 @@ import { warmFipePrice } from "./service";
  * Brands/models are admin-curated (the catalog is the source of truth for
  * names); FIPE is the price authority. For each local model year we:
  *
- *  1. Match the local brand to a FIPE brand by normalized name.
- *  2. Find candidate FIPE models by name prefix match.
- *  3. Among candidates, prefer the one whose year list contains the
+ *  1. Skip model-years whose stored price is fresher than the DB freshness
+ *     window (30 days) — DB-first, so the monthly run barely touches FIPE.
+ *  2. Match the local brand to a FIPE brand by normalized name.
+ *  3. Find candidate FIPE models by name prefix match.
+ *  4. Among candidates, prefer the one whose year list contains the
  *     local year (versions diverge — "Corolla XLi" vs "Corolla Altis").
- *  4. Warm the price into cache and snapshot history.
+ *  5. Warm the price into cache and snapshot history.
  *
  * Run via cron: `npm run fipe:sync` (see .github/workflows/fipe-sync.yml).
  */
@@ -97,6 +99,9 @@ export async function syncFipeReferenceData(): Promise<SyncResult> {
 
       // For each local year, find the FIPE candidate whose years contain it.
       const yearResults = await mapWithConcurrency(localYears, async (localYear) => {
+        // DB-first: skip when the stored price is fresher than the window.
+        if (isDbPriceFresh(localYear.priceUpdatedAt)) return 0;
+
         const expectedYear = localYear.isZeroKm ? "32000" : String(localYear.year);
 
         for (const candidate of candidates) {
@@ -118,6 +123,7 @@ export async function syncFipeReferenceData(): Promise<SyncResult> {
               Number(fipeBrand.code),
               Number(candidate.code),
               fipeYear.code,
+              localYear.fipeCode ?? undefined,
             );
             if (warmed) {
               await updateModelYearPrice(localYear.id, warmed.price, warmed.referenceMonth);

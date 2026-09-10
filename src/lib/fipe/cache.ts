@@ -3,13 +3,15 @@ import { Redis } from "@upstash/redis";
 /**
  * Redis client for caching FIPE prices and other hot data.
  *
- * Degrades gracefully: if UPSTASH_REDIS_REST_URL is not configured
- * (e.g., local dev without Redis), calls fall back to an in-memory
- * Map with the same interface, so the app never crashes without Redis.
+ * Reads the Vercel KV env vars (KV_REST_API_URL / KV_REST_API_TOKEN) with the
+ * legacy UPSTASH_REDIS_REST_* names as a fallback (local dev). Degrades
+ * gracefully: if neither is configured, calls fall back to an in-memory Map
+ * with the same interface, so the app never crashes without Redis.
  */
 
 const hasRedis = Boolean(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN,
+  (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) ||
+    (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN),
 );
 
 class MemoryFallback {
@@ -68,13 +70,11 @@ class MemoryFallback {
   }
 }
 
-const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
-const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+const kvUrl = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
+const kvToken = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
 
 export const cache: Redis | MemoryFallback =
-  hasRedis && redisUrl && redisToken
-    ? new Redis({ url: redisUrl, token: redisToken })
-    : new MemoryFallback();
+  hasRedis && kvUrl && kvToken ? new Redis({ url: kvUrl, token: kvToken }) : new MemoryFallback();
 
 /** Whether the cache is backed by real Redis (vs. in-memory fallback). */
 export const isPersistentCache = hasRedis;
@@ -85,5 +85,4 @@ export const cacheKeys = {
   fipeModels: (brandId: number) => `fipe:models:${brandId}`,
   fipeYears: (brandId: number, modelId: number) => `fipe:years:${brandId}:${modelId}`,
   fipeNegative: (fipeCode: string, yearId: string) => `fipe:negative:${fipeCode}:${yearId}`,
-  page: (path: string, locale: string) => `page:${locale}:${path}`,
 } as const;
