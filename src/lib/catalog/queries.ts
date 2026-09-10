@@ -482,10 +482,13 @@ export async function getAllActiveModels(): Promise<ModelCard[]> {
 /* ------------------------------------------------------------------ */
 
 export interface CompareCar {
+  modelYearId: number;
   slug: string;
   brandName: string;
   brandLogoUrl: string | null;
   modelName: string;
+  versionName: string;
+  versionSlug: string;
   year: number;
   fuelType: (typeof fuelType.enumValues)[number];
   isZeroKm: boolean;
@@ -505,36 +508,31 @@ export interface CompareCar {
   editorialUpdatedAt: Date | null;
 }
 
-/** Fetch full comparison data for a list of model slugs (max 3). */
-export async function getCompareCars(slugs: string[]): Promise<CompareCar[]> {
-  if (slugs.length === 0) return [];
+/** Fetch full comparison data for a list of modelYearIds (max 3). */
+export async function getCompareCars(modelYearIds: number[]): Promise<CompareCar[]> {
+  if (modelYearIds.length === 0) return [];
 
   const result: CompareCar[] = [];
 
-  for (const slug of slugs.slice(0, 3)) {
-    const [model] = await db
+  for (const modelYearId of modelYearIds.slice(0, 3)) {
+    const [my] = await db
       .select({
-        id: models.id,
-        slug: models.slug,
+        ...getTableColumns(modelYears),
+        modelId: models.id,
+        versionName: modelVersions.name,
+        versionSlug: modelVersions.slug,
+        modelSlug: models.slug,
+        modelName: models.name,
         brandName: brands.name,
         brandLogoUrl: brands.logoUrl,
-        modelName: models.name,
         category: models.category,
         sizeCategory: models.sizeCategory,
       })
-      .from(models)
-      .innerJoin(brands, eq(brands.id, models.brandId))
-      .where(and(eq(models.slug, slug), eq(models.isActive, true)))
-      .limit(1);
-
-    if (!model) continue;
-
-    const [my] = await db
-      .select(getTableColumns(modelYears))
       .from(modelYears)
       .innerJoin(modelVersions, eq(modelVersions.id, modelYears.modelVersionId))
-      .where(and(eq(modelVersions.modelId, model.id), eq(modelVersions.isActive, true)))
-      .orderBy(desc(modelYears.isZeroKm), desc(modelYears.year))
+      .innerJoin(models, eq(models.id, modelVersions.modelId))
+      .innerJoin(brands, eq(brands.id, models.brandId))
+      .where(and(eq(modelYears.id, modelYearId), eq(models.isActive, true)))
       .limit(1);
 
     if (!my) continue;
@@ -549,7 +547,7 @@ export async function getCompareCars(slugs: string[]): Promise<CompareCar[]> {
           year: salesRankings.year,
         })
         .from(salesRankings)
-        .where(eq(salesRankings.modelId, model.id))
+        .where(eq(salesRankings.modelId, my.modelId))
         .orderBy(desc(salesRankings.year), desc(salesRankings.month))
         .limit(1),
       db
@@ -560,18 +558,21 @@ export async function getCompareCars(slugs: string[]): Promise<CompareCar[]> {
     ]);
 
     result.push({
-      slug: model.slug,
-      brandName: model.brandName,
-      brandLogoUrl: model.brandLogoUrl,
-      modelName: model.modelName,
+      modelYearId: my.id,
+      slug: my.modelSlug,
+      brandName: my.brandName,
+      brandLogoUrl: my.brandLogoUrl,
+      modelName: my.modelName,
+      versionName: my.versionName,
+      versionSlug: my.versionSlug,
       year: my.year,
       fuelType: my.fuelType,
       isZeroKm: my.isZeroKm,
       priceFipe: my.priceFipe,
       priceUpdatedAt: my.priceUpdatedAt,
       createdAt: my.createdAt,
-      category: model.category,
-      sizeCategory: model.sizeCategory,
+      category: my.category,
+      sizeCategory: my.sizeCategory,
       specs,
       sales: salesRows[0] ?? null,
       editorialRating: editorialRow[0]?.rating ?? null,
@@ -583,8 +584,93 @@ export async function getCompareCars(slugs: string[]): Promise<CompareCar[]> {
 }
 
 /* ------------------------------------------------------------------ */
-/* Sales rankings (FENABRAVE)                                          */
+/* Compare options (cascade tree for the version-aware selector)       */
 /* ------------------------------------------------------------------ */
+
+export interface CompareOptionYear {
+  id: number;
+  year: number;
+  fuelType: (typeof fuelType.enumValues)[number];
+  isZeroKm: boolean;
+}
+
+export interface CompareOptionVersion {
+  id: number;
+  name: string;
+  slug: string;
+  years: CompareOptionYear[];
+}
+
+export interface CompareOptionModel {
+  id: number;
+  name: string;
+  slug: string;
+  versions: CompareOptionVersion[];
+}
+
+export interface CompareOptionBrand {
+  id: number;
+  name: string;
+  slug: string;
+  models: CompareOptionModel[];
+}
+
+/**
+ * Brand → model → version → year·fuel·0km tree for the comparison selector.
+ * Only model-years that have at least one spec value are included, so every
+ * offered car is actually comparable.
+ */
+export async function getCompareOptions(): Promise<CompareOptionBrand[]> {
+  const rows = await db
+    .select({
+      brandId: brands.id,
+      brandName: brands.name,
+      brandSlug: brands.slug,
+      modelId: models.id,
+      modelName: models.name,
+      modelSlug: models.slug,
+      versionId: modelVersions.id,
+      versionName: modelVersions.name,
+      versionSlug: modelVersions.slug,
+      yearId: modelYears.id,
+      year: modelYears.year,
+      fuelType: modelYears.fuelType,
+      isZeroKm: modelYears.isZeroKm,
+    })
+    .from(modelYears)
+    .innerJoin(modelVersions, eq(modelVersions.id, modelYears.modelVersionId))
+    .innerJoin(models, eq(models.id, modelVersions.modelId))
+    .innerJoin(brands, eq(brands.id, models.brandId))
+    .where(
+      and(
+        eq(models.isActive, true),
+        sql`exists (select 1 from spec_values sv where sv.model_year_id = ${modelYears.id})`,
+      ),
+    )
+    .orderBy(asc(brands.name), asc(models.name), asc(modelVersions.name), desc(modelYears.year));
+
+  const brandsMap = new Map<number, CompareOptionBrand>();
+  for (const r of rows) {
+    let brand = brandsMap.get(r.brandId);
+    if (!brand) {
+      brand = { id: r.brandId, name: r.brandName, slug: r.brandSlug, models: [] };
+      brandsMap.set(r.brandId, brand);
+    }
+    let model = brand.models.find((m) => m.id === r.modelId);
+    if (!model) {
+      model = { id: r.modelId, name: r.modelName, slug: r.modelSlug, versions: [] };
+      brand.models.push(model);
+    }
+    let version = model.versions.find((v) => v.id === r.versionId);
+    if (!version) {
+      version = { id: r.versionId, name: r.versionName, slug: r.versionSlug, years: [] };
+      model.versions.push(version);
+    }
+    version.years.push({ id: r.yearId, year: r.year, fuelType: r.fuelType, isZeroKm: r.isZeroKm });
+  }
+
+  return [...brandsMap.values()];
+}
 
 export interface SalesRankingRow {
   modelId: number;

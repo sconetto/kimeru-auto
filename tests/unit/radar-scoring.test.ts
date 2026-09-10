@@ -27,10 +27,13 @@ function makeCar(
     groups.set(group, entry);
   }
   return {
+    modelYearId: 1,
     slug,
     brandName: "Marca",
     brandLogoUrl: null,
     modelName: slug,
+    versionName: "Versão",
+    versionSlug: "versao",
     year: 2025,
     fuelType: "flex",
     isZeroKm: true,

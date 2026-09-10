@@ -6,12 +6,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { BrandLogo } from "@/components/catalog/brand-logo";
 import { RadarChart } from "@/components/compare/radar-chart";
 import { powertrainOf } from "@/lib/catalog/powertrain";
-import type { CompareCar, ModelCard } from "@/lib/catalog/queries";
+import type { CompareCar, CompareOptionBrand, CompareOptionYear } from "@/lib/catalog/queries";
 import { isConsumptionSlug, toKmPerKwh } from "@/lib/compare/consumption";
+import { excludeSelectedYears } from "@/lib/compare/options";
 import { bestCarIndices, computeRadarScores } from "@/lib/compare/scoring";
 import { formatBRL, formatDate, formatMonthYear, formatSpecValue } from "@/lib/format";
 import {
   categoryLabels,
+  fuelLabels,
   powertrainLabels,
   sizeCategoryLabels,
   specGroupLabels,
@@ -42,40 +44,40 @@ export function CompareClient({ initialCars }: Props) {
   const [cars, setCars] = useState<CompareCar[]>(initialCars);
   const [error, setError] = useState<string | null>(null);
 
-  const carsSlugs = cars.map((c) => c.slug).join(",");
-  const initialSlugs = initialCars.map((c) => c.slug).join(",");
+  const carsIds = cars.map((c) => c.modelYearId).join(",");
+  const initialIds = initialCars.map((c) => c.modelYearId).join(",");
   useEffect(() => {
-    if (initialSlugs !== carsSlugs) {
+    if (initialIds !== carsIds) {
       setCars(initialCars);
     }
-  }, [initialSlugs, carsSlugs, initialCars]);
+  }, [initialIds, carsIds, initialCars]);
 
   /* ---------------- Car selection ---------------- */
 
-  const addCar = (slug: string) => {
+  const addCar = (modelYearId: number) => {
     if (cars.length >= MAX_CARS) {
       setError(t("maxCars"));
       return;
     }
-    if (cars.some((c) => c.slug === slug)) {
+    if (cars.some((c) => c.modelYearId === modelYearId)) {
       setError(t("alreadyAdded"));
       return;
     }
-    const next = [...cars.map((c) => c.slug), slug];
+    const next = [...cars.map((c) => c.modelYearId), modelYearId];
     router.push(`/compare?cars=${next.join(",")}`);
     setError(null);
   };
 
-  const removeCar = (slug: string) => {
-    const next = cars.filter((c) => c.slug !== slug);
+  const removeCar = (modelYearId: number) => {
+    const next = cars.filter((c) => c.modelYearId !== modelYearId);
     router.push(
-      next.length > 0 ? `/compare?cars=${next.map((c) => c.slug).join(",")}` : `/compare`,
+      next.length > 0 ? `/compare?cars=${next.map((c) => c.modelYearId).join(",")}` : `/compare`,
     );
     setError(null);
   };
 
   const share = async () => {
-    const url = `${window.location.origin}${window.location.pathname}?cars=${cars.map((c) => c.slug).join(",")}`;
+    const url = `${window.location.origin}${window.location.pathname}?cars=${cars.map((c) => c.modelYearId).join(",")}`;
     try {
       await navigator.clipboard.writeText(url);
       setError(null);
@@ -238,6 +240,16 @@ export function CompareClient({ initialCars }: Props) {
     });
   }, [radarScores, cars]);
 
+  const carLabel = (car: CompareCar): string =>
+    `${car.brandName} ${car.modelName}${car.versionName ? ` · ${car.versionName}` : ""}`;
+
+  const carVersionLine = (car: CompareCar): string =>
+    `${car.year}${car.versionName ? ` · ${car.versionName}` : ""} · ${
+      car.isZeroKm ? t("zeroKm") : t("used")
+    }${car.category ? `, ${categoryLabels[car.category] ?? car.category}` : ""}${
+      car.sizeCategory ? `, ${sizeCategoryLabels[car.sizeCategory] ?? car.sizeCategory}` : ""
+    }`;
+
   /* ---------------- Render ---------------- */
 
   if (cars.length === 0) {
@@ -245,12 +257,21 @@ export function CompareClient({ initialCars }: Props) {
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <h1 className="mb-2 text-2xl font-bold text-slate-900 dark:text-white">{t("title")}</h1>
         <p className="mb-8 text-slate-500">{t("subtitle")}</p>
-        <CarSelector onSelect={addCar} />
+        <AddVehicleModal
+          onSelect={addCar}
+          selectedIds={[]}
+          renderTrigger={(onOpen) => (
+            <button
+              type="button"
+              onClick={onOpen}
+              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+            >
+              <Plus className="h-4 w-4" />
+              {t("addVehicle")}
+            </button>
+          )}
+        />
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-        <div className="mt-10 rounded-lg border border-dashed border-slate-300 p-12 text-center text-slate-400 dark:border-slate-700">
-          <Plus className="mx-auto mb-3 h-8 w-8" />
-          <p>{t("addFirst")}</p>
-        </div>
       </div>
     );
   }
@@ -297,20 +318,15 @@ export function CompareClient({ initialCars }: Props) {
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
       {/* Selected cars + add slot */}
-      <div
-        className="mb-8 grid gap-4"
-        style={{
-          gridTemplateColumns: `repeat(${Math.min(cars.length + (cars.length < MAX_CARS ? 1 : 0), MAX_CARS)}, minmax(0, 1fr))`,
-        }}
-      >
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cars.map((car, ci) => (
           <div
-            key={car.slug}
+            key={car.modelYearId}
             className="relative rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
           >
             <button
               type="button"
-              onClick={() => removeCar(car.slug)}
+              onClick={() => removeCar(car.modelYearId)}
               className="absolute right-2 top-2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-red-600 dark:hover:bg-slate-800"
               aria-label={`${t("remove")} ${car.modelName}`}
             >
@@ -320,14 +336,13 @@ export function CompareClient({ initialCars }: Props) {
               <BrandLogo logoUrl={car.brandLogoUrl} name={car.brandName} size={24} />
               <p className="text-xs text-slate-500">{car.brandName}</p>
             </div>
-            <h3 className="font-semibold text-slate-900 dark:text-white">{car.modelName}</h3>
-            <p className="mt-1 text-xs text-slate-500">
-              {car.year}, {car.isZeroKm ? t("zeroKm") : t("used")}
-              {car.category ? `, ${categoryLabels[car.category] ?? car.category}` : ""}
-              {car.sizeCategory
-                ? `, ${sizeCategoryLabels[car.sizeCategory] ?? car.sizeCategory}`
-                : ""}
-            </p>
+            <h3 className="font-semibold text-slate-900 dark:text-white">
+              {car.modelName}
+              {car.versionName ? (
+                <span className="text-slate-500"> · {car.versionName}</span>
+              ) : null}
+            </h3>
+            <p className="mt-1 text-xs text-slate-500">{carVersionLine(car)}</p>
             <p className="mt-3 text-xl font-bold text-slate-900 dark:text-white">
               {formatBRL(car.priceFipe)}
             </p>
@@ -368,7 +383,20 @@ export function CompareClient({ initialCars }: Props) {
 
         {cars.length < MAX_CARS && (
           <div className="flex items-center justify-center rounded-lg border border-dashed border-slate-300 p-4 dark:border-slate-700">
-            <CarSelector onSelect={addCar} compact />
+            <AddVehicleModal
+              onSelect={addCar}
+              selectedIds={cars.map((c) => c.modelYearId)}
+              renderTrigger={(onOpen) => (
+                <button
+                  type="button"
+                  onClick={onOpen}
+                  className="inline-flex items-center gap-2 rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-200 transition-colors hover:bg-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                >
+                  <Plus className="h-4 w-4" />
+                  {t("addVehicle")}
+                </button>
+              )}
+            />
           </div>
         )}
       </div>
@@ -382,17 +410,14 @@ export function CompareClient({ initialCars }: Props) {
             </h2>
             {winners.length === 1 && (
               <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
-                🏆{" "}
-                {t("winnerBadge", {
-                  cars: `${cars[winners[0]].brandName} ${cars[winners[0]].modelName}`,
-                })}
+                🏆 {t("winnerBadge", { cars: carLabel(cars[winners[0]]) })}
               </span>
             )}
             {winners.length > 1 && winners.length < cars.length && (
               <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
                 🏆{" "}
                 {t("tieBadge", {
-                  cars: winners.map((i) => `${cars[i].brandName} ${cars[i].modelName}`).join(" e "),
+                  cars: winners.map((i) => carLabel(cars[i])).join(" e "),
                 })}
               </span>
             )}
@@ -402,7 +427,7 @@ export function CompareClient({ initialCars }: Props) {
               </span>
             )}
           </div>
-          <RadarChart scores={radarScores} carNames={cars.map((c) => c.modelName)} />
+          <RadarChart scores={radarScores} carNames={cars.map(carLabel)} />
 
           {/* Who leads each category — helps users pick by the dimensions they care about */}
           <div className="mt-5 border-t border-slate-100 pt-4 dark:border-slate-800">
@@ -414,7 +439,7 @@ export function CompareClient({ initialCars }: Props) {
                 {cars.map((car, ci) =>
                   carWins[ci].length > 0 ? (
                     <li
-                      key={car.slug}
+                      key={car.modelYearId}
                       className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300"
                     >
                       <span
@@ -423,7 +448,7 @@ export function CompareClient({ initialCars }: Props) {
                       />
                       <span>
                         <strong className="font-semibold text-slate-900 dark:text-white">
-                          {car.brandName} {car.modelName}
+                          {carLabel(car)}
                         </strong>{" "}
                         {t("leadsLine", { categories: carWins[ci].join(", ") })}
                       </span>
@@ -449,13 +474,18 @@ export function CompareClient({ initialCars }: Props) {
                 {t("specification")}
               </th>
               {cars.map((car) => (
-                <th key={car.slug} className="px-4 py-3 text-left">
+                <th key={car.modelYearId} className="px-4 py-3 text-left">
                   <Link
                     href={`/car/${car.slug}`}
                     className="font-semibold text-slate-900 hover:text-blue-600 dark:text-white dark:hover:text-blue-400"
                   >
                     {car.brandName} {car.modelName}
                   </Link>
+                  {car.versionName && (
+                    <p className="text-xs font-normal text-slate-600 dark:text-slate-300">
+                      {car.versionName}
+                    </p>
+                  )}
                   <p className="mt-0.5 text-xs font-normal text-slate-500">
                     {formatBRL(car.priceFipe)}
                   </p>
@@ -486,7 +516,7 @@ export function CompareClient({ initialCars }: Props) {
                 <th className="px-4 py-3 text-left font-medium text-slate-500">{t("sales")}</th>
                 {cars.map((car) => (
                   <th
-                    key={car.slug}
+                    key={car.modelYearId}
                     className="px-4 py-3 text-left font-medium text-slate-900 dark:text-white"
                   >
                     {car.sales ? (
@@ -578,7 +608,7 @@ function GroupRows({ group, cars }: { group: { group: string; rows: Row[] }; car
             const isSoleBest = row.bestIndexes.length === 1 && row.bestIndexes.includes(i);
             return (
               <td
-                key={cars[i]?.slug ?? `col-${i}`}
+                key={cars[i]?.modelYearId ?? `col-${i}`}
                 className={`px-4 py-2.5 font-medium ${
                   isSharedBest
                     ? "font-bold text-amber-600 dark:text-amber-400"
@@ -628,53 +658,211 @@ interface Row {
   isTie: boolean;
 }
 
-/* ---------------- Car selector ---------------- */
+/* ---------------- Version-aware cascade selector (modal) ---------------- */
 
-function CarSelector({
+function AddVehicleModal({
   onSelect,
-  compact,
+  selectedIds,
+  renderTrigger,
 }: {
-  onSelect: (slug: string) => void;
-  compact?: boolean;
+  onSelect: (modelYearId: number) => void;
+  selectedIds: number[];
+  renderTrigger: (onOpen: () => void) => React.ReactNode;
 }) {
   const t = useTranslations("compare");
   const tCommon = useTranslations("common");
-  const [options, setOptions] = useState<ModelCard[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [options, setOptions] = useState<CompareOptionBrand[] | null>(null);
+  const [brandId, setBrandId] = useState<number | null>(null);
+  const [modelId, setModelId] = useState<number | null>(null);
+  const [versionId, setVersionId] = useState<number | null>(null);
+  const [year, setYear] = useState<CompareOptionYear | null>(null);
 
-  useEffect(() => {
-    fetch(`/api/catalog/models`)
+  const load = () => {
+    setOpen(true);
+    setLoading(true);
+    setBrandId(null);
+    setModelId(null);
+    setVersionId(null);
+    setYear(null);
+    fetch(`/api/catalog/compare-options`)
       .then((r) => r.json())
       .then((data) => {
-        setOptions(data.models ?? []);
+        setOptions(data.brands ?? []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
-  }, []);
+      .catch(() => {
+        setOptions([]);
+        setLoading(false);
+      });
+  };
+
+  const close = () => {
+    setOpen(false);
+    setBrandId(null);
+    setModelId(null);
+    setVersionId(null);
+    setYear(null);
+  };
+
+  const filteredOptions = useMemo(
+    () => excludeSelectedYears(options ?? [], selectedIds),
+    [options, selectedIds],
+  );
+
+  const brand = filteredOptions.find((b) => b.id === brandId) ?? null;
+  const model = brand?.models.find((m) => m.id === modelId) ?? null;
+  const version = model?.versions.find((v) => v.id === versionId) ?? null;
+  const years = version?.years ?? [];
+
+  const anyOptions = filteredOptions.length > 0;
+  const ready = year != null;
+
+  if (!open) return <>{renderTrigger(load)}</>;
 
   return (
-    <div className="w-full">
-      <label htmlFor="car-select" className="sr-only">
-        {t("selectVehicle")}
-      </label>
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
+      <button
+        type="button"
+        onClick={close}
+        aria-label={t("close")}
+        className="absolute inset-0 bg-black/60"
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("addVehicle")}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") close();
+        }}
+        className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-slate-700 bg-slate-900 p-6 shadow-xl outline-none sm:rounded-2xl"
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-white">{t("addVehicle")}</h2>
+          <button
+            type="button"
+            onClick={close}
+            aria-label={tCommon("close")}
+            className="rounded-md p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {loading ? (
+          <p className="py-10 text-center text-sm text-slate-400">{tCommon("loading")}</p>
+        ) : !anyOptions ? (
+          <p className="py-10 text-center text-sm text-slate-400">{t("noComparable")}</p>
+        ) : (
+          <div className="space-y-4">
+            <CascadeSelect
+              label={t("cascadeBrand")}
+              value={brandId ?? ""}
+              onChange={(v) => {
+                setBrandId(v ? Number(v) : null);
+                setModelId(null);
+                setVersionId(null);
+                setYear(null);
+              }}
+              options={filteredOptions.map((b) => ({
+                value: b.id,
+                label: b.name,
+                models: b.models,
+              }))}
+            />
+            {brand && (
+              <CascadeSelect
+                label={t("cascadeModel")}
+                value={modelId ?? ""}
+                onChange={(v) => {
+                  setModelId(v ? Number(v) : null);
+                  setVersionId(null);
+                  setYear(null);
+                }}
+                options={brand.models.map((m) => ({
+                  value: m.id,
+                  label: m.name,
+                  versions: m.versions,
+                }))}
+              />
+            )}
+            {model && (
+              <CascadeSelect
+                label={t("cascadeVersion")}
+                value={versionId ?? ""}
+                onChange={(v) => {
+                  setVersionId(v ? Number(v) : null);
+                  setYear(null);
+                }}
+                options={model.versions.map((v) => ({
+                  value: v.id,
+                  label: v.name,
+                  years: v.years,
+                }))}
+              />
+            )}
+            {version && (
+              <CascadeSelect
+                label={t("cascadeYear")}
+                value={year?.id ?? ""}
+                onChange={(v) => {
+                  const y = years.find((x) => x.id === Number(v));
+                  setYear(y ?? null);
+                }}
+                options={years.map((y) => ({
+                  value: y.id,
+                  label: `${y.year} · ${fuelLabels[y.fuelType] ?? y.fuelType}${y.isZeroKm ? ` · ${t("zeroKm")}` : ""}`,
+                }))}
+              />
+            )}
+
+            <button
+              type="button"
+              disabled={!ready}
+              onClick={() => {
+                if (year) onSelect(year.id);
+                close();
+              }}
+              className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {t("addVehicle")}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CascadeSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: number | string;
+  onChange: (value: string) => void;
+  options: { value: number; label: string }[];
+}) {
+  return (
+    <label className="block text-xs text-slate-500">
+      {label}
       <select
-        id="car-select"
-        value=""
-        onChange={(e) => e.target.value && onSelect(e.target.value)}
-        className={`w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-white ${
-          compact ? "border-dashed" : ""
-        }`}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
       >
         <option value="" disabled>
-          {loading ? tCommon("loading") : compact ? `+ ${t("addVehicle")}` : t("selectVehicle")}
+          {label}...
         </option>
-        {options.map((m) => (
-          <option key={m.id} value={m.slug}>
-            {m.brandName} {m.name}
-            {m.year ? ` (${m.year})` : ""}
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
           </option>
         ))}
       </select>
-    </div>
+    </label>
   );
 }

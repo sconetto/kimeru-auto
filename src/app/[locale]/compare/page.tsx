@@ -26,16 +26,15 @@ export default async function ComparePage({
 }) {
   const { cars } = await searchParams;
 
-  const initialSlugs = cars
+  const initialIds = cars
     ? cars
         .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
+        .map((s) => Number.parseInt(s.trim(), 10))
+        .filter((n) => Number.isInteger(n) && n > 0)
         .slice(0, 3)
     : [];
 
-  const initialCars =
-    initialSlugs.length > 0 ? await getCompareCars(initialSlugs).catch(() => []) : [];
+  const initialCars = initialIds.length > 0 ? await getCompareCars(initialIds).catch(() => []) : [];
 
   return <CompareClient initialCars={initialCars} />;
 }

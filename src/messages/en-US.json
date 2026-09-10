@@ -59,7 +59,13 @@
     "readReview": "Read review",
     "addedOn": "Added on {date}",
     "fipeOf": "FIPE price of {month}",
-    "reviewOn": "Reviewed on {date}"
+    "reviewOn": "Reviewed on {date}",
+    "close": "Close",
+    "noComparable": "No vehicles with specifications are available to compare yet.",
+    "cascadeBrand": "Brand",
+    "cascadeModel": "Model",
+    "cascadeVersion": "Version",
+    "cascadeYear": "Year"
   },
   "financing": {
     "title": "Financing Simulator",
