@@ -286,6 +286,7 @@
     "metaDescription": "Read full reviews of cars in the Brazilian market.",
     "title": "Reviews",
     "subtitle": "Full reviews of cars in the Brazilian market.",
-    "empty": "No reviews published yet. Check back soon!"
+    "empty": "No reviews published yet. Check back soon!",
+    "reviewOn": "Reviewed on {date}"
   }
 }

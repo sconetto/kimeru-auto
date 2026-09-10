@@ -286,6 +286,7 @@
     "metaDescription": "Leia as avaliações completas dos carros do mercado brasileiro.",
     "title": "Reviews",
     "subtitle": "Avaliações completas dos carros do mercado brasileiro.",
-    "empty": "Ainda não há reviews publicados. Volte em breve!"
+    "empty": "Ainda não há reviews publicados. Volte em breve!",
+    "reviewOn": "Review em {date}"
   }
 }

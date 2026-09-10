@@ -2,6 +2,7 @@ import { Newspaper, Star } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { getPublishedReviews } from "@/lib/catalog/queries";
+import { formatDate } from "@/lib/format";
 import { Link } from "@/lib/i18n/navigation";
 
 export const revalidate = 3600;
@@ -61,6 +62,11 @@ export default async function ReviewsIndexPage({
             <h2 className="mt-1 font-semibold text-slate-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
               {review.modelName} {review.year}
             </h2>
+            {review.updatedAt && (
+              <p className="mt-1 text-xs text-slate-400">
+                {t("reviewOn", { date: formatDate(review.updatedAt, locale) })}
+              </p>
+            )}
             {review.summaryExcerpt && (
               <p className="mt-2 line-clamp-3 text-sm text-slate-500 dark:text-slate-400">
                 {review.summaryExcerpt}
