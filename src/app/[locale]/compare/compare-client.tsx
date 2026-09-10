@@ -2,7 +2,7 @@
 
 import { AlertTriangle, Calculator, Info, Link2, Plus, Star, Trophy, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BrandLogo } from "@/components/catalog/brand-logo";
 import { RadarChart } from "@/components/compare/radar-chart";
 import { powertrainOf } from "@/lib/catalog/powertrain";
@@ -513,6 +513,44 @@ export function CompareClient({ initialCars }: Props) {
   );
 }
 
+function InfoTooltip({ text }: { text: string }) {
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const ref = useRef<HTMLButtonElement>(null);
+
+  const show = () => {
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    setPos({ x: r.right + 8, y: r.top + r.height / 2 });
+  };
+
+  return (
+    <>
+      <button
+        ref={ref}
+        type="button"
+        onMouseEnter={show}
+        onMouseLeave={() => setPos(null)}
+        onFocus={show}
+        onBlur={() => setPos(null)}
+        aria-label={text}
+        className="ml-1 inline-flex cursor-help align-middle text-slate-400"
+      >
+        <Info className="h-3.5 w-3.5" />
+      </button>
+      {pos && (
+        <span
+          role="tooltip"
+          style={{ left: pos.x, top: pos.y, transform: "translateY(-50%)" }}
+          className="pointer-events-none fixed z-50 w-64 rounded-md bg-slate-900 px-3 py-2 text-left text-xs font-normal leading-snug text-slate-100 shadow-lg dark:bg-slate-700"
+        >
+          {text}
+        </span>
+      )}
+    </>
+  );
+}
+
 function GroupRows({ group, cars }: { group: { group: string; rows: Row[] }; cars: CompareCar[] }) {
   const label = specGroupLabels[group.group] ?? group.group;
   const locale = useLocale();
@@ -533,14 +571,7 @@ function GroupRows({ group, cars }: { group: { group: string; rows: Row[] }; car
         <tr key={row.name} className="border-b border-slate-100 dark:border-slate-800">
           <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300">
             {row.name}
-            {row.isConsumption && (
-              <span className="group/info relative ml-1 inline-flex cursor-help align-middle text-slate-400">
-                <Info className="h-3.5 w-3.5" />
-                <span className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 hidden w-64 -translate-x-1/2 rounded-md bg-slate-900 px-3 py-2 text-left text-xs font-normal normal-case leading-snug text-slate-100 shadow-lg group-hover/info:block dark:bg-slate-700">
-                  {t("consumptionConversion")}
-                </span>
-              </span>
-            )}
+            {row.isConsumption && <InfoTooltip text={t("consumptionConversion")} />}
           </td>
           {row.values.map((v, i) => {
             const isSharedBest = row.bestIndexes.length > 1 && row.bestIndexes.includes(i);
