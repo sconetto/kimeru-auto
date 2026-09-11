@@ -56,7 +56,10 @@ test.describe("Mobile navigation drawer", () => {
   }) => {
     await page.goto("/pt-BR");
     await page.getByRole("button", { name: "Abrir menu" }).click();
-    await page.getByRole("dialog", { name: "Menu" }).getByRole("link", { name: "Financiamento" }).click();
+    await page
+      .getByRole("dialog", { name: "Menu" })
+      .getByRole("link", { name: "Financiamento" })
+      .click();
     await expect(page).toHaveURL(/\/pt-BR\/financing/);
     await expect(page.getByRole("dialog", { name: "Menu" })).toHaveCount(0);
   });
