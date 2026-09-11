@@ -129,7 +129,7 @@ async function getBrandsWithCountsImpl(): Promise<BrandWithCount[]> {
     .leftJoin(models, and(eq(models.brandId, brands.id), eq(models.isActive, true)))
     .where(eq(brands.isActive, true))
     .groupBy(brands.id)
-    .orderBy(asc(brands.name));
+    .orderBy(desc(sql`CASE WHEN ${count(models.id)} > 0 THEN 1 ELSE 0 END`), asc(brands.name));
 
   return rows.map((r) => ({ ...r, modelCount: Number(r.modelCount) }));
 }
