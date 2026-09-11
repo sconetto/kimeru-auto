@@ -137,10 +137,7 @@ export function MobileNav({ locale }: Props) {
                 open ? "translate-x-0" : "translate-x-full"
               }`}
             >
-              <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
-                <span className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                  {t("title")}
-                </span>
+              <div className="flex justify-end border-b border-slate-200 px-3 py-2.5 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={close}
