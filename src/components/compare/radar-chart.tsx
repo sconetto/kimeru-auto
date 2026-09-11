@@ -194,17 +194,20 @@ export function RadarChart({ scores, carNames, colors = DEFAULT_COLORS }: Props)
       )}
 
       {/* Legend */}
-      <div className="mt-3 flex flex-wrap justify-center gap-4">
+      <div
+        className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-2"
+        data-testid="radar-legend"
+      >
         {carNames.map((name, i) => (
           <span
             key={name}
-            className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300"
+            className="flex min-w-0 max-w-full items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300"
           >
             <span
-              className="h-3 w-3 rounded-sm"
+              className="h-3 w-3 shrink-0 rounded-sm"
               style={{ backgroundColor: colors[i % colors.length] }}
             />
-            {name}
+            <span className="min-w-0 truncate">{name}</span>
           </span>
         ))}
       </div>

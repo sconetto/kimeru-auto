@@ -65,8 +65,9 @@ test.describe("Public user journeys", () => {
     // Both cars in the table header
     await expect(page.getByText(/HB20/i).first()).toBeVisible();
     await expect(page.getByText(/Onix/i).first()).toBeVisible();
-    // Spec rows render
-    await expect(page.getByText("Potência")).toBeVisible();
+    // Spec rows render (spec name appears in the desktop table or mobile cards)
+    const specName = page.getByText("Potência", { exact: true });
+    await expect(specName.filter({ visible: true }).first()).toBeVisible();
   });
 
   test("financing calculator renders with CET", async ({ page }) => {

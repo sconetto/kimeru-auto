@@ -296,5 +296,10 @@
     "subtitle": "Avaliações completas dos carros do mercado brasileiro.",
     "empty": "Ainda não há reviews publicados. Volte em breve!",
     "reviewOn": "Review em {date}"
+  },
+  "nav": {
+    "open": "Abrir menu",
+    "close": "Fechar menu",
+    "title": "Menu"
   }
 }

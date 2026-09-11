@@ -251,16 +251,18 @@ export function FipeLookup() {
                         >
                           {isZeroKm ? "0km" : p.modelYear}
                         </span>
-                        <div className="relative h-5 flex-1 rounded-sm bg-slate-100 dark:bg-slate-800">
+                        <div className="relative h-5 min-w-0 flex-1 rounded-sm bg-slate-100 dark:bg-slate-800">
                           <div
                             className={`absolute inset-y-0 left-0 rounded-sm ${isZeroKm ? "bg-blue-500" : "bg-blue-400/60"}`}
                             style={{ width: `${pct}%` }}
                           />
                         </div>
-                        <span className="w-20 text-right text-xs tabular-nums text-slate-700 dark:text-slate-300">
+                        <span className="min-w-0 shrink-0 text-right text-xs tabular-nums text-slate-700 dark:text-slate-300">
                           {formatBRL(p.price)}
                         </span>
-                        <span className="w-12 text-right text-xs text-slate-400">{pct}%</span>
+                        <span className="w-12 shrink-0 text-right text-xs text-slate-400">
+                          {pct}%
+                        </span>
                       </div>
                     );
                   })}

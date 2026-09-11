@@ -296,5 +296,10 @@
     "subtitle": "Full reviews of cars in the Brazilian market.",
     "empty": "No reviews published yet. Check back soon!",
     "reviewOn": "Reviewed on {date}"
+  },
+  "nav": {
+    "open": "Open menu",
+    "close": "Close menu",
+    "title": "Menu"
   }
 }

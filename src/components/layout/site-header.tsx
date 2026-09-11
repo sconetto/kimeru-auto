@@ -14,6 +14,7 @@ import { getTranslations } from "next-intl/server";
 import type { Locale } from "@/lib/i18n/config";
 import { Link } from "@/lib/i18n/navigation";
 import { LanguageSwitcher } from "./language-switcher";
+import { MobileNav } from "./mobile-nav";
 
 interface Props {
   locale: Locale;
@@ -65,7 +66,7 @@ export async function SiteHeader({ locale }: Props) {
             Kimeru <span className="text-blue-600 dark:text-blue-400">Auto</span>
           </Link>
 
-          <nav className="hidden items-center gap-1 md:flex">
+          <nav className="hidden items-center gap-1 xl:flex">
             {navLinks.map((link) => {
               const Icon = link.icon;
               return (
@@ -81,8 +82,9 @@ export async function SiteHeader({ locale }: Props) {
             })}
           </nav>
 
-          <div className="flex items-center justify-self-end gap-1">
+          <div className="col-start-3 flex items-center justify-self-end gap-1">
             <LanguageSwitcher currentLocale={locale} />
+            <MobileNav locale={locale} />
           </div>
         </div>
       </header>

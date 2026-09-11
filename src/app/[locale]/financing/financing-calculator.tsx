@@ -78,7 +78,7 @@ export function FinancingCalculator({ initialPrice }: { initialPrice?: number })
   return (
     <div className="grid gap-8 lg:grid-cols-[400px_1fr]">
       {/* Inputs */}
-      <div className="h-fit space-y-6 rounded-lg border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+      <div className="h-fit min-w-0 space-y-6 rounded-lg border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
         {/* Mode toggle: calculate by interest rate or by target installment */}
         <fieldset
           className="flex rounded-md bg-slate-100 p-1 dark:bg-slate-800"
@@ -223,7 +223,7 @@ export function FinancingCalculator({ initialPrice }: { initialPrice?: number })
           </div>
         </Field>
 
-        <div className="grid grid-cols-3 gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+        <div className="grid grid-cols-1 gap-3 border-t border-slate-100 pt-4 dark:border-slate-800 sm:grid-cols-3">
           <FeeInput label={t("tacFee")} tooltip={t("tacTooltip")} value={tac} onChange={setTac} />
           <FeeInput
             label={t("insuranceFee")}
@@ -241,7 +241,7 @@ export function FinancingCalculator({ initialPrice }: { initialPrice?: number })
       </div>
 
       {/* Results */}
-      <div className="space-y-6">
+      <div className="min-w-0 space-y-6">
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           <ResultCard
             label={t("monthlyPayment")}
@@ -346,7 +346,7 @@ export function FinancingCalculator({ initialPrice }: { initialPrice?: number })
           <h3 className="border-b border-slate-200 px-5 py-3 text-sm font-semibold text-slate-900 dark:border-slate-800 dark:text-white">
             {t("amortizationTable")}
           </h3>
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-80 overflow-x-auto overflow-y-auto">
             <table className="w-full min-w-[480px] text-sm">
               <thead className="sticky top-0 bg-slate-50 dark:bg-slate-900">
                 <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
@@ -421,18 +421,18 @@ function FeeInput({
   const inputId = `fee-${label.replace(/\s+/g, "-").toLowerCase()}`;
   return (
     <div>
-      <div className="mb-1 flex items-center gap-1 text-xs text-slate-500">
+      <div className="relative mb-1 flex items-center gap-1 text-xs text-slate-500">
         <label htmlFor={inputId}>{label}</label>
         <button
           type="button"
           aria-label={tooltip}
-          className="group relative inline-flex cursor-help rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          className="group inline-flex cursor-help rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           <Info
             className="h-3 w-3 shrink-0 text-slate-400 transition-colors group-hover:text-blue-600 group-focus:text-blue-600 dark:text-slate-500 dark:group-hover:text-blue-400 dark:group-focus:text-blue-400"
             aria-hidden="true"
           />
-          <span className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-56 rounded-md bg-slate-900 px-3 py-2 text-left text-xs font-normal leading-relaxed text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus:opacity-100 dark:bg-slate-700">
+          <span className="pointer-events-none absolute bottom-full right-0 z-50 mb-2 w-56 rounded-md bg-slate-900 px-3 py-2 text-left text-xs font-normal leading-relaxed text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus:opacity-100 dark:bg-slate-700">
             {tooltip}
           </span>
         </button>

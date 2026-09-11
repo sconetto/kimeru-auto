@@ -465,8 +465,11 @@ export function CompareClient({ initialCars }: Props) {
         </div>
       )}
 
-      {/* Comparison table */}
-      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+      {/* Comparison table (desktop) */}
+      <div
+        data-testid="spec-table"
+        className="hidden overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:block"
+      >
         <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="border-b border-slate-200 dark:border-slate-800">
@@ -507,24 +510,115 @@ export function CompareClient({ initialCars }: Props) {
         </table>
       </div>
 
+      {/* Spec comparison cards (mobile) — one card per spec row, every car's value labeled */}
+      <div className="space-y-6 md:hidden" data-testid="spec-cards">
+        {matrix.groups.map((group) => (
+          <div key={group.group}>
+            <h2 className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              {specGroupLabels[group.group] ?? group.group}
+            </h2>
+            <div className="space-y-3">
+              {group.rows.map((row) => (
+                <div
+                  key={row.name}
+                  className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+                >
+                  <div className="mb-3 flex items-center gap-1 text-sm font-semibold text-slate-900 dark:text-white">
+                    {row.name}
+                    {row.isConsumption && <InfoTooltip text={t("consumptionConversion")} />}
+                  </div>
+                  <ul className="space-y-2">
+                    {row.values.map((v, i) => (
+                      <li
+                        key={cars[i]?.modelYearId ?? `card-${i}`}
+                        className="flex items-center justify-between gap-3"
+                      >
+                        <Link
+                          href={`/car/${cars[i]?.slug}`}
+                          className="min-w-0 truncate text-sm text-slate-500 dark:text-slate-400"
+                        >
+                          {cars[i]?.brandName} {cars[i]?.modelName}
+                        </Link>
+                        <span
+                          className={`shrink-0 font-medium ${
+                            isSharedBest(row, i)
+                              ? "font-bold text-amber-600 dark:text-amber-400"
+                              : isSoleBest(row, i)
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : "text-slate-900 dark:text-white"
+                          }`}
+                        >
+                          <SpecValue
+                            row={row}
+                            value={v}
+                            index={i}
+                            locale={locale}
+                            unavailableText={tCommon("unavailable")}
+                          />
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Sales section */}
       {cars.some((c) => c.sales) && (
-        <div className="mt-8 overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-800">
-                <th className="px-4 py-3 text-left font-medium text-slate-500">{t("sales")}</th>
-                {cars.map((car) => (
-                  <th
-                    key={car.modelYearId}
-                    className="px-4 py-3 text-left font-medium text-slate-900 dark:text-white"
-                  >
+        <>
+          <div className="mt-8 hidden overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:block">
+            <table className="w-full min-w-[640px] text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-slate-800">
+                  <th className="px-4 py-3 text-left font-medium text-slate-500">{t("sales")}</th>
+                  {cars.map((car) => (
+                    <th
+                      key={car.modelYearId}
+                      className="px-4 py-3 text-left font-medium text-slate-900 dark:text-white"
+                    >
+                      {car.sales ? (
+                        <>
+                          {t("rankingPosition", {
+                            rank: car.sales.rankingPosition ?? tCommon("unavailable"),
+                          })}
+                          <span className="block text-xs font-normal text-slate-500">
+                            {car.sales.unitsSold?.toLocaleString("pt-BR") ?? tCommon("unavailable")}{" "}
+                            {t("units")}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="font-normal text-slate-400">{t("noData")}</span>
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+            </table>
+          </div>
+
+          <div className="mt-8 rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:hidden">
+            <h2 className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
+              {t("sales")}
+            </h2>
+            <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+              {cars.map((car) => (
+                <li
+                  key={car.modelYearId}
+                  className="flex items-center justify-between gap-3 px-4 py-3"
+                >
+                  <span className="min-w-0 truncate text-sm text-slate-500 dark:text-slate-400">
+                    {car.brandName} {car.modelName}
+                  </span>
+                  <span className="shrink-0 text-sm font-semibold text-slate-900 dark:text-white">
                     {car.sales ? (
                       <>
                         {t("rankingPosition", {
                           rank: car.sales.rankingPosition ?? tCommon("unavailable"),
                         })}
-                        <span className="block text-xs font-normal text-slate-500">
+                        <span className="block text-right text-xs font-normal text-slate-500">
                           {car.sales.unitsSold?.toLocaleString("pt-BR") ?? tCommon("unavailable")}{" "}
                           {t("units")}
                         </span>
@@ -532,12 +626,12 @@ export function CompareClient({ initialCars }: Props) {
                     ) : (
                       <span className="font-normal text-slate-400">{t("noData")}</span>
                     )}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-          </table>
-        </div>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
       )}
     </div>
   );
@@ -603,46 +697,79 @@ function GroupRows({ group, cars }: { group: { group: string; rows: Row[] }; car
             {row.name}
             {row.isConsumption && <InfoTooltip text={t("consumptionConversion")} />}
           </td>
-          {row.values.map((v, i) => {
-            const isSharedBest = row.bestIndexes.length > 1 && row.bestIndexes.includes(i);
-            const isSoleBest = row.bestIndexes.length === 1 && row.bestIndexes.includes(i);
-            return (
-              <td
-                key={cars[i]?.modelYearId ?? `col-${i}`}
-                className={`px-4 py-2.5 font-medium ${
-                  isSharedBest
-                    ? "font-bold text-amber-600 dark:text-amber-400"
-                    : isSoleBest
-                      ? "text-emerald-600 dark:text-emerald-400"
-                      : "text-slate-900 dark:text-white"
-                }`}
-              >
-                {formatSpecValue(
-                  {
-                    value: v.value,
-                    numericValue: v.numericValue,
-                    unit: row.unit,
-                    isNumeric: row.isNumeric,
-                  },
-                  { locale, unavailableText: tCommon("unavailable") },
-                )}
-                {row.isConsumption && v.originalValue != null && (
-                  <span className="ml-1 text-xs font-normal text-slate-400">
-                    ({v.originalValue}
-                    {v.originalUnit ? ` ${v.originalUnit}` : ""})
-                  </span>
-                )}
-                {isSharedBest && (
-                  <span className="ml-1 text-xs font-bold text-amber-500 dark:text-amber-400">
-                    =
-                  </span>
-                )}
-                {isSoleBest && <Trophy className="ml-1 inline h-3.5 w-3.5 text-amber-500" />}
-              </td>
-            );
-          })}
+          {row.values.map((v, i) => (
+            <td
+              key={cars[i]?.modelYearId ?? `col-${i}`}
+              className={`px-4 py-2.5 font-medium ${
+                isSharedBest(row, i)
+                  ? "font-bold text-amber-600 dark:text-amber-400"
+                  : isSoleBest(row, i)
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-slate-900 dark:text-white"
+              }`}
+            >
+              <SpecValue
+                row={row}
+                value={v}
+                index={i}
+                locale={locale}
+                unavailableText={tCommon("unavailable")}
+              />
+            </td>
+          ))}
         </tr>
       ))}
+    </>
+  );
+}
+
+function isSoleBest(row: Row, index: number): boolean {
+  return row.bestIndexes.length === 1 && row.bestIndexes.includes(index);
+}
+
+function isSharedBest(row: Row, index: number): boolean {
+  return row.bestIndexes.length > 1 && row.bestIndexes.includes(index);
+}
+
+/**
+ * Shared value-cell rendering used by both the desktop table cells and the
+ * mobile card rows so formatting and winner markers stay identical by
+ * construction (design decision D3).
+ */
+function SpecValue({
+  row,
+  value,
+  index,
+  locale,
+  unavailableText,
+}: {
+  row: Row;
+  value: RowValue;
+  index: number;
+  locale: string;
+  unavailableText: string;
+}) {
+  return (
+    <>
+      {formatSpecValue(
+        {
+          value: value.value,
+          numericValue: value.numericValue,
+          unit: row.unit,
+          isNumeric: row.isNumeric,
+        },
+        { locale, unavailableText },
+      )}
+      {row.isConsumption && value.originalValue != null && (
+        <span className="ml-1 text-xs font-normal text-slate-400">
+          ({value.originalValue}
+          {value.originalUnit ? ` ${value.originalUnit}` : ""})
+        </span>
+      )}
+      {isSharedBest(row, index) && (
+        <span className="ml-1 text-xs font-bold text-amber-500 dark:text-amber-400">=</span>
+      )}
+      {isSoleBest(row, index) && <Trophy className="ml-1 inline h-3.5 w-3.5 text-amber-500" />}
     </>
   );
 }
