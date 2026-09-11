@@ -41,8 +41,16 @@ export function MobileNav({ locale }: Props) {
   const tNav = useTranslations("navigation");
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const drawerRef = useRef<HTMLElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+
+  // The drawer lives in a portal to `document.body`; only render it after
+  // hydration so SSR (no `document`) never touches it. Once mounted it stays
+  // mounted — open/close are pure CSS transitions.
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const links: { href: string; label: string; icon: LucideIcon }[] = [
     { href: "/", label: tNav("home"), icon: House },
@@ -100,15 +108,22 @@ export function MobileNav({ locale }: Props) {
         <Menu className="h-6 w-6" aria-hidden="true" />
       </button>
 
-      {open &&
+      {mounted &&
         createPortal(
-          <div className="fixed inset-0 z-50 xl:hidden">
+          <div
+            className={`fixed inset-0 z-50 xl:hidden ${open ? "" : "pointer-events-none"}`}
+            aria-hidden={!open}
+            inert={!open}
+          >
             {/* Overlay */}
             <button
               type="button"
               onClick={close}
               aria-label={t("close")}
-              className="absolute inset-0 bg-black/60"
+              tabIndex={open ? 0 : -1}
+              className={`absolute inset-0 bg-black/60 transition-opacity duration-300 ${
+                open ? "opacity-100" : "opacity-0"
+              }`}
             />
             {/* Drawer */}
             <aside
@@ -118,7 +133,9 @@ export function MobileNav({ locale }: Props) {
               aria-modal="true"
               aria-label={t("title")}
               tabIndex={-1}
-              className="absolute inset-y-0 right-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto bg-white shadow-xl outline-none dark:bg-slate-900"
+              className={`absolute inset-y-0 right-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto bg-white shadow-xl outline-none transition-transform duration-300 ease-in-out dark:bg-slate-900 ${
+                open ? "translate-x-0" : "translate-x-full"
+              }`}
             >
               <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
                 <span className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
@@ -154,7 +171,7 @@ export function MobileNav({ locale }: Props) {
                 </ul>
               </nav>
 
-              <div className="border-t border-slate-200 px-5 py-4 dark:border-slate-800">
+              <div className="flex justify-center border-t border-slate-200 px-5 py-4 dark:border-slate-800">
                 <LanguageSwitcher currentLocale={locale} />
               </div>
             </aside>

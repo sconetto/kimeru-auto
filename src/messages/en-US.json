@@ -19,7 +19,8 @@
     "modelCount": "{count} {count, plural, one {model} other {models}}",
     "searchPlaceholder": "Search car, brand or category (e.g. HB20, SUV)...",
     "searchAria": "Search cars",
-    "models": "models"
+    "models": "models",
+    "comingSoon": "Models coming soon"
   },
   "compare": {
     "title": "Compare Cars",
@@ -192,8 +193,8 @@
     "title": "Brands",
     "modelsAvailable": "{count} models available",
     "modelsCount": "{count} models",
-    "noModels": "No models available yet",
-    "others": "Others"
+    "others": "Others",
+    "comingSoon": "Models coming soon"
   },
   "category": {
     "modelsCount": "{count} models"

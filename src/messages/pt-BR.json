@@ -19,7 +19,8 @@
     "modelCount": "{count} {count, plural, one {modelo} other {modelos}}",
     "searchPlaceholder": "Buscar carro, marca ou categoria (ex: HB20, SUV)...",
     "searchAria": "Buscar carros",
-    "models": "modelos"
+    "models": "modelos",
+    "comingSoon": "Modelos em breve"
   },
   "compare": {
     "title": "Comparar Carros",
@@ -192,8 +193,8 @@
     "title": "Marcas",
     "modelsAvailable": "{count} modelos disponíveis",
     "modelsCount": "{count} modelos",
-    "noModels": "Nenhum modelo cadastrado ainda",
-    "others": "Outros"
+    "others": "Outros",
+    "comingSoon": "Modelos em breve"
   },
   "category": {
     "modelsCount": "{count} modelos"

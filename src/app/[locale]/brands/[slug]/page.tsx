@@ -48,9 +48,16 @@ export default async function BrandPage({
       </div>
 
       {models.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700">
-          {tBrands("noModels")}
-        </p>
+        <div
+          className="flex flex-col items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-8 text-center dark:border-slate-800 dark:bg-slate-800/40"
+          aria-disabled="true"
+        >
+          <BrandLogo logoUrl={brand.logoUrl} name={brand.name} size={48} />
+          <div>
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">{brand.name}</p>
+            <p className="mt-1 text-sm text-slate-500">{tBrands("comingSoon")}</p>
+          </div>
+        </div>
       ) : (
         [...byCategory.entries()].map(([category, list]) => (
           <section key={category} className="mb-8">
