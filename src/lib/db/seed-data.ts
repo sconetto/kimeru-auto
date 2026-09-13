@@ -729,6 +729,32 @@ export const seedBrands: SeedBrand[] = [
     fipeCode: "54",
     logoUrl: "/logos/subaru.png",
   },
+  {
+    name: "JAC",
+    slug: "jac",
+    originCountry: "China",
+    fipeCode: "177",
+    logoUrl: "/logos/jac.png",
+  },
+  {
+    name: "Ferrari",
+    slug: "ferrari",
+    originCountry: "Itália",
+    fipeCode: "20",
+    logoUrl: "/logos/ferrari.png",
+  },
+  {
+    name: "DFM",
+    slug: "dfm",
+    originCountry: "China",
+    logoUrl: "/logos/dfm.png",
+  },
+  {
+    name: "BAIC",
+    slug: "baic",
+    originCountry: "China",
+    logoUrl: "/logos/baic.png",
+  },
 ];
 
 /* ------------------------------------------------------------------ */
