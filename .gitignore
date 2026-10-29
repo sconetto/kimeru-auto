@@ -49,3 +49,7 @@ next-env.d.ts
 .opencode/
 openspec/
 public/uploads/
+
+# Next.js regenerates these on every `next dev` (generate-agent-files)
+/AGENTS.md
+/CLAUDE.md
