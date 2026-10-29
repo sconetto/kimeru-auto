@@ -1,23 +1,21 @@
 import { defineConfig } from "drizzle-kit";
 
 /**
- * Migrations need a session-scoped connection: drizzle takes an advisory lock
- * and wraps each migration in a transaction, and `DO $$ ... $$` blocks do not
- * survive a transaction-mode pooler. Supabase exposes the unpooled endpoint as
- * `DIRECT_URL` (port 5432) while `DATABASE_URL` is usually the pooled one
- * (port 6543), so prefer the direct connection and only fall back to the pooled
- * URL for setups that define a single variable.
+ * Migrations run over `DATABASE_URL` (Supabase Supavisor, port 6543) on purpose.
+ *
+ * The unpooled `DIRECT_URL` (db.<ref>.supabase.co, port 5432) resolves to an
+ * IPv6-only address for this project, and Vercel build machines are IPv4-only,
+ * so pointing drizzle at it makes `drizzle-kit migrate` hang until the build
+ * fails. The pooler accepts the advisory lock and per-migration transaction
+ * drizzle needs, so it is the correct endpoint here.
  */
-const url =
-  process.env.DIRECT_URL ??
-  process.env.DATABASE_URL ??
-  "postgresql://postgres:postgres@localhost:5432/kimeru-auto";
-
 export default defineConfig({
   schema: "./src/lib/db/schema.ts",
   out: "./drizzle",
   dialect: "postgresql",
-  dbCredentials: { url },
+  dbCredentials: {
+    url: process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/kimeru-auto",
+  },
   verbose: true,
   strict: true,
 });
