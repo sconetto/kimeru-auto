@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import type { FipeBrand, FipeModel, FipePriceParsed, FipeYear } from "@/lib/fipe/client";
 import { formatBRL } from "@/lib/format";
+import { useSnackbar } from "@/lib/snackbar/context";
 
 type Step = "idle" | "loading" | "error" | "success";
 
@@ -25,6 +26,7 @@ async function fetchJson<T>(url: string): Promise<T> {
 
 export function FipeLookup() {
   const t = useTranslations("fipe");
+  const snackbar = useSnackbar();
   const [brands, setBrands] = useState<FipeBrand[]>([]);
   const [models, setModels] = useState<FipeModel[]>([]);
   const [years, setYears] = useState<FipeYear[]>([]);
@@ -36,15 +38,14 @@ export function FipeLookup() {
   const [price, setPrice] = useState<FipePriceParsed | null>(null);
   const [allPrices, setAllPrices] = useState<FipePriceParsed[]>([]);
   const [step, setStep] = useState<Step>("idle");
-  const [error, setError] = useState<string | null>(null);
   const [loadingModels, setLoadingModels] = useState(false);
   const [loadingYears, setLoadingYears] = useState(false);
 
   useEffect(() => {
     fetchJson<FipeBrand[]>("/api/fipe/brands")
       .then((b) => setBrands(b))
-      .catch(() => setError(t("errorBrands")));
-  }, [t]);
+      .catch(() => snackbar.error(t("errorBrands")));
+  }, [t, snackbar]);
 
   async function handleBrandChange(id: string) {
     setBrandId(id);
@@ -53,7 +54,6 @@ export function FipeLookup() {
     setPrice(null);
     setAllPrices([]);
     setStep("idle");
-    setError(null);
     setModels([]);
     setYears([]);
     if (!id) return;
@@ -62,7 +62,7 @@ export function FipeLookup() {
       const m = await fetchJson<FipeModel[]>(`/api/fipe/brands/${encodeURIComponent(id)}/models`);
       setModels(m);
     } catch {
-      setError(t("errorModels"));
+      snackbar.error(t("errorModels"));
     } finally {
       setLoadingModels(false);
     }
@@ -74,7 +74,6 @@ export function FipeLookup() {
     setPrice(null);
     setAllPrices([]);
     setStep("idle");
-    setError(null);
     setYears([]);
     if (!id || !brandId) return;
     setLoadingYears(true);
@@ -84,7 +83,7 @@ export function FipeLookup() {
       );
       setYears(y);
     } catch {
-      setError(t("errorYears"));
+      snackbar.error(t("errorYears"));
     } finally {
       setLoadingYears(false);
     }
@@ -93,7 +92,6 @@ export function FipeLookup() {
   async function handleSearch() {
     if (!brandId || !modelId || !yearId) return;
     setStep("loading");
-    setError(null);
     setAllPrices([]);
     try {
       // Single server-side call — fetches all years' prices, avoiding N FIPE API calls from the browser
@@ -106,7 +104,7 @@ export function FipeLookup() {
       setStep("success");
     } catch {
       setStep("error");
-      setError(t("errorPrice"));
+      snackbar.error(t("errorPrice"));
     }
   }
 
@@ -220,8 +218,6 @@ export function FipeLookup() {
         <Search className="h-4 w-4" />
         {step === "loading" ? t("searching") : t("search")}
       </button>
-
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       {/* Result */}
       {step === "success" && price && (

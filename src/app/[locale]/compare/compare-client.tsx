@@ -19,6 +19,7 @@ import {
   specGroupLabels,
 } from "@/lib/format-labels";
 import { Link, useRouter } from "@/lib/i18n/navigation";
+import { useSnackbar } from "@/lib/snackbar/context";
 
 // Matches the RadarChart color palette so legend dots align with the graph.
 const RADAR_COLORS = ["#2563eb", "#059669", "#d97706"];
@@ -41,8 +42,8 @@ export function CompareClient({ initialCars }: Props) {
   const tCommon = useTranslations("common");
   const locale = useLocale();
   const router = useRouter();
+  const snackbar = useSnackbar();
   const [cars, setCars] = useState<CompareCar[]>(initialCars);
-  const [error, setError] = useState<string | null>(null);
 
   const carsIds = cars.map((c) => c.modelYearId).join(",");
   const initialIds = initialCars.map((c) => c.modelYearId).join(",");
@@ -56,16 +57,15 @@ export function CompareClient({ initialCars }: Props) {
 
   const addCar = (modelYearId: number) => {
     if (cars.length >= MAX_CARS) {
-      setError(t("maxCars"));
+      snackbar.error(t("maxCars"));
       return;
     }
     if (cars.some((c) => c.modelYearId === modelYearId)) {
-      setError(t("alreadyAdded"));
+      snackbar.error(t("alreadyAdded"));
       return;
     }
     const next = [...cars.map((c) => c.modelYearId), modelYearId];
     router.push(`/compare?cars=${next.join(",")}`);
-    setError(null);
   };
 
   const removeCar = (modelYearId: number) => {
@@ -73,21 +73,17 @@ export function CompareClient({ initialCars }: Props) {
     router.push(
       next.length > 0 ? `/compare?cars=${next.map((c) => c.modelYearId).join(",")}` : `/compare`,
     );
-    setError(null);
   };
 
   const share = async () => {
     const url = `${window.location.origin}${window.location.pathname}?cars=${cars.map((c) => c.modelYearId).join(",")}`;
     try {
       await navigator.clipboard.writeText(url);
-      setError(null);
-      setShareCopied(true);
-      setTimeout(() => setShareCopied(false), 2000);
+      snackbar.success(t("copied"));
     } catch {
-      setError(null);
+      // Clipboard access can be denied; leave the comparison unchanged.
     }
   };
-  const [shareCopied, setShareCopied] = useState(false);
 
   /* ---------------- Build comparison matrix ---------------- */
 
@@ -271,7 +267,6 @@ export function CompareClient({ initialCars }: Props) {
             </button>
           )}
         />
-        {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       </div>
     );
   }
@@ -292,7 +287,7 @@ export function CompareClient({ initialCars }: Props) {
             className="flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             <Link2 className="h-4 w-4" />
-            {shareCopied ? t("copied") : t("share")}
+            {t("share")}
           </button>
         </div>
       </div>
@@ -314,8 +309,6 @@ export function CompareClient({ initialCars }: Props) {
           </p>
         </div>
       )}
-
-      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
       {/* Selected cars + add slot */}
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

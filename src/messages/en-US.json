@@ -303,5 +303,8 @@
     "open": "Open menu",
     "close": "Close menu",
     "title": "Menu"
+  },
+  "snackbar": {
+    "dismiss": "Dismiss notification"
   }
 }

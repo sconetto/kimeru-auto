@@ -4,6 +4,7 @@ import { Bot, CheckCircle2, ChevronDown, ChevronRight, Loader2, Sparkles } from 
 import { useState, useTransition } from "react";
 import { MarkdownEditor } from "@/components/admin/markdown-editor";
 import type { EditorialScoreBreakdown, EditorialTranscript } from "@/lib/db/schema";
+import { useSnackbar } from "@/lib/snackbar/context";
 
 interface CarOption {
   modelYearId: number;
@@ -40,8 +41,8 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
   const [locale, setLocale] = useState<"pt-BR" | "en-US">("pt-BR");
   const [urls, setUrls] = useState("");
   const [content, setContent] = useState<GeneratedContent | null>(null);
+  const snackbar = useSnackbar();
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
-  const [error, setError] = useState<string | null>(null);
   const [expandedTranscripts, setExpandedTranscripts] = useState<Set<number>>(new Set());
   const [isPending, startTransition] = useTransition();
 
@@ -54,11 +55,10 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
       .map((u) => u.trim())
       .filter(Boolean);
     if (!modelYearId || videoUrls.length === 0) {
-      setError("Selecione um veículo e informe ao menos uma URL");
+      snackbar.error("Selecione um veículo e informe ao menos uma URL");
       return;
     }
     setStatus("loading");
-    setError(null);
 
     startTransition(async () => {
       const res = await fetch("/api/admin/ai/generate", {
@@ -69,7 +69,7 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
       const data = await res.json();
       if (!res.ok) {
         setStatus("error");
-        setError(data.error ?? "Erro ao gerar conteúdo");
+        snackbar.error(data.error ?? "Erro ao gerar conteúdo");
         return;
       }
       setContent({
@@ -97,7 +97,7 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
         window.location.reload();
       } else {
         const data = await res.json();
-        setError(data.error ?? "Erro ao publicar");
+        snackbar.error(data.error ?? "Erro ao publicar");
       }
     });
   }
@@ -182,8 +182,6 @@ export function EditorialPanel({ cars, stagedKeys }: Props) {
             veículo/idioma.
           </p>
         )}
-
-        {error && <p className="text-sm text-red-400">{error}</p>}
       </div>
 
       {/* Review editor */}

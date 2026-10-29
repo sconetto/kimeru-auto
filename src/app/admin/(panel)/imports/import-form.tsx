@@ -3,16 +3,16 @@
 import { Upload } from "lucide-react";
 import { useState, useTransition } from "react";
 import type { ImportOutcome } from "@/lib/fenabrave/importer";
+import { useSnackbar } from "@/lib/snackbar/context";
 import { ImportResult } from "./import-result";
 
 export function ImportForm() {
+  const snackbar = useSnackbar();
   const [result, setResult] = useState<ImportOutcome | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function handleFile(file: File | undefined) {
     if (!file) return;
-    setError(null);
     setResult(null);
 
     const reader = new FileReader();
@@ -24,7 +24,7 @@ export function ImportForm() {
         const res = await fetch("/api/admin/imports/fenabrave", { method: "POST", body: formData });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          setError(data.error ?? "Erro ao importar arquivo");
+          snackbar.error(data.error ?? "Erro ao importar arquivo");
           return;
         }
         setResult(await res.json());
@@ -56,7 +56,6 @@ export function ImportForm() {
         />
       </label>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
       {result && <ImportResult result={result} />}
     </div>
   );

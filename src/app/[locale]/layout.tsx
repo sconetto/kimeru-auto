@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { getMessages, getTranslations } from "next-intl/server";
 import { SiteFooter, SiteHeader } from "@/components/layout/site-header";
+import { SnackbarProvider } from "@/components/ui/snackbar/snackbar-provider";
 import { type Locale, locales } from "@/lib/i18n/config";
 
 export function generateStaticParams() {
@@ -47,14 +48,17 @@ export default async function LocaleLayout({
   const { locale } = await params;
   const validLocale: Locale = locales.includes(locale as Locale) ? (locale as Locale) : "pt-BR";
   const messages = await getMessages();
+  const t = await getTranslations({ locale: validLocale, namespace: "snackbar" });
 
   return (
     <NextIntlClientProvider locale={validLocale} messages={messages}>
-      <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
-        <SiteHeader locale={validLocale} />
-        <main className="flex-1">{children}</main>
-        <SiteFooter locale={validLocale} />
-      </div>
+      <SnackbarProvider dismissLabel={t("dismiss")}>
+        <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
+          <SiteHeader locale={validLocale} />
+          <main className="flex-1">{children}</main>
+          <SiteFooter locale={validLocale} />
+        </div>
+      </SnackbarProvider>
     </NextIntlClientProvider>
   );
 }

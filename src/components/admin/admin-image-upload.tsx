@@ -3,6 +3,7 @@
 import { ImagePlus, Loader2, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
+import { useSnackbar } from "@/lib/snackbar/context";
 
 interface AdminImageUploadProps {
   name: string;
@@ -16,28 +17,27 @@ interface AdminImageUploadProps {
  * and stores the returned URL in the hidden field (or reports via onChange).
  */
 export function AdminImageUpload({ name, label, value, onChange }: AdminImageUploadProps) {
+  const snackbar = useSnackbar();
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [url, setUrl] = useState<string | null>(value ?? null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleFile(file: File) {
     setUploading(true);
-    setError(null);
     try {
       const formData = new FormData();
       formData.append("file", file);
       const res = await fetch("/api/admin/media/upload", { method: "POST", body: formData });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(body.error ?? "Falha no upload");
+        snackbar.error(body.error ?? "Falha no upload");
         return;
       }
       setUrl(body.url);
       onChange?.(body.url);
       if (inputRef.current) inputRef.current.value = "";
     } catch {
-      setError("Falha no upload");
+      snackbar.error("Falha no upload");
     } finally {
       setUploading(false);
     }
@@ -92,7 +92,6 @@ export function AdminImageUpload({ name, label, value, onChange }: AdminImageUpl
           />
         </label>
       )}
-      {error && <p className="text-sm text-red-400">{error}</p>}
     </div>
   );
 }

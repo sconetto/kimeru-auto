@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { type FormEvent, useState } from "react";
+import { useSnackbar } from "@/lib/snackbar/context";
 
 /**
  * Login form using the NextAuth HTTP handler flow (client signIn).
@@ -11,13 +12,12 @@ import { type FormEvent, useState } from "react";
  */
 export function LoginForm() {
   const router = useRouter();
-  const [error, setError] = useState(false);
+  const snackbar = useSnackbar();
   const [pending, setPending] = useState(false);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setPending(true);
-    setError(false);
 
     const form = new FormData(e.currentTarget);
     const res = await signIn("credentials", {
@@ -29,7 +29,7 @@ export function LoginForm() {
     setPending(false);
 
     if (res?.error) {
-      setError(true);
+      snackbar.error("Email ou senha inválidos.");
     } else {
       router.push("/admin");
       router.refresh();
@@ -38,11 +38,6 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <div className="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-          Email ou senha inválidos.
-        </div>
-      )}
       <div>
         <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-300">
           Email

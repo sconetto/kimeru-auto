@@ -1,8 +1,10 @@
 "use client";
 
 import { Download, Upload } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ENTITY_LABELS, type ExportableEntity } from "@/lib/catalog/bulk-entities";
+import { useSnackbar } from "@/lib/snackbar/context";
 
 interface PreviewState {
   headers: string[];
@@ -17,15 +19,15 @@ interface ResultState {
 }
 
 export function ImportExportControls({ entity }: { entity: ExportableEntity }) {
+  const router = useRouter();
+  const snackbar = useSnackbar();
   const [preview, setPreview] = useState<PreviewState | null>(null);
   const [result, setResult] = useState<ResultState | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function handleFile(f: File) {
     setFile(f);
-    setError(null);
     setResult(null);
     setBusy(true);
     try {
@@ -35,13 +37,13 @@ export function ImportExportControls({ entity }: { entity: ExportableEntity }) {
       const res = await fetch(`/api/admin/import/${entity}`, { method: "POST", body: formData });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(body.error ?? "Falha ao analisar o arquivo");
+        snackbar.error(body.error ?? "Falha ao analisar o arquivo");
         setPreview(null);
         return;
       }
       setPreview(body);
     } catch {
-      setError("Falha ao analisar o arquivo");
+      snackbar.error("Falha ao analisar o arquivo");
       setPreview(null);
     } finally {
       setBusy(false);
@@ -51,7 +53,6 @@ export function ImportExportControls({ entity }: { entity: ExportableEntity }) {
   async function apply() {
     if (!file) return;
     setBusy(true);
-    setError(null);
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -59,14 +60,28 @@ export function ImportExportControls({ entity }: { entity: ExportableEntity }) {
       const res = await fetch(`/api/admin/import/${entity}`, { method: "POST", body: formData });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(body.error ?? "Falha na importação");
+        snackbar.error(body.error ?? "Falha na importação");
         return;
       }
-      setResult({ created: body.created, updated: body.updated, errors: body.errors ?? [] });
+
+      const errors: Array<{ rowNumber: number; message: string }> = body.errors ?? [];
+      setResult({ created: body.created, updated: body.updated, errors });
       setPreview(null);
-      window.location.reload();
+
+      if (errors.length > 0) {
+        const sample = errors
+          .slice(0, 3)
+          .map((e) => `Linha ${e.rowNumber}: ${e.message}`)
+          .join(" · ");
+        snackbar.error(`${errors.length} linha(s) com erro. ${sample}`);
+      } else {
+        snackbar.success(`${body.created} criado(s), ${body.updated} atualizado(s)`);
+      }
+
+      // Refresh server data in place so the snackbar stays visible.
+      router.refresh();
     } catch {
-      setError("Falha na importação");
+      snackbar.error("Falha na importação");
     } finally {
       setBusy(false);
     }
@@ -96,8 +111,6 @@ export function ImportExportControls({ entity }: { entity: ExportableEntity }) {
           }}
         />
       </label>
-
-      {error && <p className="text-sm text-red-400">{error}</p>}
 
       {preview && !result && (
         <div className="w-full rounded-md border border-slate-700 bg-slate-950 p-3 text-sm">
@@ -158,16 +171,8 @@ export function ImportExportControls({ entity }: { entity: ExportableEntity }) {
         <div className="w-full rounded-md border border-slate-700 bg-slate-950 p-3 text-sm">
           <p className="text-slate-300">
             {result.created} criado(s) · {result.updated} atualizado(s)
+            {result.errors.length > 0 && ` · ${result.errors.length} com erro`}
           </p>
-          {result.errors.length > 0 && (
-            <ul className="mt-2 space-y-0.5 text-xs text-red-400">
-              {result.errors.slice(0, 8).map((e) => (
-                <li key={e.rowNumber}>
-                  Linha {e.rowNumber}: {e.message}
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
       )}
     </div>

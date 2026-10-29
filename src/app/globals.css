@@ -34,3 +34,42 @@ h5,
 h6 {
   font-family: var(--font-mozilla-headline);
 }
+
+/* Snackbar enter/exit. Kept as plain keyframes because this project uses
+   Tailwind v4 without registering tailwindcss-animate. */
+@keyframes snackbar-in {
+  from {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes snackbar-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
+}
+
+.snackbar-enter {
+  animation: snackbar-in 200ms ease-out;
+}
+
+.snackbar-leave {
+  animation: snackbar-out 200ms ease-in forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .snackbar-enter,
+  .snackbar-leave {
+    animation: none;
+  }
+}

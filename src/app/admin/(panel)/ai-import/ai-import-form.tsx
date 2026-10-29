@@ -4,6 +4,7 @@ import { Info } from "lucide-react";
 import { useState } from "react";
 import { SpecFields } from "@/components/admin/spec-fields";
 import type { SpecCategory } from "@/lib/db/schema";
+import { useSnackbar } from "@/lib/snackbar/context";
 import { createCarFromAi } from "./actions";
 
 const YEAR_TOOLTIP =
@@ -83,9 +84,8 @@ export function AiImportForm({
   specCategories: SpecCategory[];
 }) {
   const [url, setUrl] = useState("");
+  const snackbar = useSnackbar();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [result, setResult] = useState("");
   const [creating, setCreating] = useState(false);
   const [car, setCar] = useState<EditableCar | null>(null);
 
@@ -99,8 +99,6 @@ export function AiImportForm({
 
   async function parse() {
     setLoading(true);
-    setError("");
-    setResult("");
     setCar(null);
     try {
       const res = await fetch("/api/admin/ai/parse-car", {
@@ -110,7 +108,7 @@ export function AiImportForm({
       });
       const json = (await res.json()) as ParseResponse;
       if (!res.ok) {
-        setError(json.error ?? "Falha ao analisar a fonte");
+        snackbar.error(json.error ?? "Falha ao analisar a fonte");
       } else if (json.data) {
         const slugToId = new Map(specCategories.map((c) => [c.slug, c.id]));
         const specs: Record<number, string> = {};
@@ -133,7 +131,7 @@ export function AiImportForm({
         });
       }
     } catch {
-      setError("Falha na requisição");
+      snackbar.error("Falha na requisição");
     } finally {
       setLoading(false);
     }
@@ -142,7 +140,6 @@ export function AiImportForm({
   async function create() {
     if (!car) return;
     setCreating(true);
-    setResult("");
     const idToSlug = new Map(specCategories.map((c) => [c.id, c.slug]));
     const specs = Object.entries(car.specs)
       .filter(([, value]) => value.trim())
@@ -165,7 +162,8 @@ export function AiImportForm({
       fipeCode: car.fipeCode || null,
       specs,
     });
-    setResult(r.ok ? `✓ Carro criado (modelo ID ${r.modelId})` : (r.error ?? "Falha ao criar"));
+    if (r.ok) snackbar.success(`Carro criado (modelo ID ${r.modelId})`);
+    else snackbar.error(r.error ?? "Falha ao criar");
     setCreating(false);
   }
 
@@ -189,9 +187,6 @@ export function AiImportForm({
           {loading ? "Analisando..." : "Analisar"}
         </button>
       </div>
-
-      {error && <p className="text-sm text-red-400">{error}</p>}
-      {result && <p className="text-sm text-emerald-400">{result}</p>}
 
       {car && (
         <div className="space-y-4 rounded-lg border border-slate-800 bg-slate-900 p-5">
