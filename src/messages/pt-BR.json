@@ -137,7 +137,8 @@
     "salesTrendAria": "Tendência de vendas mensais",
     "historyUnderConstruction": "Histórico de preços em construção.",
     "historyAria": "Histórico de preços FIPE",
-    "depreciation12m": "Depreciação 12 meses:"
+    "depreciation12m": "Depreciação 12 meses:",
+    "loading": "Carregando..."
   },
   "sales": {
     "title": "Mais Vendidos",

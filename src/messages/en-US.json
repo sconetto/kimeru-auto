@@ -137,7 +137,8 @@
     "salesTrendAria": "Monthly sales trend",
     "historyUnderConstruction": "Price history under construction.",
     "historyAria": "FIPE price history",
-    "depreciation12m": "12-month depreciation:"
+    "depreciation12m": "12-month depreciation:",
+    "loading": "Loading..."
   },
   "sales": {
     "title": "Best Sellers",

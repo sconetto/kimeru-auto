@@ -3,16 +3,25 @@
 import { Search, TrendingDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import {
-  type FipeBrand,
-  type FipeModel,
-  type FipePriceParsed,
-  type FipeYear,
-  fipeClient,
-} from "@/lib/fipe/client";
+import type { FipeBrand, FipeModel, FipePriceParsed, FipeYear } from "@/lib/fipe/client";
 import { formatBRL } from "@/lib/format";
 
 type Step = "idle" | "loading" | "error" | "success";
+
+/** Give up on a stuck reference lookup instead of spinning forever. */
+const REQUEST_TIMEOUT_MS = 20_000;
+
+async function fetchJson<T>(url: string): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) throw new Error(`FIPE request failed with ${res.status}`);
+    return (await res.json()) as T;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 export function FipeLookup() {
   const t = useTranslations("fipe");
@@ -28,10 +37,11 @@ export function FipeLookup() {
   const [allPrices, setAllPrices] = useState<FipePriceParsed[]>([]);
   const [step, setStep] = useState<Step>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [loadingModels, setLoadingModels] = useState(false);
+  const [loadingYears, setLoadingYears] = useState(false);
 
   useEffect(() => {
-    fipeClient
-      .getBrands("cars")
+    fetchJson<FipeBrand[]>("/api/fipe/brands")
       .then((b) => setBrands(b))
       .catch(() => setError(t("errorBrands")));
   }, [t]);
@@ -43,14 +53,18 @@ export function FipeLookup() {
     setPrice(null);
     setAllPrices([]);
     setStep("idle");
+    setError(null);
     setModels([]);
     setYears([]);
     if (!id) return;
+    setLoadingModels(true);
     try {
-      const m = await fipeClient.getModels(Number(id));
+      const m = await fetchJson<FipeModel[]>(`/api/fipe/brands/${encodeURIComponent(id)}/models`);
       setModels(m);
     } catch {
       setError(t("errorModels"));
+    } finally {
+      setLoadingModels(false);
     }
   }
 
@@ -60,13 +74,19 @@ export function FipeLookup() {
     setPrice(null);
     setAllPrices([]);
     setStep("idle");
+    setError(null);
     setYears([]);
     if (!id || !brandId) return;
+    setLoadingYears(true);
     try {
-      const y = await fipeClient.getYears(Number(brandId), Number(id));
+      const y = await fetchJson<FipeYear[]>(
+        `/api/fipe/brands/${encodeURIComponent(brandId)}/models/${encodeURIComponent(id)}/years`,
+      );
       setYears(y);
     } catch {
       setError(t("errorYears"));
+    } finally {
+      setLoadingYears(false);
     }
   }
 
@@ -142,10 +162,10 @@ export function FipeLookup() {
             id="fipe-model"
             value={modelId}
             onChange={(e) => handleModelChange(e.target.value)}
-            disabled={models.length === 0}
+            disabled={loadingModels || models.length === 0}
             className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
           >
-            <option value="">{t("selectModel")}</option>
+            <option value="">{loadingModels ? t("loading") : t("selectModel")}</option>
             {models.map((m) => (
               <option key={m.code} value={m.code}>
                 {m.name}
@@ -165,10 +185,10 @@ export function FipeLookup() {
             id="fipe-year"
             value={yearId}
             onChange={(e) => setYearId(e.target.value)}
-            disabled={years.length === 0}
+            disabled={loadingYears || years.length === 0}
             className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
           >
-            <option value="">{t("selectYear")}</option>
+            <option value="">{loadingYears ? t("loading") : t("selectYear")}</option>
             <optgroup label={t("zeroKmGroup")}>
               {sortedYears
                 .filter((y) => y.code.startsWith("32000"))

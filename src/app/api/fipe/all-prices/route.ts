@@ -6,6 +6,10 @@ import { clientIp, createRateLimiter } from "@/lib/ratelimit";
 const BASE_URL = process.env.FIPE_API_BASE_URL ?? "https://fipe.parallelum.com.br/api/v2";
 const API_TOKEN = process.env.FIPE_API_TOKEN;
 
+// Each fan-out call gets its own deadline so one stalled model-year can't hold
+// the whole response open (Cloudflare answers 522 only after ~40s).
+const UPSTREAM_TIMEOUT_MS = Number(process.env.FIPE_API_TIMEOUT_MS ?? 12_000);
+
 // Aggregate TTL aligned to the DB freshness window (30 days): the first lookup
 // pays one upstream call per model-year, subsequent visitors read the cache.
 const AGGREGATE_TTL_SECONDS = 30 * 24 * 60 * 60;
@@ -68,7 +72,10 @@ export async function GET(request: Request) {
 
   try {
     // Fetch all years
-    const yearsRes = await fetch(`${base}/years`, { headers: authHeaders() });
+    const yearsRes = await fetch(`${base}/years`, {
+      headers: authHeaders(),
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+    });
     if (!yearsRes.ok) {
       return NextResponse.json({ error: "Failed to fetch years from FIPE" }, { status: 502 });
     }
@@ -78,7 +85,10 @@ export async function GET(request: Request) {
     const prices = await Promise.all(
       years.map(async (y) => {
         try {
-          const res = await fetch(`${base}/years/${y.code}`, { headers: authHeaders() });
+          const res = await fetch(`${base}/years/${y.code}`, {
+            headers: authHeaders(),
+            signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+          });
           if (!res.ok) return null;
           const raw: FipePriceRaw = await res.json();
           return {

@@ -12,6 +12,14 @@
 const BASE_URL = process.env.FIPE_API_BASE_URL ?? "https://fipe.parallelum.com.br/api/v2";
 const API_TOKEN = process.env.FIPE_API_TOKEN;
 
+/**
+ * Upstream calls must never hang a request forever: the FIPE API sits behind
+ * Cloudflare and intermittently answers 522 (origin timeout) after ~40s.
+ * We abort early and retry transient failures once instead.
+ */
+const UPSTREAM_TIMEOUT_MS = Number(process.env.FIPE_API_TIMEOUT_MS ?? 12_000);
+const MAX_ATTEMPTS = 2;
+
 export type FipeVehicleType = "cars" | "motorcycles" | "trucks";
 
 export interface FipeBrand {
@@ -85,24 +93,45 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...(API_TOKEN ? { "X-Subscription-Token": API_TOKEN } : {}),
   };
 
-  let response: Response;
-  try {
-    response = await fetch(`${BASE_URL}${path}`, { ...init, headers, next: { revalidate: 0 } });
-  } catch (err) {
-    throw new FipeApiError(`FIPE API unreachable: ${(err as Error).message}`, 503, "NETWORK");
+  let lastError: FipeApiError | undefined;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    let response: Response;
+    try {
+      response = await fetch(`${BASE_URL}${path}`, {
+        ...init,
+        headers,
+        signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+        next: { revalidate: 0 },
+      });
+    } catch (err) {
+      lastError = new FipeApiError(
+        `FIPE API unreachable: ${(err as Error).message}`,
+        503,
+        "NETWORK",
+      );
+      if (attempt < MAX_ATTEMPTS) continue;
+      throw lastError;
+    }
+
+    if (response.status === 404) {
+      throw new FipeApiError(`FIPE resource not found: ${path}`, 404, "NOT_FOUND");
+    }
+    if (response.status === 429) {
+      throw new FipeApiError("FIPE API rate limit exceeded", 429, "RATE_LIMITED");
+    }
+    if (!response.ok) {
+      lastError = new FipeApiError(`FIPE API error ${response.status}: ${path}`, response.status);
+      // 5xx covers upstream faults and Cloudflare 520-527 origin timeouts,
+      // which are transient — retry once before surfacing the failure.
+      if (response.status >= 500 && attempt < MAX_ATTEMPTS) continue;
+      throw lastError;
+    }
+
+    return (await response.json()) as T;
   }
 
-  if (response.status === 404) {
-    throw new FipeApiError(`FIPE resource not found: ${path}`, 404, "NOT_FOUND");
-  }
-  if (response.status === 429) {
-    throw new FipeApiError("FIPE API rate limit exceeded", 429, "RATE_LIMITED");
-  }
-  if (!response.ok) {
-    throw new FipeApiError(`FIPE API error ${response.status}: ${path}`, response.status);
-  }
-
-  return (await response.json()) as T;
+  throw lastError ?? new FipeApiError(`FIPE API error: ${path}`, 503, "NETWORK");
 }
 
 export const fipeClient = {
