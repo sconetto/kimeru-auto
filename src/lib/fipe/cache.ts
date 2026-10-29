@@ -79,6 +79,28 @@ export const cache: Redis | MemoryFallback =
 /** Whether the cache is backed by real Redis (vs. in-memory fallback). */
 export const isPersistentCache = hasRedis;
 
+/**
+ * Cache reads must never fail a request. A KV hiccup should look like a cache
+ * miss and let the caller fetch the data, not surface a 500 to the browser.
+ */
+export async function safeCacheGet<T>(key: string): Promise<T | null> {
+  try {
+    return await cache.get<T>(key);
+  } catch (err) {
+    console.error(`[cache] get ${key} failed`, err);
+    return null;
+  }
+}
+
+/** Best-effort write: a failed cache fill is logged, never propagated. */
+export async function safeCacheSet(key: string, value: unknown, exSeconds: number): Promise<void> {
+  try {
+    await cache.set(key, value, { ex: exSeconds });
+  } catch (err) {
+    console.error(`[cache] set ${key} failed`, err);
+  }
+}
+
 export const cacheKeys = {
   fipePrice: (fipeCode: string, yearId: string) => `fipe:price:${fipeCode}:${yearId}`,
   fipeBrands: "fipe:brands",

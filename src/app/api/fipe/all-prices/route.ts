@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { cache } from "@/lib/fipe/cache";
+import { safeCacheGet, safeCacheSet } from "@/lib/fipe/cache";
 import { parseFipePrice } from "@/lib/fipe/client";
 import { clientIp, createRateLimiter } from "@/lib/ratelimit";
 
@@ -61,7 +61,7 @@ export async function GET(request: Request) {
   const cacheKey = `fipe:all-prices:${brandId}:${modelId}`;
 
   // Durable cache: serve the aggregate when fresh (30-day TTL).
-  const cachedAggregate = await cache.get<{ prices: unknown[] }>(cacheKey);
+  const cachedAggregate = await safeCacheGet<{ prices: unknown[] }>(cacheKey);
   if (cachedAggregate?.prices) {
     return NextResponse.json(cachedAggregate, {
       headers: { "X-Cache": "HIT" },
@@ -110,7 +110,7 @@ export async function GET(request: Request) {
     const body = { prices: valid };
 
     // Persist the aggregate so subsequent lookups never touch FIPE within the window.
-    await cache.set(cacheKey, body, { ex: AGGREGATE_TTL_SECONDS });
+    await safeCacheSet(cacheKey, body, AGGREGATE_TTL_SECONDS);
 
     return NextResponse.json(body, { headers: { "X-Cache": "MISS" } });
   } catch {

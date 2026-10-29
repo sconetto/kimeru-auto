@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { cache, cacheKeys } from "@/lib/fipe/cache";
-import { type FipeYear, fipeClient } from "@/lib/fipe/client";
-import { fipeErrorResponse } from "@/lib/fipe/respond";
+import { cacheKeys } from "@/lib/fipe/cache";
+import { fipeClient } from "@/lib/fipe/client";
+import { cachedJson } from "@/lib/fipe/respond";
 
 export const dynamic = "force-dynamic";
 
@@ -24,17 +24,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Invalid brandId or modelId" }, { status: 400 });
   }
 
-  const key = cacheKeys.fipeYears(brand, model);
-  const cached = await cache.get<FipeYear[]>(key);
-  if (cached) {
-    return NextResponse.json(cached, { headers: { "X-Cache": "HIT" } });
-  }
-
-  try {
-    const years = await fipeClient.getYears(brand, model, "cars");
-    await cache.set(key, years, { ex: REFERENCE_TTL_SECONDS });
-    return NextResponse.json(years, { headers: { "X-Cache": "MISS" } });
-  } catch (err) {
-    return fipeErrorResponse(err);
-  }
+  return cachedJson(cacheKeys.fipeYears(brand, model), REFERENCE_TTL_SECONDS, () =>
+    fipeClient.getYears(brand, model, "cars"),
+  );
 }

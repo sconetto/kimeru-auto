@@ -16,8 +16,12 @@ const API_TOKEN = process.env.FIPE_API_TOKEN;
  * Upstream calls must never hang a request forever: the FIPE API sits behind
  * Cloudflare and intermittently answers 522 (origin timeout) after ~40s.
  * We abort early and retry transient failures once instead.
+ *
+ * The budget is deliberately under half the browser's 20s abort in
+ * fipe-lookup.tsx: two attempts must still finish before the client gives up,
+ * otherwise a retry can never be seen.
  */
-const UPSTREAM_TIMEOUT_MS = Number(process.env.FIPE_API_TIMEOUT_MS ?? 12_000);
+const UPSTREAM_TIMEOUT_MS = Number(process.env.FIPE_API_TIMEOUT_MS ?? 8_000);
 const MAX_ATTEMPTS = 2;
 
 export type FipeVehicleType = "cars" | "motorcycles" | "trucks";
@@ -110,6 +114,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
         503,
         "NETWORK",
       );
+      // Logged because the route maps this to a status the browser sees only as
+      // "could not load" — without this, an outage is invisible in runtime logs.
+      console.error(
+        `[fipe] ${path} attempt ${attempt}/${MAX_ATTEMPTS} failed: ${lastError.message}`,
+      );
       if (attempt < MAX_ATTEMPTS) continue;
       throw lastError;
     }
@@ -124,6 +133,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       lastError = new FipeApiError(`FIPE API error ${response.status}: ${path}`, response.status);
       // 5xx covers upstream faults and Cloudflare 520-527 origin timeouts,
       // which are transient — retry once before surfacing the failure.
+      console.error(
+        `[fipe] ${path} attempt ${attempt}/${MAX_ATTEMPTS} returned ${response.status}`,
+      );
       if (response.status >= 500 && attempt < MAX_ATTEMPTS) continue;
       throw lastError;
     }
