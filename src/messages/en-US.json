@@ -208,6 +208,7 @@
   "common": {
     "loading": "Loading...",
     "back": "Back",
+    "close": "Close",
     "priceOnRequest": "Price on request",
     "notFound": "No models in this category yet.",
     "language": "Language",

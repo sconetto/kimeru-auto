@@ -208,6 +208,7 @@
   "common": {
     "loading": "Carregando...",
     "back": "Voltar",
+    "close": "Fechar",
     "priceOnRequest": "Preço sob consulta",
     "notFound": "Nenhum modelo nesta categoria ainda.",
     "language": "Idioma",
