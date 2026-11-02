@@ -5,6 +5,10 @@ on:
     - cron: "0 4 2 * *" # 2nd day of month, 04:00 UTC (FIPE publishes on the 1st)
   workflow_dispatch:
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   sync:
     name: Sync FIPE reference data + prices
@@ -27,3 +31,41 @@ jobs:
           FIPE_API_TOKEN: ${{ secrets.FIPE_API_TOKEN }}
           KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
           KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
+
+      - name: Open an issue when the sync fails
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = 'FIPE sync failed';
+            const body = [
+              'The monthly FIPE sync failed, so prices stay at the last successful run.',
+              '',
+              `- Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              `- Commit: ${context.sha}`,
+              `- Time: ${new Date().toISOString()}`,
+            ].join('\n');
+
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+            const existing = open.find((issue) => issue.title === title);
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+              });
+            }

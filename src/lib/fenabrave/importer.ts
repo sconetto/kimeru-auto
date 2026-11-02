@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { brands, models, salesRankings } from "@/lib/db/schema";
 import { bestMatch } from "./matcher";
@@ -40,6 +40,19 @@ export function monthYearFromLabel(label: string): { month: number; year: number
   }
   const now = new Date();
   return { month: now.getMonth() + 1, year: now.getFullYear() };
+}
+
+/**
+ * Whether a month has already been ingested. The sync runs daily during the
+ * publication window, so this keeps repeat runs cheap and free of re-parsing.
+ */
+export async function hasFenabraveRows(month: number, year: number): Promise<boolean> {
+  const [row] = await db
+    .select({ id: salesRankings.id })
+    .from(salesRankings)
+    .where(and(eq(salesRankings.month, month), eq(salesRankings.year, year)))
+    .limit(1);
+  return Boolean(row);
 }
 
 /**

@@ -2,8 +2,23 @@ name: FENABRAVE Sync (monthly)
 
 on:
   schedule:
-    - cron: "0 6 3 * *" # 3rd day of month, 06:00 UTC (report for month M is published in M+1)
+    # The report for month M is published during the first days of M+1, but the
+    # exact day varies (and the portal has answered 404 intermittently). Run
+    # daily from the 2nd to the 10th: a 404 is treated as "not published yet",
+    # and the run becomes a real failure only after the day-10 deadline.
+    - cron: "0 6 2-10 * *"
   workflow_dispatch:
+    inputs:
+      month:
+        description: "Report month (1-12). Empty = previous month."
+        required: false
+      year:
+        description: "Report year. Empty = previous month."
+        required: false
+
+permissions:
+  contents: read
+  issues: write
 
 jobs:
   sync:
@@ -26,3 +41,44 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
           KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
+          FENABRAVE_MONTH: ${{ inputs.month }}
+          FENABRAVE_YEAR: ${{ inputs.year }}
+
+      - name: Open an issue when the sync fails
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = 'FENABRAVE sync failed';
+            const body = [
+              'The monthly FENABRAVE sync failed, so sales data stays at the last',
+              'successfully ingested month.',
+              '',
+              `- Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              `- Commit: ${context.sha}`,
+              `- Time: ${new Date().toISOString()}`,
+            ].join('\n');
+
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+            const existing = open.find((issue) => issue.title === title);
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+              });
+            }
