@@ -85,6 +85,19 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Drizzle wraps driver errors: `.message` is just the SQL and the actionable
+ * cause (e.g. "permission denied for table sales_rankings") sits on `.cause`.
+ * Flatten both so a failed scheduled run can be diagnosed from the log alone.
+ */
+export function describeError(err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err);
+  const cause = (err as { cause?: unknown } | null)?.cause;
+  const causeMessage =
+    cause instanceof Error ? cause.message : typeof cause === "string" ? cause : "";
+  return causeMessage && !message.includes(causeMessage) ? `${message} (${causeMessage})` : message;
+}
+
 type DownloadOutcome =
   | { kind: "ok"; response: Response }
   | { kind: "not-published" }
@@ -157,7 +170,7 @@ export async function syncFenabraveReport(): Promise<SyncResult> {
       return result;
     }
   } catch (err) {
-    result.errors.push(`lookup:${(err as Error).message}`);
+    result.errors.push(`lookup:${describeError(err)}`);
     return result;
   }
 
@@ -189,7 +202,7 @@ export async function syncFenabraveReport(): Promise<SyncResult> {
     const buffer = await download.response.arrayBuffer();
     parsed = await parseFenabravePdf(buffer);
   } catch (err) {
-    result.errors.push(`parse:${(err as Error).message}`);
+    result.errors.push(`parse:${describeError(err)}`);
     return result;
   }
 
@@ -201,7 +214,7 @@ export async function syncFenabraveReport(): Promise<SyncResult> {
     result.imported = outcome.imported;
     result.unmatched = outcome.unmatched;
   } catch (err) {
-    result.errors.push(`import:${(err as Error).message}`);
+    result.errors.push(`import:${describeError(err)}`);
   }
 
   return result;

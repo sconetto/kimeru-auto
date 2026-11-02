@@ -162,4 +162,29 @@ describe("syncFenabraveReport", () => {
     expect(result.errors).toEqual([]);
     expect(result.url).toContain("2026_09_02.pdf");
   });
+
+  it("surfaces the Drizzle cause when the import fails", async () => {
+    const sync = await loadSync({ FENABRAVE_RETRY_DELAY_MS: "0" });
+    stubFetch(okResponse());
+
+    const wrapped = new Error('Failed query: insert into "sales_rankings" ...');
+    (wrapped as { cause?: unknown }).cause = new Error(
+      "permission denied for table sales_rankings",
+    );
+    mockImportRows.mockRejectedValue(wrapped);
+
+    const result = await sync.syncFenabraveReport();
+
+    expect(result.errors[0]).toContain("import:");
+    expect(result.errors[0]).toContain("permission denied for table sales_rankings");
+  });
+
+  it("describeError flattens a wrapped cause", async () => {
+    const sync = await loadSync();
+    const outer = new Error("Failed query");
+    (outer as { cause?: unknown }).cause = new Error("permission denied");
+
+    expect(sync.describeError(outer)).toBe("Failed query (permission denied)");
+    expect(sync.describeError(new Error("plain"))).toBe("plain");
+  });
 });
