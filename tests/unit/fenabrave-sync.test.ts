@@ -34,6 +34,13 @@ function stubFetch(...responses: unknown[]) {
     if (response instanceof Error) mock.mockRejectedValueOnce(response);
     else mock.mockResolvedValueOnce(response);
   }
+
+  // Repeat the last response for any further calls (e.g. extra filename
+  // variants) so a test does not depend on how many candidates are probed.
+  const last = responses.at(-1);
+  if (last instanceof Error) mock.mockRejectedValue(last);
+  else if (last !== undefined) mock.mockResolvedValue(last);
+
   vi.stubGlobal("fetch", mock);
   return mock;
 }
@@ -62,7 +69,7 @@ afterEach(() => {
 
 describe("syncFenabraveReport", () => {
   it("treats a 404 as 'not published yet' rather than a failure", async () => {
-    const sync = await loadSync({ FENABRAVE_RETRY_DELAY_MS: "0" });
+    const sync = await loadSync({ FENABRAVE_RETRY_DELAY_MS: "0", FENABRAVE_URL_VARIANTS: "1" });
     const fetchMock = stubFetch(statusResponse(404));
 
     const result = await sync.syncFenabraveReport();
@@ -72,6 +79,29 @@ describe("syncFenabraveReport", () => {
     expect(result.imported).toBe(0);
     // A missing report is not retried: it will not appear within this run.
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("tries every filename variant before reporting not published", async () => {
+    const sync = await loadSync({ FENABRAVE_RETRY_DELAY_MS: "0" });
+    const fetchMock = stubFetch(statusResponse(404), statusResponse(404), statusResponse(404));
+
+    const result = await sync.syncFenabraveReport();
+
+    expect(result.notPublished).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("falls back to the duplicate-upload filename", async () => {
+    const sync = await loadSync({ FENABRAVE_RETRY_DELAY_MS: "0" });
+    // Plain name 404s; the portal published it as "<name> 2.pdf" instead.
+    const fetchMock = stubFetch(statusResponse(404), okResponse());
+
+    const result = await sync.syncFenabraveReport();
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(result.errors).toEqual([]);
+    expect(result.imported).toBe(3);
+    expect(result.url).toContain("%202.pdf");
   });
 
   it("retries a transient 5xx and then imports", async () => {

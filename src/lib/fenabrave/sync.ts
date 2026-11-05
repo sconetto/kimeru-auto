@@ -81,6 +81,25 @@ export function buildReportUrl({ month, year }: MonthYear): string {
   return `${BASE_URL}/${year}_${mm}_02.pdf`;
 }
 
+/**
+ * How many filename variants to probe: plain, then " 2", " 3", …
+ *
+ * FENABRAVE's portal re-uploads a report as "<name> 2.pdf" when a file with the
+ * same name already exists, so the plain name 404s while the month is actually
+ * published. October 2026 shipped only as `2026_10_02 2.pdf`.
+ */
+const URL_VARIANTS = Math.max(1, Math.min(9, Number(process.env.FENABRAVE_URL_VARIANTS ?? 3)));
+
+/** Candidate URLs for a month, most likely first. */
+export function buildReportUrls(target: MonthYear): string[] {
+  const canonical = buildReportUrl(target);
+  const urls = [canonical];
+  for (let copy = 2; copy <= URL_VARIANTS; copy++) {
+    urls.push(canonical.replace(/\.pdf$/, `${encodeURIComponent(` ${copy}`)}.pdf`));
+  }
+  return urls;
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -99,38 +118,55 @@ export function describeError(err: unknown): string {
 }
 
 type DownloadOutcome =
-  | { kind: "ok"; response: Response }
-  | { kind: "not-published" }
+  | { kind: "ok"; response: Response; url: string }
+  | { kind: "not-published"; message: string }
   | { kind: "error"; message: string };
 
 /**
- * Fetch the report, retrying only transient failures. A 404 means the month is
- * simply not on the portal yet, so it is reported separately and not retried.
+ * Fetch the report, trying each candidate filename in order.
+ *
+ * Within a candidate, only transient failures (5xx, 429, network) are retried.
+ * A 404 means that filename is not there, so we move to the next variant rather
+ * than treating the month as published-somewhere-else.
  */
-async function downloadReport(url: string): Promise<DownloadOutcome> {
-  let lastMessage = `no attempt made for ${url}`;
+async function downloadReport(urls: string[]): Promise<DownloadOutcome> {
+  let lastMessage = `no attempt made for ${urls[0]}`;
 
-  for (let attempt = 1; attempt <= DOWNLOAD_ATTEMPTS; attempt++) {
-    try {
-      const response = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+  for (const url of urls) {
+    let notFound = false;
 
-      if (response.status === 404) return { kind: "not-published" };
-      if (response.ok) return { kind: "ok", response };
+    for (let attempt = 1; attempt <= DOWNLOAD_ATTEMPTS; attempt++) {
+      try {
+        const response = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
 
-      lastMessage = `HTTP ${response.status} for ${url}`;
-      const retryable = response.status >= 500 || response.status === 429;
-      if (!retryable) return { kind: "error", message: `download: ${lastMessage}` };
-    } catch (err) {
-      lastMessage = (err as Error).message;
+        if (response.ok) return { kind: "ok", response, url };
+
+        if (response.status === 404) {
+          lastMessage = `HTTP 404 for ${url}`;
+          notFound = true;
+          break;
+        }
+
+        lastMessage = `HTTP ${response.status} for ${url}`;
+        const retryable = response.status >= 500 || response.status === 429;
+        if (!retryable) return { kind: "error", message: `download: ${lastMessage}` };
+      } catch (err) {
+        lastMessage = (err as Error).message;
+      }
+
+      if (attempt < DOWNLOAD_ATTEMPTS) await sleep(RETRY_DELAY_MS * attempt);
     }
 
-    if (attempt < DOWNLOAD_ATTEMPTS) await sleep(RETRY_DELAY_MS * attempt);
+    // A healthy portal that keeps failing will not be fixed by another filename.
+    if (!notFound) {
+      return {
+        kind: "error",
+        message: `download: ${lastMessage} (after ${DOWNLOAD_ATTEMPTS} attempts)`,
+      };
+    }
   }
 
-  return {
-    kind: "error",
-    message: `download: ${lastMessage} (after ${DOWNLOAD_ATTEMPTS} attempts)`,
-  };
+  return { kind: "not-published", message: lastMessage };
 }
 
 export interface SyncResult {
@@ -159,7 +195,8 @@ export async function syncFenabraveReport(): Promise<SyncResult> {
   };
 
   const target = resolveTarget();
-  const url = buildReportUrl(target);
+  const urls = buildReportUrls(target);
+  const url = urls[0];
 
   // Repeat runs during the publication window must not re-download or re-parse.
   try {
@@ -174,7 +211,7 @@ export async function syncFenabraveReport(): Promise<SyncResult> {
     return result;
   }
 
-  const download = await downloadReport(url);
+  const download = await downloadReport(urls);
 
   if (download.kind === "not-published") {
     result.url = url;
@@ -183,7 +220,7 @@ export async function syncFenabraveReport(): Promise<SyncResult> {
     const dueForDeadline = new Date().getUTCDate() >= PUBLISH_DEADLINE_DAY;
     if (!hasExplicitTarget() && dueForDeadline) {
       result.errors.push(
-        `download: report still missing after the day-${PUBLISH_DEADLINE_DAY} deadline (${url})`,
+        `download: report still missing after the day-${PUBLISH_DEADLINE_DAY} deadline (tried ${urls.length} filename variants)`,
       );
     }
     return result;
@@ -195,7 +232,8 @@ export async function syncFenabraveReport(): Promise<SyncResult> {
     return result;
   }
 
-  result.url = url;
+  // Report the filename that actually worked (may be a " 2" duplicate upload).
+  result.url = download.url;
 
   let parsed: PdfParseResult;
   try {
