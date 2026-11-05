@@ -1,8 +1,9 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq, or } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { brands, models, salesRankings } from "@/lib/db/schema";
 import { bestMatch } from "./matcher";
 import { type ParsedSaleRow, parseFenabraveXlsx } from "./parser";
+import { createPlaceholderResolver } from "./placeholder";
 
 export interface ImportOutcome {
   totalRows: number;
@@ -10,6 +11,8 @@ export interface ImportOutcome {
   unmatched: { rawName: string; position: number }[];
   warnings: string[];
   referenceLabel: string;
+  /** Row-level accounting so a partial import is never reported as a plain ratio. */
+  coverage: { total: number; matched: number; created: number; unmatched: number };
 }
 
 /** ImportOutcome without the referenceLabel (for the row-level core). */
@@ -69,7 +72,10 @@ export async function importFenabraveRows(
   month: number,
   year: number,
 ): Promise<CoreImportOutcome> {
-  // Candidate model families (active models, any brand)
+  const createPlaceholders = process.env.FENABRAVE_CREATE_PLACEHOLDERS !== "false";
+
+  // Active models first so a matcher tie favours an enriched record over an
+  // auto-created placeholder of the same name.
   const candidates = await db
     .select({
       modelId: models.id,
@@ -78,25 +84,52 @@ export async function importFenabraveRows(
     })
     .from(models)
     .innerJoin(brands, eq(brands.id, models.brandId))
-    .where(eq(models.isActive, true));
+    .where(or(eq(models.isActive, true), eq(models.needsEnrichment, true)))
+    .orderBy(desc(models.isActive));
 
   const unmatched: { rawName: string; position: number }[] = [];
   const warnings: string[] = [];
+  const resolver = createPlaceholderResolver();
+  let matchedRows = 0;
+  let createdRows = 0;
 
   // Group rows by matched model family, summing units across segments.
   const byModel = new Map<number, { units: number; rawNames: string[] }>();
   for (const row of rows) {
     const match = bestMatch(row.rawName, candidates);
-    if (!match) {
-      unmatched.push({ rawName: row.rawName, position: row.position });
-      continue;
+    let modelId: number | null = match?.modelId ?? null;
+
+    if (modelId === null) {
+      // No catalog model: keep the numbers by attaching them to a placeholder
+      // instead of dropping the row.
+      if (!createPlaceholders) {
+        unmatched.push({ rawName: row.rawName, position: row.position });
+        continue;
+      }
+
+      const resolution = await resolver.resolve(row.rawName);
+      if (!resolution) {
+        unmatched.push({ rawName: row.rawName, position: row.position });
+        continue;
+      }
+
+      modelId = resolution.modelId;
+      if (resolution.created) {
+        createdRows++;
+        warnings.push(`Placeholder criado: ${row.rawName}`);
+      } else {
+        matchedRows++;
+      }
+    } else {
+      matchedRows++;
     }
-    const existing = byModel.get(match.modelId);
+
+    const existing = byModel.get(modelId);
     if (existing) {
       existing.units += row.units;
       existing.rawNames.push(row.rawName);
     } else {
-      byModel.set(match.modelId, { units: row.units, rawNames: [row.rawName] });
+      byModel.set(modelId, { units: row.units, rawNames: [row.rawName] });
     }
   }
 
@@ -125,7 +158,18 @@ export async function importFenabraveRows(
     }
   }
 
-  return { totalRows: rows.length, imported, unmatched, warnings };
+  return {
+    totalRows: rows.length,
+    imported,
+    unmatched,
+    warnings,
+    coverage: {
+      total: rows.length,
+      matched: matchedRows,
+      created: createdRows,
+      unmatched: unmatched.length,
+    },
+  };
 }
 
 /** Import a FENABRAVE XLSX (admin upload path). */

@@ -9,24 +9,43 @@ export function ImportResult({ result }: { result: ImportOutcome }) {
         <h3 className="font-medium text-white">Importação concluída: {result.referenceLabel}</h3>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 text-center">
+      <div className="grid grid-cols-2 gap-4 text-center sm:grid-cols-4">
         <div className="rounded-md bg-slate-800 p-3">
-          <p className="text-2xl font-bold text-white">{result.totalRows}</p>
+          <p className="text-2xl font-bold text-white">{result.coverage.total}</p>
           <p className="text-xs text-slate-400">Linhas no arquivo</p>
         </div>
         <div className="rounded-md bg-slate-800 p-3">
-          <p className="text-2xl font-bold text-emerald-400">{result.imported}</p>
-          <p className="text-xs text-slate-400">Importadas</p>
+          <p className="text-2xl font-bold text-emerald-400">{result.coverage.matched}</p>
+          <p className="text-xs text-slate-400">Reconhecidas</p>
+        </div>
+        <div className="rounded-md bg-slate-800 p-3">
+          <p className="text-2xl font-bold text-blue-400">{result.coverage.created}</p>
+          <p className="text-xs text-slate-400">Modelos criados</p>
         </div>
         <div className="rounded-md bg-slate-800 p-3">
           <p
-            className={`text-2xl font-bold ${result.unmatched.length > 0 ? "text-amber-400" : "text-slate-500"}`}
+            className={`text-2xl font-bold ${result.coverage.unmatched > 0 ? "text-amber-400" : "text-slate-500"}`}
           >
-            {result.unmatched.length}
+            {result.coverage.unmatched}
           </p>
           <p className="text-xs text-slate-400">Não reconhecidas</p>
         </div>
       </div>
+
+      <p className="text-xs text-slate-400">
+        {result.imported} modelo(s) gravado(s) com os dados deste arquivo.
+      </p>
+
+      {result.coverage.created > 0 && (
+        <p className="rounded-md bg-blue-500/10 p-3 text-sm text-blue-300">
+          {result.coverage.created} modelo(s) não existiam no catálogo e foram criados como
+          provisórios, já com as vendas registradas.{" "}
+          <a href="/admin/enrichment" className="underline hover:text-blue-200">
+            Revisar a fila de enriquecimento
+          </a>
+          .
+        </p>
+      )}
 
       {result.warnings.length > 0 && (
         <div className="flex items-start gap-2 rounded-md bg-amber-500/10 p-3 text-sm text-amber-400">

@@ -163,6 +163,21 @@ describe("syncFenabraveReport", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("re-imports an already ingested month when forced", async () => {
+    const sync = await loadSync({
+      FENABRAVE_RETRY_DELAY_MS: "0",
+      FENABRAVE_FORCE_REIMPORT: "true",
+    });
+    mockHasRows.mockResolvedValue(true);
+    const fetchMock = stubFetch(okResponse());
+
+    const result = await sync.syncFenabraveReport();
+
+    expect(result.skipped).toBe(false);
+    expect(result.imported).toBe(3);
+    expect(fetchMock).toHaveBeenCalled();
+  });
+
   it("fails once the publication deadline passes with no report", async () => {
     const sync = await loadSync({
       FENABRAVE_RETRY_DELAY_MS: "0",

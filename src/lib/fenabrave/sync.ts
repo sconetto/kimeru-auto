@@ -175,6 +175,7 @@ export interface SyncResult {
   totalRows: number;
   imported: number;
   unmatched: { rawName: string; position: number }[];
+  coverage: { total: number; matched: number; created: number; unmatched: number };
   errors: string[];
   /** The month's PDF is not on the portal yet (expected during the window). */
   notPublished: boolean;
@@ -189,6 +190,7 @@ export async function syncFenabraveReport(): Promise<SyncResult> {
     totalRows: 0,
     imported: 0,
     unmatched: [],
+    coverage: { total: 0, matched: 0, created: 0, unmatched: 0 },
     errors: [],
     notPublished: false,
     skipped: false,
@@ -199,8 +201,11 @@ export async function syncFenabraveReport(): Promise<SyncResult> {
   const url = urls[0];
 
   // Repeat runs during the publication window must not re-download or re-parse.
+  // A forced run (backfill after a matcher change) bypasses the guard so the
+  // previously dropped rows can be attached to placeholders.
+  const forceReimport = process.env.FENABRAVE_FORCE_REIMPORT === "true";
   try {
-    if (await hasFenabraveRows(target.month, target.year)) {
+    if (!forceReimport && (await hasFenabraveRows(target.month, target.year))) {
       result.url = url;
       result.skipped = true;
       result.referenceLabel = `${target.month}/${target.year} already ingested`;
@@ -251,6 +256,7 @@ export async function syncFenabraveReport(): Promise<SyncResult> {
     result.totalRows = outcome.totalRows;
     result.imported = outcome.imported;
     result.unmatched = outcome.unmatched;
+    result.coverage = outcome.coverage;
   } catch (err) {
     result.errors.push(`import:${describeError(err)}`);
   }
@@ -271,6 +277,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       } else {
         console.log(
           `FENABRAVE sync (${r.referenceLabel || r.url}): ${r.imported}/${r.totalRows} imported, ${r.unmatched.length} unmatched`,
+        );
+        console.log(
+          `Coverage: ${r.coverage.matched} matched, ${r.coverage.created} created, ${r.coverage.unmatched} unmatched of ${r.coverage.total}`,
         );
         if (r.unmatched.length > 0) {
           console.warn(`Unmatched (${r.unmatched.length}):`, r.unmatched.slice(0, 10));

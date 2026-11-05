@@ -15,6 +15,11 @@ on:
       year:
         description: "Report year. Empty = previous month."
         required: false
+      force:
+        description: "Re-import even if the month was already ingested (backfill)."
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -43,6 +48,7 @@ jobs:
           KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
           FENABRAVE_MONTH: ${{ inputs.month }}
           FENABRAVE_YEAR: ${{ inputs.year }}
+          FENABRAVE_FORCE_REIMPORT: ${{ inputs.force }}
 
       - name: Open an issue when the sync fails
         if: failure()
