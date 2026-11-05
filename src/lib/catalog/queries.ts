@@ -770,7 +770,13 @@ async function getSalesRankingsImpl(period?: SalesPeriod): Promise<SalesRankingR
     .from(salesRankings)
     .innerJoin(models, eq(models.id, salesRankings.modelId))
     .innerJoin(brands, eq(brands.id, models.brandId))
-    .where(and(eq(salesRankings.year, target.year), eq(salesRankings.month, target.month)))
+    .where(
+      and(
+        eq(salesRankings.year, target.year),
+        eq(salesRankings.month, target.month),
+        eq(models.isActive, true),
+      ),
+    )
     .orderBy(asc(salesRankings.rankingPosition))
     .limit(50);
 
@@ -838,7 +844,7 @@ export async function getSalesYearToDate(year: number): Promise<SalesYearToDateR
     .from(salesRankings)
     .innerJoin(models, eq(models.id, salesRankings.modelId))
     .innerJoin(brands, eq(brands.id, models.brandId))
-    .where(eq(salesRankings.year, year))
+    .where(and(eq(salesRankings.year, year), eq(models.isActive, true)))
     .groupBy(salesRankings.modelId, models.slug, models.name, brands.name, models.category)
     .orderBy(desc(sum(salesRankings.unitsSold)));
 }
@@ -860,7 +866,7 @@ export async function getBrandYearToDate(year: number): Promise<BrandYearToDateR
     .from(salesRankings)
     .innerJoin(models, eq(models.id, salesRankings.modelId))
     .innerJoin(brands, eq(brands.id, models.brandId))
-    .where(eq(salesRankings.year, year))
+    .where(and(eq(salesRankings.year, year), eq(models.isActive, true)))
     .groupBy(brands.name)
     .orderBy(desc(sum(salesRankings.unitsSold)));
 }

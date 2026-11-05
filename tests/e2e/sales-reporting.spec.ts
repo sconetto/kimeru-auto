@@ -46,4 +46,20 @@ test.describe("Sales reporting", () => {
     expect(hrefs.length).toBeGreaterThan(0);
     expect(new Set(hrefs).size).toBe(hrefs.length);
   });
+
+  test("every car linked from best-sellers resolves", async ({ page, request }) => {
+    await page.goto("/pt-BR/best-sellers");
+
+    const hrefs = await page
+      .locator('a[href^="/pt-BR/car/"]')
+      .evaluateAll((links) => links.map((link) => link.getAttribute("href") ?? ""));
+    test.skip(hrefs.length === 0, "needs seeded sales data");
+
+    // Placeholder models are inactive and have no detail page; if one leaked
+    // into the ranking its link would 404 here.
+    for (const href of hrefs.slice(0, 10)) {
+      const response = await request.get(href);
+      expect(response.status(), `${href} should resolve`).toBe(200);
+    }
+  });
 });
