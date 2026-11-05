@@ -148,7 +148,13 @@
     "category": "Category",
     "registrations": "Registrations",
     "source": "Source: FENABRAVE (Brazilian Federation of Motor Vehicle Distribution).",
-    "aggregatesNote": "Each position sums all trim versions of the model registered that month."
+    "aggregatesNote": "Each position sums all trim versions of the model registered that month.",
+    "periodLabel": "Report month",
+    "ytdTitle": "Year {year} to date",
+    "ytdByModel": "Best-selling models this year",
+    "ytdByBrand": "Best-selling brands this year",
+    "ytdMonths": "{count} months",
+    "ytdNote": "Sum of every imported month of the year."
   },
   "car": {
     "metaTitle": "{brand} {model} {year} | Price, Specs and Sales",

@@ -1,22 +1,39 @@
 import { TrendingUp } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import { getSalesRankings } from "@/lib/catalog/queries";
+import {
+  availableSalesPeriods,
+  getBrandYearToDate,
+  getSalesRankings,
+  getSalesYearToDate,
+  type SalesPeriod,
+} from "@/lib/catalog/queries";
 import { categoryLabels, fuelLabels } from "@/lib/format-labels";
 import { Link } from "@/lib/i18n/navigation";
+import { parseSalesPeriod } from "@/lib/sales-period";
 
 export const revalidate = 3600;
 
+const YTD_LIMIT = 10;
+
+function periodHref({ year, month }: SalesPeriod): string {
+  return `/best-sellers?year=${year}&month=${month}`;
+}
+
 export default async function MaisVendidosPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { locale } = await params;
+  const query = await searchParams;
   const t = await getTranslations({ locale, namespace: "sales" });
   const tCommon = await getTranslations({ locale, namespace: "common" });
-  const rankings = await getSalesRankings().catch(() => []);
 
-  if (rankings.length === 0) {
+  const periods = await availableSalesPeriods().catch(() => []);
+
+  if (periods.length === 0) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6">
         <TrendingUp className="mx-auto mb-4 h-10 w-10 text-slate-400" />
@@ -26,15 +43,61 @@ export default async function MaisVendidosPage({
     );
   }
 
-  const { month, year } = rankings[0];
-  const monthLabel = new Date(year, month - 1, 1).toLocaleDateString(locale, { month: "long" });
+  // Only a period that actually has data is honoured; anything else falls back
+  // to the latest month, so a stale link never renders an empty ranking.
+  const requested = parseSalesPeriod(
+    Array.isArray(query.year) ? query.year[0] : query.year,
+    Array.isArray(query.month) ? query.month[0] : query.month,
+  );
+  const selected =
+    (requested &&
+      periods.find(
+        (period) => period.year === requested.year && period.month === requested.month,
+      )) ||
+    periods[0];
+
+  const [rankings, yearToDate, brandYearToDate] = await Promise.all([
+    getSalesRankings(selected).catch(() => []),
+    getSalesYearToDate(selected.year).catch(() => []),
+    getBrandYearToDate(selected.year).catch(() => []),
+  ]);
+
+  const monthLabel = new Date(selected.year, selected.month - 1, 1).toLocaleDateString(locale, {
+    month: "long",
+  });
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">
         {t("title")}
       </h1>
-      <p className="mt-2 text-slate-500">{t("subtitle", { month: monthLabel, year })}</p>
+      <p className="mt-2 text-slate-500">
+        {t("subtitle", { month: monthLabel, year: selected.year })}
+      </p>
+
+      <nav aria-label={t("periodLabel")} className="mt-6 flex flex-wrap gap-2">
+        {periods.map((period) => {
+          const isActive = period.year === selected.year && period.month === selected.month;
+          const label = new Date(period.year, period.month - 1, 1).toLocaleDateString(locale, {
+            month: "short",
+            year: "numeric",
+          });
+          return (
+            <Link
+              key={`${period.year}-${period.month}`}
+              href={periodHref(period)}
+              aria-current={isActive ? "page" : undefined}
+              className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
+                isActive
+                  ? "border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-300"
+                  : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              }`}
+            >
+              {label}
+            </Link>
+          );
+        })}
+      </nav>
 
       <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <table className="w-full text-sm">
@@ -96,6 +159,75 @@ export default async function MaisVendidosPage({
 
       <p className="mt-4 text-xs text-slate-400">{t("source")}</p>
       <p className="mt-1 text-xs text-slate-400">{t("aggregatesNote")}</p>
+
+      <section className="mt-12" aria-labelledby="ytd-heading">
+        <h2 id="ytd-heading" className="text-xl font-bold text-slate-900 dark:text-white">
+          {t("ytdTitle", { year: selected.year })}
+        </h2>
+        <p className="mt-1 text-xs text-slate-400">{t("ytdNote")}</p>
+
+        <div className="mt-5 grid gap-6 lg:grid-cols-2">
+          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <table className="w-full text-sm">
+              <caption className="border-b border-slate-200 bg-slate-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:bg-slate-900">
+                {t("ytdByModel")}
+              </caption>
+              <tbody>
+                {yearToDate.slice(0, YTD_LIMIT).map((row, i) => (
+                  <tr
+                    key={row.modelId}
+                    className="border-b border-slate-100 last:border-0 dark:border-slate-800"
+                  >
+                    <td className="w-10 px-4 py-2.5 text-center text-xs font-semibold text-slate-400">
+                      {i + 1}
+                    </td>
+                    <td className="px-2 py-2.5">
+                      <Link
+                        href={`/car/${row.modelSlug}`}
+                        className="font-medium text-slate-900 hover:text-blue-600 dark:text-white dark:hover:text-blue-400"
+                      >
+                        {row.brandName} {row.modelName}
+                      </Link>
+                      <span className="ml-2 text-xs text-slate-400">
+                        {t("ytdMonths", { count: row.monthsCounted })}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-slate-900 dark:text-white">
+                      {row.unitsSold.toLocaleString(locale)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <table className="w-full text-sm">
+              <caption className="border-b border-slate-200 bg-slate-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:bg-slate-900">
+                {t("ytdByBrand")}
+              </caption>
+              <tbody>
+                {brandYearToDate.slice(0, YTD_LIMIT).map((row, i) => (
+                  <tr
+                    key={row.brandName}
+                    className="border-b border-slate-100 last:border-0 dark:border-slate-800"
+                  >
+                    <td className="w-10 px-4 py-2.5 text-center text-xs font-semibold text-slate-400">
+                      {i + 1}
+                    </td>
+                    <td className="px-2 py-2.5 font-medium text-slate-900 dark:text-white">
+                      {row.brandName}
+                    </td>
+                    <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-slate-900 dark:text-white">
+                      {row.unitsSold.toLocaleString(locale)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

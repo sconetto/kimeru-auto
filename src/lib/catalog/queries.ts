@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, getTableColumns, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, getTableColumns, sql, sum } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import type {
@@ -21,6 +21,7 @@ import {
   specValues,
 } from "@/lib/db/schema";
 import { editorialTeaser } from "@/lib/editorial/teaser";
+import type { SalesPeriod } from "@/lib/sales-period";
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -203,8 +204,12 @@ async function getModelsByBrandImpl(brandSlug: string): Promise<ModelCard[]> {
     )
     .leftJoin(
       salesRankings,
-      sql`${salesRankings.modelId} = ${models.id} AND ${salesRankings.year} = (
-        SELECT MAX(s2.year) FROM sales_rankings s2 WHERE s2.model_id = ${models.id}
+      sql`${salesRankings.id} = (
+        SELECT sr2.id
+        FROM sales_rankings sr2
+        WHERE sr2.model_id = ${models.id}
+        ORDER BY sr2.year DESC, sr2.month DESC
+        LIMIT 1
       )`,
     )
     .where(and(eq(brands.slug, brandSlug), eq(models.isActive, true)))
@@ -475,8 +480,12 @@ async function getAllActiveModelsImpl(): Promise<ModelCard[]> {
     )
     .leftJoin(
       salesRankings,
-      sql`${salesRankings.modelId} = ${models.id} AND ${salesRankings.year} = (
-        SELECT MAX(s2.year) FROM sales_rankings s2 WHERE s2.model_id = ${models.id}
+      sql`${salesRankings.id} = (
+        SELECT sr2.id
+        FROM sales_rankings sr2
+        WHERE sr2.model_id = ${models.id}
+        ORDER BY sr2.year DESC, sr2.month DESC
+        LIMIT 1
       )`,
     )
     .where(eq(models.isActive, true))
@@ -721,15 +730,30 @@ export interface SalesRankingRow {
   year: number;
 }
 
-/** Top-selling models for the latest month with data. */
-async function getSalesRankingsImpl(): Promise<SalesRankingRow[]> {
+export type { SalesPeriod } from "@/lib/sales-period";
+
+/** Latest report month that has data, or null when nothing is imported yet. */
+export async function latestSalesPeriod(): Promise<SalesPeriod | null> {
   const [latest] = await db
     .select({ year: salesRankings.year, month: salesRankings.month })
     .from(salesRankings)
     .orderBy(desc(salesRankings.year), desc(salesRankings.month))
     .limit(1);
+  return latest ?? null;
+}
 
-  if (!latest) return [];
+/** Report months that have data, newest first (drives the month selector). */
+export async function availableSalesPeriods(): Promise<SalesPeriod[]> {
+  return db
+    .selectDistinct({ year: salesRankings.year, month: salesRankings.month })
+    .from(salesRankings)
+    .orderBy(desc(salesRankings.year), desc(salesRankings.month));
+}
+
+/** Top-selling models for a report month (latest when no period is given). */
+async function getSalesRankingsImpl(period?: SalesPeriod): Promise<SalesRankingRow[]> {
+  const target = period ?? (await latestSalesPeriod());
+  if (!target) return [];
 
   const rows = await db
     .select({
@@ -746,7 +770,7 @@ async function getSalesRankingsImpl(): Promise<SalesRankingRow[]> {
     .from(salesRankings)
     .innerJoin(models, eq(models.id, salesRankings.modelId))
     .innerJoin(brands, eq(brands.id, models.brandId))
-    .where(and(eq(salesRankings.year, latest.year), eq(salesRankings.month, latest.month)))
+    .where(and(eq(salesRankings.year, target.year), eq(salesRankings.month, target.month)))
     .orderBy(asc(salesRankings.rankingPosition))
     .limit(50);
 
@@ -763,9 +787,15 @@ export const getSalesRankings = unstable_cache(getSalesRankingsImpl, ["sales-ran
   tags: ["sales"],
 });
 
-/** Monthly sales series for a model family (sparkline data). */
+/**
+ * Monthly sales series for a model family, oldest first.
+ *
+ * Reads the most recent `months` rows (descending) and re-sorts, so a long
+ * history yields the latest window rather than the earliest one.
+ */
 export async function getSalesTrend(
   modelId: number,
+  months = 12,
 ): Promise<{ month: number; year: number; unitsSold: number }[]> {
   const rows = await db
     .select({
@@ -775,9 +805,64 @@ export async function getSalesTrend(
     })
     .from(salesRankings)
     .where(eq(salesRankings.modelId, modelId))
-    .orderBy(asc(salesRankings.year), asc(salesRankings.month))
-    .limit(12);
-  return rows.map((r) => ({ ...r, unitsSold: Number(r.unitsSold) }));
+    .orderBy(desc(salesRankings.year), desc(salesRankings.month))
+    .limit(months);
+
+  return rows
+    .map((r) => ({ month: r.month, year: r.year, unitsSold: Number(r.unitsSold) }))
+    .sort((a, b) => a.year - b.year || a.month - b.month);
+}
+
+export interface SalesYearToDateRow {
+  modelId: number;
+  modelSlug: string;
+  modelName: string;
+  brandName: string;
+  category: (typeof vehicleCategory.enumValues)[number] | null;
+  unitsSold: number;
+  monthsCounted: number;
+}
+
+/** Per-model registrations summed across every month of a year. */
+export async function getSalesYearToDate(year: number): Promise<SalesYearToDateRow[]> {
+  return db
+    .select({
+      modelId: salesRankings.modelId,
+      modelSlug: models.slug,
+      modelName: models.name,
+      brandName: brands.name,
+      category: models.category,
+      unitsSold: sum(salesRankings.unitsSold).mapWith(Number),
+      monthsCounted: count(salesRankings.id).mapWith(Number),
+    })
+    .from(salesRankings)
+    .innerJoin(models, eq(models.id, salesRankings.modelId))
+    .innerJoin(brands, eq(brands.id, models.brandId))
+    .where(eq(salesRankings.year, year))
+    .groupBy(salesRankings.modelId, models.slug, models.name, brands.name, models.category)
+    .orderBy(desc(sum(salesRankings.unitsSold)));
+}
+
+export interface BrandYearToDateRow {
+  brandName: string;
+  unitsSold: number;
+  monthsCounted: number;
+}
+
+/** Per-brand registrations summed across every month of a year. */
+export async function getBrandYearToDate(year: number): Promise<BrandYearToDateRow[]> {
+  return db
+    .select({
+      brandName: brands.name,
+      unitsSold: sum(salesRankings.unitsSold).mapWith(Number),
+      monthsCounted: count(salesRankings.id).mapWith(Number),
+    })
+    .from(salesRankings)
+    .innerJoin(models, eq(models.id, salesRankings.modelId))
+    .innerJoin(brands, eq(brands.id, models.brandId))
+    .where(eq(salesRankings.year, year))
+    .groupBy(brands.name)
+    .orderBy(desc(sum(salesRankings.unitsSold)));
 }
 
 /** A car with published editorial, for the review index list. */

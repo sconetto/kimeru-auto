@@ -148,7 +148,13 @@
     "category": "Categoria",
     "registrations": "Emplacamentos",
     "source": "Fonte: FENABRAVE (Federação Nacional da Distribuição de Veículos Automotores).",
-    "aggregatesNote": "Cada posição representa a soma de todas as versões (acabamentos) do modelo registradas no mês."
+    "aggregatesNote": "Cada posição representa a soma de todas as versões (acabamentos) do modelo registradas no mês.",
+    "periodLabel": "Mês de referência",
+    "ytdTitle": "Ano {year} até agora",
+    "ytdByModel": "Modelos mais vendidos no ano",
+    "ytdByBrand": "Marcas mais vendidas no ano",
+    "ytdMonths": "{count} meses",
+    "ytdNote": "Soma de todos os meses do ano já importados."
   },
   "car": {
     "metaTitle": "{brand} {model} {year} | Preço, Ficha técnica e Vendas",
