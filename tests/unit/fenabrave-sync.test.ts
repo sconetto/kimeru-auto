@@ -62,6 +62,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
   vi.resetModules();
@@ -69,6 +70,11 @@ afterEach(() => {
 
 describe("syncFenabraveReport", () => {
   it("treats a 404 as 'not published yet' rather than a failure", async () => {
+    // Inside the publication window (before the day-10 deadline); otherwise the
+    // outcome depends on the day the suite runs. Only Date is faked so the
+    // retry timers still run normally.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-05T12:00:00Z"));
     const sync = await loadSync({ FENABRAVE_RETRY_DELAY_MS: "0", FENABRAVE_URL_VARIANTS: "1" });
     const fetchMock = stubFetch(statusResponse(404));
 
