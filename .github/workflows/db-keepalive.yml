@@ -7,8 +7,9 @@ name: DB Keep-alive (daily)
 #
 # GitHub disables scheduled workflows in public repos after 60 days without
 # repository activity, which would silently stop this job in exactly the quiet
-# periods it exists for. Each run re-enables this workflow through the API, which
-# resets that timer without needing dummy commits.
+# periods it exists for, and would stop the FIPE/FENABRAVE syncs and the security
+# audit the same way. Each run re-enables every scheduled workflow through the
+# API, which resets that timer without needing dummy commits.
 
 on:
   schedule:
@@ -94,11 +95,17 @@ jobs:
           echo "- ❌ Upstash Redis did not answer after 3 attempts" >> "$GITHUB_STEP_SUMMARY"
           exit 1
 
-      - name: Re-enable this workflow (reset the 60-day timer)
+      # Every scheduled workflow in the repo, so the monthly syncs and the
+      # weekly audit survive quiet periods too. Add new scheduled workflows here.
+      - name: Re-enable scheduled workflows (reset the 60-day timer)
         if: ${{ !cancelled() }}
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/db-keepalive.yml/enable"
+        run: |
+          for wf in db-keepalive.yml fipe-sync.yml fenabrave-sync.yml security.yml; do
+            gh api -X PUT "repos/${{ github.repository }}/actions/workflows/$wf/enable"
+            echo "Re-enabled $wf"
+          done
 
       - name: Open an issue when a ping fails
         if: failure()
