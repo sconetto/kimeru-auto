@@ -1,0 +1,141 @@
+name: DB Keep-alive (daily)
+
+# Free tiers pause or archive idle databases: Supabase pauses a project
+# after 7 days without activity, and Upstash Redis warns about low traffic.
+# Real site traffic is too low (and mostly served from cache) to count, so this
+# job runs a small query against each one once a day.
+#
+# GitHub disables scheduled workflows in public repos after 60 days without
+# repository activity, which would silently stop this job in exactly the quiet
+# periods it exists for. Each run re-enables this workflow through the API, which
+# resets that timer without needing dummy commits.
+
+on:
+  schedule:
+    # Off the top of the hour: GitHub delays or drops runs scheduled at :00 under
+    # load. Daily leaves a 6-run margin inside Supabase's 7-day window.
+    - cron: "23 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write # re-enable this workflow (60-day inactivity rule)
+  issues: write # open an issue when a ping fails
+
+jobs:
+  ping:
+    name: Ping Supabase and Upstash Redis
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PGCONNECT_TIMEOUT: "20"
+    steps:
+      - name: Ensure psql is available
+        run: command -v psql || (sudo apt-get update -q && sudo apt-get install -y -q postgresql-client)
+
+      # A table read (not just `select 1`) so the ping registers as real
+      # database activity. `fipe_sync`, the role behind DATABASE_URL, can read
+      # every public table. DATABASE_URL is the IPv4 Supavisor pooler URL that
+      # GitHub runners can reach. The repo is public, so the query result is
+      # discarded and the logs only say whether the database answered.
+      - name: Ping Supabase
+        env:
+          DB_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DB_URL" ]; then
+            echo "::error::DATABASE_URL secret is not set"
+            exit 1
+          fi
+          for attempt in 1 2 3; do
+            if psql "$DB_URL" -X -q -t -A -v ON_ERROR_STOP=1 \
+                -c "select count(*) from public.brands" >/dev/null; then
+              echo "Supabase OK"
+              echo "- ✅ Supabase answered" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "::warning::Supabase attempt $attempt failed, retrying"
+            sleep $((attempt * 10))
+          done
+          echo "- ❌ Supabase did not answer after 3 attempts" >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+
+      # Upstash over its REST API, with the same KV_* secrets the sync jobs use.
+      # It writes a small key (expiring after 14 days) and reads it back, so
+      # the ping counts as a real read and write. The token travels only in
+      # the Authorization header, and responses are checked silently, never
+      # printed.
+      - name: Ping Upstash Redis
+        if: ${{ !cancelled() }}
+        env:
+          KV_URL: ${{ secrets.KV_REST_API_URL }}
+          KV_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
+        run: |
+          if [ -z "$KV_URL" ] || [ -z "$KV_TOKEN" ]; then
+            echo "::error::KV_REST_API_URL or KV_REST_API_TOKEN secret is not set"
+            exit 1
+          fi
+          now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          redis() {
+            curl -fsS --max-time 20 -X POST "$KV_URL" \
+              -H "Authorization: Bearer $KV_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "$1"
+          }
+          for attempt in 1 2 3; do
+            if redis "[\"SET\",\"keepalive:last-ping\",\"$now\",\"EX\",\"1209600\"]" >/dev/null \
+                && got=$(redis '["GET","keepalive:last-ping"]') \
+                && printf '%s' "$got" | grep -qF "$now"; then
+              echo "Upstash OK"
+              echo "- ✅ Upstash Redis answered" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "::warning::Upstash attempt $attempt failed, retrying"
+            sleep $((attempt * 10))
+          done
+          echo "- ❌ Upstash Redis did not answer after 3 attempts" >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+
+      - name: Re-enable this workflow (reset the 60-day timer)
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/db-keepalive.yml/enable"
+
+      - name: Open an issue when a ping fails
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = 'DB keep-alive failed';
+            const body = [
+              'The daily keep-alive could not reach at least one database. If this',
+              'keeps failing, the provider will pause it for inactivity. Check the run',
+              'to see which one (Supabase or Upstash Redis), then check whether the project is',
+              'already paused or its connection string has changed.',
+              '',
+              `- Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              `- Time: ${new Date().toISOString()}`,
+            ].join('\n');
+
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+            const existing = open.find((issue) => issue.title === title);
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+              });
+            }
